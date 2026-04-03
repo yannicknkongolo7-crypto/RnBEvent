@@ -69,10 +69,12 @@ function showSlide(index) {
 }
 
 // Auto-rotate testimonials
-setInterval(() => {
-    currentSlide = (currentSlide + 1) % testimonialItems.length;
-    showSlide(currentSlide);
-}, 5000);
+if (testimonialItems.length > 0) {
+    setInterval(() => {
+        currentSlide = (currentSlide + 1) % testimonialItems.length;
+        showSlide(currentSlide);
+    }, 5000);
+}
 
 // Manual dot navigation
 dots.forEach((dot, index) => {
@@ -213,6 +215,16 @@ document.querySelectorAll('section').forEach(section => {
 // Observe portfolio and category items
 document.querySelectorAll('.portfolio-item, .category-card, .service-card').forEach(item => {
     observer.observe(item);
+});
+
+// Immediately reveal elements already in viewport on page load
+requestAnimationFrame(() => {
+    document.querySelectorAll('section, .portfolio-item, .category-card, .service-card').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+            el.classList.add('visible');
+        }
+    });
 });
 
 // Observe portfolio items

@@ -1142,7 +1142,14 @@ img, video {
 
 .form-group {
     margin-bottom: 25px;
-}rgba(119, 163, 97, 0.3);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid rgba(119, 163, 97, 0.3);
     background: var(--white);
     color: var(--text-color);
     transition: var(--transition);
@@ -1153,17 +1160,7 @@ img, video {
 .form-group select:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(119, 163, 97, 0.1
-    background: var(--white);
-    color: var(--text-color);
-    transition: var(--transition);
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(119, 163, 97, 0.1);
 }
 
 .form-group input::placeholder,
@@ -1352,6 +1349,7 @@ section {
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.8s ease, transform 0.8s ease;
+    min-height: 1px; /* Prevent height collapse when invisible */
 }
 
 section.visible,

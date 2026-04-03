@@ -1544,12 +1544,12 @@ section.visible,
     }
 
     .contact-info-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 40px;
     }
 
     .portfolio-categories {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 30px;
     }
 

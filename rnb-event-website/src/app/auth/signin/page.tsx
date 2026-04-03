@@ -90,7 +90,7 @@ function SignInContent() {
 
 export default function SignInPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
       <SignInContent />
     </Suspense>
   )

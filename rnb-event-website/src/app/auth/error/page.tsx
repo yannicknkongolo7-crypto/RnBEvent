@@ -89,7 +89,7 @@ function AuthErrorContent() {
 
 export default function AuthErrorPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
       <AuthErrorContent />
     </Suspense>
   )

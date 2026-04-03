@@ -18,7 +18,11 @@ export default function AdminPage() {
     }
   }, [session, status, router])
 
-  if (status === 'loading' || !session?.user || (session.user as { role?: string }).role !== 'admin') {
+  if (status === 'loading') {
+    return <div className="min-h-screen bg-black" />
+  }
+
+  if (!session?.user || (session.user as { role?: string }).role !== 'admin') {
     return null
   }
 

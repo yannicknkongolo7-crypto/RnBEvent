@@ -1587,17 +1587,16 @@ section.visible,
     }
 
     .nav-container {
-        justify-content: space-between;
+        justify-content: center;
         padding: 15px 30px;
-        gap: 20px;
-        position: relative;
+        gap: 0;
     }
 
     .logo {
-        order: 2;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+        position: relative;
+        left: auto;
+        transform: none;
+        order: unset;
         flex: 0;
     }
 
@@ -1608,10 +1607,6 @@ section.visible,
     .nav-left,
     .nav-right {
         display: none;
-    }
-
-    .hero {
-        margin-top: 100px;
     }
 
     .page-hero {
@@ -1627,19 +1622,9 @@ section.visible,
         font-size: 14px;
     }
 
-    .nav-left {
-        top: 100px;
-        order: 2;
-    }
-
-    .nav-right {
-        top: 200px;
-        order: 2;
-        padding-bottom: 20px;
-    }
-
     .hero {
         height: 80vh;
+        margin-top: 100px;
     }
 
     .hero-title {
@@ -1823,10 +1808,9 @@ section.visible,
         font-size: 13px;
     }
 
-    .nav-left {\n        top: 90px;\n        padding: 12px 0;\n    }\n\n    .nav-right {\n        top: 180px;\n        padding: 12px 0;\n    }\n\n    .hero {\n        margin-top: 85px;\n    }
-
     .hero {
         height: 70vh;
+        margin-top: 85px;
     }
 
     .hero-title {

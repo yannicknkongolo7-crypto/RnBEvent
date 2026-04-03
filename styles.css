@@ -1607,7 +1607,7 @@ section.visible,
 
     .nav-left,
     .nav-right {
-        padding: 0;
+        display: none;
     }
 
     .hero {
@@ -1627,22 +1627,6 @@ section.visible,
         font-size: 14px;
     }
 
-    .nav-left,
-    .nav-right {
-        position: fixed;
-        left: -100%;
-        flex-direction: column;
-        background: var(--cream);
-        width: 100%;
-        text-align: center;
-        transition: 0.3s ease;
-        box-shadow: 0 10px 27px rgba(44, 62, 44, 0.1);
-        padding: 15px 0;
-        gap: 20px;
-        z-index: 999;
-        flex: none;
-    }
-
     .nav-left {
         top: 100px;
         order: 2;
@@ -1652,11 +1636,6 @@ section.visible,
         top: 200px;
         order: 2;
         padding-bottom: 20px;
-    }
-
-    .nav-left.active,
-    .nav-right.active {
-        left: 0;
     }
 
     .hero {

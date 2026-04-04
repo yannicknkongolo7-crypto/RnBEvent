@@ -5,6 +5,7 @@
  */
 
 window.RNB_CLIENTS = {};
+window.RNB_CLOUD_URL = 'https://script.google.com/macros/s/AKfycbyrBsv3ydk-aUw_x7Ei0Z4zx6HryuYyBSDrs2lKnGlcom-0HrA4xiBYu7pnktmawO1gVg/exec';
 window.RNB_CLIENTS_RAW = {
 
     /* Demo / Default */

@@ -163,6 +163,7 @@
                 <div class="tools-tabs">
                     <button class="tool-tab active" onclick="switchTool('kanban', this)">PROSPECT KANBAN</button>
                     <button class="tool-tab" onclick="switchTool('content', this)">CONTENT EDITOR</button>
+                    <button class="tool-tab" onclick="switchTool('clients', this)">CLIENT MANAGER</button>
                 </div>
             </div>
 
@@ -195,6 +196,15 @@
                     <button class="panel-btn content-undo-btn" onclick="undoContentDraft()">&#8630; UNDO</button>
                     <button class="panel-btn content-view-btn" onclick="viewContentChanges()">VIEW ALL CHANGES</button>
                 </div>
+            </div>
+
+            <!-- Client Manager -->
+            <div id="tool-clients" class="tool-panel hidden">
+                <p class="tool-desc">Create and manage client portal access codes. Each client gets a unique code that unlocks their personalized view at <strong>/Client</strong>.</p>
+                <div style="margin-bottom:16px;">
+                    <button class="panel-btn" onclick="openAddClient()">+ NEW CLIENT</button>
+                </div>
+                <div id="clients-list"><!-- Populated by JS --></div>
             </div>
         </section>
 
@@ -295,6 +305,64 @@
                 <button class="modal-cancel" onclick="copyAllChanges()">COPY ALL</button>
                 <button class="modal-save" onclick="closeModal('modal-content-changes')">CLOSE</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Client Modal -->
+    <div id="modal-client" class="modal-overlay hidden">
+        <div class="modal-card modal-card-wide">
+            <h3 class="modal-title" id="client-modal-title">New Client</h3>
+            <form id="form-client" onsubmit="return false;">
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">ACCESS CODE</label>
+                        <input type="text" id="c-code" class="form-input" placeholder="e.g. SMITH2026">
+                        <small class="form-hint">Client will enter this at /Client to access their portal</small>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">CLIENT NAME</label>
+                        <input type="text" id="c-name" class="form-input" placeholder="Full Name">
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">FIRST NAME (portal greeting)</label>
+                        <input type="text" id="c-first" class="form-input" placeholder="First Name">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">EVENT TYPE</label>
+                        <input type="text" id="c-etype" class="form-input" placeholder="Wedding, Sweet 16…">
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">EVENT DATE</label>
+                        <input type="text" id="c-edate" class="form-input" placeholder="September 20, 2026">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">VENUE</label>
+                        <input type="text" id="c-venue" class="form-input" placeholder="Venue Name">
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">PLANNER NAME</label>
+                        <input type="text" id="c-planner" class="form-input" placeholder="RNB Events Team" value="RNB Events Team">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">PLANNER EMAIL</label>
+                        <input type="email" id="c-pemail" class="form-input" placeholder="hello@rnbevents716.com" value="hello@rnbevents716.com">
+                    </div>
+                </div>
+                <hr class="form-divider">
+                <h4 class="form-section-title">TIMELINE MILESTONES</h4>
+                <div id="c-timeline-rows"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addClientTimelineRow()">+ MILESTONE</button>
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" onclick="closeModal('modal-client')">CANCEL</button>
+                    <button type="submit" class="modal-save" onclick="saveClient()">SAVE CLIENT</button>
+                </div>
+            </form>
         </div>
     </div>
 

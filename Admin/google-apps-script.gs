@@ -26,8 +26,13 @@ function doGet(e) {
     return respond({
       prospects: readSheet(ss, 'Prospects'),
       tasks:     readSheet(ss, 'Tasks'),
-      content:   readKV(ss, 'Content')
+      content:   readKV(ss, 'Content'),
+      clients:   readClientsAsArray(ss)
     });
+  }
+
+  if (action === 'getClients') {
+    return respond({ clients: readClientsAsArray(ss) });
   }
 
   return respond({ error: 'Unknown action' });
@@ -55,6 +60,10 @@ function doPost(e) {
 
   if (body.content) {
     writeKV(ss, 'Content', body.content);
+  }
+
+  if (body.clients) {
+    writeClientsSheet(ss, body.clients);
   }
 
   return respond({ ok: true, ts: new Date().toISOString() });
@@ -120,6 +129,33 @@ function respond(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/* ── Write clients: store as codeHash → JSON string ── */
+function writeClientsSheet(ss, clients) {
+  var s = ss.getSheetByName('Clients');
+  if (!s) s = ss.insertSheet('Clients');
+  s.clear();
+  s.appendRow(['codeHash', 'configJSON']);
+  clients.forEach(function (c) {
+    if (c && c.codeHash) {
+      s.appendRow([c.codeHash, JSON.stringify(c)]);
+    }
+  });
+}
+
+/* ── Read clients sheet → returns array of client objects ── */
+function readClientsAsArray(ss) {
+  var s = ss.getSheetByName('Clients');
+  if (!s || s.getLastRow() < 2) return [];
+  var d = s.getDataRange().getValues();
+  var arr = [];
+  for (var i = 1; i < d.length; i++) {
+    if (d[i][1]) {
+      try { arr.push(JSON.parse(d[i][1])); } catch (e) { /* skip bad rows */ }
+    }
+  }
+  return arr;
+}
+
 /* ── Run once to create the tabs ── */
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -133,5 +169,8 @@ function setup() {
   }
   if (!ss.getSheetByName('Content')) {
     ss.insertSheet('Content').appendRow(['key','value']);
+  }
+  if (!ss.getSheetByName('Clients')) {
+    ss.insertSheet('Clients').appendRow(['codeHash','configJSON']);
   }
 }

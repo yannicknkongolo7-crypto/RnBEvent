@@ -13,6 +13,7 @@
     var STORAGE_TASKS   = 'rnb_admin_tasks';
     var STORAGE_CONTENT         = 'rnb_content_drafts';
     var STORAGE_CONTENT_HISTORY = 'rnb_content_drafts_history';
+    var STORAGE_CLIENTS         = 'rnb_admin_clients';
 
     var CONTENT_PAGE_URLS = {
         home:     'https://rnbevents716.com/',
@@ -72,6 +73,7 @@
     var state = {
         prospects:    [],
         tasks:        [],
+        clients:      [],
         activeFilter: 'all'
     };
     var contentDrafts        = {};
@@ -350,6 +352,10 @@
 
         // Content drafts
         contentDrafts = safeJSON(localStorage.getItem(STORAGE_CONTENT)) || {};
+
+        // Clients
+        var storedC = safeJSON(localStorage.getItem(STORAGE_CLIENTS));
+        state.clients = Array.isArray(storedC) ? storedC : [];
     }
 
     function safeSave(key, data) {
@@ -371,6 +377,11 @@
     function saveTasksToStorage() {
         safeSave(STORAGE_TASKS, state.tasks);
         cloudPush({ tasks: state.tasks });
+    }
+
+    function saveClientsToStorage() {
+        safeSave(STORAGE_CLIENTS, state.clients);
+        cloudPush({ clients: state.clients });
     }
 
     /* ══════════════════════════════════════════════════
@@ -434,6 +445,11 @@
                     }
                 });
                 safeSave(STORAGE_CONTENT, contentDrafts);
+                changed = true;
+            }
+            if (Array.isArray(data.clients) && data.clients.length) {
+                state.clients = data.clients;
+                safeSave(STORAGE_CLIENTS, state.clients);
                 changed = true;
             }
             if (changed) renderAll();
@@ -707,8 +723,10 @@
         if (btn) btn.classList.add('active');
         document.getElementById('tool-kanban').classList.toggle('hidden', name !== 'kanban');
         document.getElementById('tool-content').classList.toggle('hidden', name !== 'content');
+        document.getElementById('tool-clients').classList.toggle('hidden', name !== 'clients');
         if (name === 'kanban')  renderKanban();
         if (name === 'content') renderContentFields(activeContentPage);
+        if (name === 'clients') renderClientManager();
     }
 
     function renderKanban() {
@@ -1046,6 +1064,167 @@
         renderContentFields(activeContentPage);
     }
 
+    /* ══════════════════════════════════════════════════
+       CLIENT MANAGER — Portal Access Codes
+    ══════════════════════════════════════════════════ */
+
+    var editingClientId = null;
+
+    function renderClientManager() {
+        var el = document.getElementById('clients-list');
+        if (!el) return;
+
+        if (!state.clients.length) {
+            el.innerHTML = '<p style="padding:20px 0;font-size:12px;color:#527141;font-weight:300;letter-spacing:0.5px">No clients yet. Click + NEW CLIENT to create a portal access code.</p>';
+            return;
+        }
+
+        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Access Code</span><span>Actions</span></div>';
+        state.clients.forEach(function (c) {
+            html += '<div class="crm-row">' +
+                '<span class="crm-name">' + esc(c.fullName || c.firstName || '–') + '</span>' +
+                '<span class="crm-event">' + esc(c.eventType || '–') + '</span>' +
+                '<span class="crm-date">' + esc(c.eventDate || '–') + '</span>' +
+                '<span class="client-code-cell"><code class="client-code-badge">' + esc(c.accessCode) + '</code></span>' +
+                '<span class="crm-actions">' +
+                    '<button class="crm-act-btn" onclick="editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
+                    '<button class="crm-act-btn del-btn" onclick="deleteClient(\'' + escJS(c.id) + '\')">DEL</button>' +
+                '</span>' +
+            '</div>';
+        });
+        el.innerHTML = html;
+    }
+
+    function openAddClient() {
+        editingClientId = null;
+        document.getElementById('client-modal-title').textContent = 'New Client';
+        ['c-code','c-name','c-first','c-etype','c-edate','c-venue'].forEach(function (id) {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('c-planner').value = 'RNB Events Team';
+        document.getElementById('c-pemail').value  = 'hello@rnbevents716.com';
+        document.getElementById('c-code').readOnly = false;
+        document.getElementById('c-timeline-rows').innerHTML = '';
+        addClientTimelineRow();
+        document.getElementById('modal-client').classList.remove('hidden');
+    }
+
+    function editClient(id) {
+        var c = state.clients.find(function (x) { return x.id === id; });
+        if (!c) return;
+        editingClientId = id;
+        document.getElementById('client-modal-title').textContent = 'Edit Client';
+        document.getElementById('c-code').value    = c.accessCode || '';
+        document.getElementById('c-code').readOnly = true;
+        document.getElementById('c-name').value    = c.fullName      || '';
+        document.getElementById('c-first').value   = c.firstName     || '';
+        document.getElementById('c-etype').value   = c.eventType     || '';
+        document.getElementById('c-edate').value   = c.eventDate     || '';
+        document.getElementById('c-venue').value   = c.eventVenue    || '';
+        document.getElementById('c-planner').value = c.planner       || 'RNB Events Team';
+        document.getElementById('c-pemail').value  = c.plannerEmail  || 'hello@rnbevents716.com';
+
+        var container = document.getElementById('c-timeline-rows');
+        container.innerHTML = '';
+        if (c.timeline && c.timeline.length) {
+            c.timeline.forEach(function (m) { addClientTimelineRow(m); });
+        } else {
+            addClientTimelineRow();
+        }
+        document.getElementById('modal-client').classList.remove('hidden');
+    }
+
+    function addClientTimelineRow(data) {
+        var container = document.getElementById('c-timeline-rows');
+        var row = document.createElement('div');
+        row.className = 'timeline-edit-row';
+        row.innerHTML =
+            '<input type="text" class="form-input tl-date" placeholder="Date (e.g. May 1, 2026)" value="' + esc((data && data.date) || '') + '">' +
+            '<input type="text" class="form-input tl-milestone" placeholder="Milestone" value="' + esc((data && data.milestone) || '') + '">' +
+            '<input type="text" class="form-input tl-notes" placeholder="Notes (optional)" value="' + esc((data && data.notes) || '') + '">' +
+            '<button type="button" class="crm-act-btn del-btn" onclick="this.parentElement.remove()">&times;</button>';
+        container.appendChild(row);
+    }
+
+    function saveClient() {
+        var code  = (document.getElementById('c-code').value || '').trim().toUpperCase();
+        var name  = (document.getElementById('c-name').value || '').trim();
+        var first = (document.getElementById('c-first').value || '').trim();
+
+        if (!code) { alert('Access code is required.'); return; }
+        if (!name)  { alert('Client name is required.'); return; }
+
+        var dupe = state.clients.find(function (c) {
+            return c.accessCode === code && c.id !== editingClientId;
+        });
+        if (dupe) { alert('This access code is already assigned to ' + dupe.fullName + '.'); return; }
+
+        var timeline = [];
+        document.querySelectorAll('#c-timeline-rows .timeline-edit-row').forEach(function (row) {
+            var d = row.querySelector('.tl-date').value.trim();
+            var m = row.querySelector('.tl-milestone').value.trim();
+            if (d && m) {
+                timeline.push({
+                    date:      d,
+                    milestone: m,
+                    status:    'upcoming',
+                    notes:     row.querySelector('.tl-notes').value.trim()
+                });
+            }
+        });
+
+        sha256Hex(code).then(function (hash) {
+            var clientData = {
+                id:           editingClientId || 'cl' + Date.now(),
+                accessCode:   code,
+                codeHash:     hash,
+                firstName:    first || name.split(' ')[0],
+                fullName:     name,
+                eventType:    document.getElementById('c-etype').value.trim(),
+                eventDate:    document.getElementById('c-edate').value.trim(),
+                eventVenue:   document.getElementById('c-venue').value.trim(),
+                planner:      document.getElementById('c-planner').value.trim(),
+                plannerEmail: document.getElementById('c-pemail').value.trim(),
+                timeline:     timeline,
+                vendors:      [],
+                moodboard:    { palette: [], images: [], description: 'Your mood board is being curated by your planning team. Check back soon.' },
+                documents:    [],
+                gallery:      [],
+                added:        today()
+            };
+
+            if (editingClientId) {
+                var idx = state.clients.findIndex(function (x) { return x.id === editingClientId; });
+                if (idx > -1) {
+                    var existing = state.clients[idx];
+                    clientData.vendors   = existing.vendors   || [];
+                    clientData.moodboard = existing.moodboard || clientData.moodboard;
+                    clientData.documents = existing.documents || [];
+                    clientData.gallery   = existing.gallery   || [];
+                    clientData.added     = existing.added     || today();
+                    state.clients[idx]   = clientData;
+                }
+            } else {
+                state.clients.unshift(clientData);
+            }
+
+            saveClientsToStorage();
+            closeModal('modal-client');
+            renderClientManager();
+            showToast('Client "' + name + '" saved. Code: ' + code);
+        });
+    }
+
+    function deleteClient(id) {
+        var c = state.clients.find(function (x) { return x.id === id; });
+        if (!c) return;
+        if (!confirm('Remove client "' + c.fullName + '" and their portal access? This cannot be undone.')) return;
+        state.clients = state.clients.filter(function (x) { return x.id !== id; });
+        saveClientsToStorage();
+        renderClientManager();
+        showToast('Client removed.');
+    }
+
     /* ── Helpers ─────────────────────────────────────── */
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showErr(id, msg) { var el = document.getElementById(id); if (el) el.textContent = msg; }
@@ -1116,5 +1295,11 @@
     window.toggleContentPreview   = toggleContentPreview;
     window.handleImageFieldChange = handleImageFieldChange;
     window.removeImageDraft       = removeImageDraft;
+    // Client Manager
+    window.openAddClient          = openAddClient;
+    window.editClient             = editClient;
+    window.saveClient             = saveClient;
+    window.deleteClient           = deleteClient;
+    window.addClientTimelineRow   = addClientTimelineRow;
 
 })()

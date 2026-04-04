@@ -1,6 +1,7 @@
 /* ===========================
    CLIENT PORTAL — ACCESS GATE
    Reads codes from clients-config.js (RNB_CLIENTS)
+   Also fetches dynamic clients from cloud backend
    =========================== */
 
 (function () {
@@ -12,6 +13,8 @@
     const input       = document.getElementById('access-input');
     const errorEl     = document.getElementById('gate-error');
 
+    var cloudClients = {};
+
     // Hash helper — SHA-256 via Web Crypto
     function sha256(str) {
         return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
@@ -19,14 +22,32 @@
         });
     }
 
+    // Fetch dynamic clients from cloud
+    function fetchCloudClients() {
+        var url = window.RNB_CLOUD_URL;
+        if (!url) return Promise.resolve();
+        return fetch(url + '?action=getClients', { redirect: 'follow' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (Array.isArray(data.clients)) {
+                    data.clients.forEach(function (c) {
+                        if (c && c.codeHash) cloudClients[c.codeHash] = c;
+                    });
+                }
+            })
+            .catch(function () { /* offline — use static only */ });
+    }
+
     // -------------------------------------------------
-    // On load: check if already authenticated
+    // On load: fetch cloud clients, then check session
     // -------------------------------------------------
     function init() {
-        const saved = sessionStorage.getItem(SESSION_KEY);
-        if (saved && findClient(saved)) {
-            showPortal(saved);
-        }
+        fetchCloudClients().then(function () {
+            const saved = sessionStorage.getItem(SESSION_KEY);
+            if (saved && findClient(saved)) {
+                showPortal(saved);
+            }
+        });
     }
 
     // -------------------------------------------------
@@ -41,7 +62,7 @@
         }
 
         sha256(entered).then(function (hash) {
-            const client = findClient(hash);
+            var client = findClient(hash);
 
             if (client) {
                 sessionStorage.setItem(SESSION_KEY, hash);
@@ -71,7 +92,7 @@
     // Helpers — reads from clients-config.js
     // -------------------------------------------------
     function findClient(code) {
-        return window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[code];
+        return (window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[code]) || cloudClients[code] || null;
     }
 
     function personalizePortal(client) {

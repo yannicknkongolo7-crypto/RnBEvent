@@ -2,60 +2,92 @@
  * RNB Events — Portal Sub-page Auth + Init
  * Included by all Client sub-pages (timeline, moodboard, etc.)
  * Must be loaded AFTER clients-config.js
+ * Fetches dynamic clients from cloud backend for admin-managed codes
  */
 
 (function () {
     'use strict';
 
     var SESSION_KEY = 'rnb_portal_access';
-
-    // Redirect immediately if no valid session (code stored as hash)
     var code = sessionStorage.getItem(SESSION_KEY);
-    if (!code || !window.RNB_CLIENTS_RAW || !window.RNB_CLIENTS_RAW[code]) {
-        sessionStorage.removeItem(SESSION_KEY);
-        window.location.replace('/Client');
-        throw new Error('Redirecting to gate.');
+
+    function findStaticClient(hash) {
+        return window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[hash];
     }
 
-    // Expose current client globally for page scripts
-    window.currentClient = window.RNB_CLIENTS_RAW[code];
-    window.currentCode   = code;
+    function boot(client) {
+        window.currentClient = client;
+        window.currentCode   = code;
 
-    // Sign-out helper (used by inline onclick in sub-pages)
-    window.portalSignOut = function () {
+        window.portalSignOut = function () {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.replace('/Client');
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var emailLinks = document.querySelectorAll('.planner-email-link');
+            emailLinks.forEach(function (el) {
+                if (client && client.plannerEmail) {
+                    el.href = 'mailto:' + client.plannerEmail;
+                }
+            });
+            var nameEls = document.querySelectorAll('.client-first-name');
+            nameEls.forEach(function (el) {
+                if (client && client.firstName) {
+                    el.textContent = client.firstName;
+                }
+            });
+        });
+
+        window.capitalize = function (s) {
+            return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+        };
+
+        window.renderComingSoon = function (containerId, msg) {
+            var el = document.getElementById(containerId);
+            if (el) {
+                el.innerHTML = '<p class="section-coming">' + (msg || 'This section is being prepared by your planning team. Check back soon.') + '</p>';
+            }
+        };
+    }
+
+    // Try static first
+    if (code && findStaticClient(code)) {
+        boot(findStaticClient(code));
+        return;
+    }
+
+    // Try cloud
+    var url = window.RNB_CLOUD_URL;
+    if (!code || !url) {
         sessionStorage.removeItem(SESSION_KEY);
         window.location.replace('/Client');
-    };
+        return;
+    }
 
-    // Populate header planner email link if present
-    document.addEventListener('DOMContentLoaded', function () {
-        var emailLinks = document.querySelectorAll('.planner-email-link');
-        emailLinks.forEach(function (el) {
-            if (window.currentClient && window.currentClient.plannerEmail) {
-                el.href = 'mailto:' + window.currentClient.plannerEmail;
+    // Fetch cloud clients and find match
+    fetch(url + '?action=getClients', { redirect: 'follow' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var client = null;
+            if (Array.isArray(data.clients)) {
+                for (var i = 0; i < data.clients.length; i++) {
+                    if (data.clients[i] && data.clients[i].codeHash === code) {
+                        client = data.clients[i];
+                        break;
+                    }
+                }
             }
-        });
-
-        // Update any "client name" spans
-        var nameEls = document.querySelectorAll('.client-first-name');
-        nameEls.forEach(function (el) {
-            if (window.currentClient && window.currentClient.firstName) {
-                el.textContent = window.currentClient.firstName;
+            if (client) {
+                boot(client);
+            } else {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace('/Client');
             }
+        })
+        .catch(function () {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.replace('/Client');
         });
-    });
-
-    // Helper: capitalize first letter
-    window.capitalize = function (s) {
-        return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-    };
-
-    // Helper: render "coming soon" placeholder
-    window.renderComingSoon = function (containerId, msg) {
-        var el = document.getElementById(containerId);
-        if (el) {
-            el.innerHTML = '<p class="section-coming">' + (msg || 'This section is being prepared by your planning team. Check back soon.') + '</p>';
-        }
-    };
 
 })();

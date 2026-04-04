@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Directory | RNB Events Client Portal</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script>if (!sessionStorage.getItem('rnb_portal_access')) { location.replace('/Client'); }</script>
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="portal-header">
+        <a href="/" class="portal-home-link">
+            <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+        </a>
+        <span class="portal-badge">CLIENT PORTAL</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Client" class="portal-back">&larr; DASHBOARD</a>
+            <button class="portal-logout" onclick="portalSignOut()">SIGN OUT</button>
+        </div>
+    </header>
+
+    <div class="subpage-hero">
+        <div class="subpage-hero-inner">
+            <p class="portal-hero-label">CLIENT PORTAL</p>
+            <h1 class="subpage-hero-title">Vendor Directory</h1>
+        </div>
+    </div>
+
+    <main class="container subpage-content" id="vendors-content">
+        <!-- Rendered by JS -->
+    </main>
+
+    <footer class="portal-footer">
+        <p>&copy; 2026 RNB Events &mdash; <a href="/">rnbevents716.com</a></p>
+        <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+    </footer>
+
+    <script src="clients-config.js"></script>
+    <script src="portal-page.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var client  = window.currentClient;
+            var vendors = client.vendors || [];
+            var el      = document.getElementById('vendors-content');
+
+            if (vendors.length === 0) {
+                renderComingSoon('vendors-content', 'Vendor details will be added as your event team is confirmed.');
+                return;
+            }
+
+            var html = '<div class="vendor-grid">';
+            vendors.forEach(function (v) {
+                var statusClass = (v.status || 'TBD').replace(/\s+/g, '');
+                html += '<div class="vendor-card">' +
+                    '<p class="vendor-role">' + (v.role || '') + '</p>' +
+                    '<h3 class="vendor-name">' + v.name + '</h3>' +
+                    '<div class="vendor-contact">';
+                if (v.phone) html += '<div>&#9742; <a href="tel:' + v.phone + '">' + v.phone + '</a></div>';
+                if (v.email) html += '<div>&#9993; <a href="mailto:' + v.email + '">' + v.email + '</a></div>';
+                html += '</div>' +
+                    '<span class="vendor-status-badge ' + statusClass + '">' + (v.status || 'TBD') + '</span>' +
+                    '</div>';
+            });
+            html += '</div>';
+            el.innerHTML = html;
+        });
+    </script>
+</body>
+</html>

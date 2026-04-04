@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | RNB Events</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ACCESS GATE -->
+    <div id="access-gate" class="gate-overlay">
+        <div class="gate-card">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">ADMIN ACCESS</p>
+            <h1 class="gate-title">RNB Dashboard</h1>
+            <p class="gate-subtitle">Administrative access only. This area is not public.</p>
+            <form class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input type="password" id="access-input" class="gate-input" placeholder="Admin Code" autocomplete="off" maxlength="64">
+                    <button type="submit" class="gate-btn" onclick="adminLogin()">ENTER</button>
+                </div>
+                <p id="gate-error" class="gate-error" aria-live="polite"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN CONTENT -->
+    <main id="admin-content" class="hidden">
+
+        <header class="admin-header">
+            <a href="/" class="portal-home-link">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+            </a>
+            <span class="admin-badge">ADMIN DASHBOARD</span>
+            <button class="portal-logout" onclick="adminLogout()">SIGN OUT</button>
+        </header>
+
+        <!-- Stats Row -->
+        <section class="admin-stats-row" id="stats-row">
+            <!-- Populated by JS -->
+        </section>
+
+        <!-- Main Grid -->
+        <div class="admin-grid container">
+
+            <!-- ── Prospect CRM ── -->
+            <section class="admin-panel" id="panel-prospects">
+                <div class="panel-header">
+                    <h2 class="panel-title">Prospect CRM</h2>
+                    <button class="panel-btn" onclick="openAddProspect()">+ ADD</button>
+                </div>
+
+                <div class="crm-filters">
+                    <button class="filter-btn active" data-filter="all" onclick="filterProspects('all', this)">All</button>
+                    <button class="filter-btn" data-filter="New Lead"          onclick="filterProspects('New Lead', this)">New Lead</button>
+                    <button class="filter-btn" data-filter="In Conversation"   onclick="filterProspects('In Conversation', this)">In Conversation</button>
+                    <button class="filter-btn" data-filter="Proposal Sent"     onclick="filterProspects('Proposal Sent', this)">Proposal Sent</button>
+                    <button class="filter-btn" data-filter="Booked"            onclick="filterProspects('Booked', this)">Booked</button>
+                    <button class="filter-btn" data-filter="Lost"              onclick="filterProspects('Lost', this)">Lost</button>
+                </div>
+
+                <div id="crm-table"><!-- Populated by JS --></div>
+            </section>
+
+            <!-- ── Website Tasks ── -->
+            <section class="admin-panel" id="panel-tasks">
+                <div class="panel-header">
+                    <h2 class="panel-title">Website Content Tasks</h2>
+                    <button class="panel-btn" onclick="openAddTask()">+ ADD</button>
+                </div>
+                <div id="tasks-board"><!-- Populated by JS --></div>
+            </section>
+
+        </div>
+
+        <!-- ── Quick Links ── -->
+        <section class="admin-quick-links container">
+            <h2 class="panel-title" style="margin-bottom:20px;">Quick Links</h2>
+            <div class="quick-links-grid">
+                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent" target="_blank" rel="noopener" class="quick-link">
+                    <span class="ql-icon">&#9670;</span>
+                    <span>GitHub Repo</span>
+                </a>
+                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/index.html" target="_blank" rel="noopener" class="quick-link">
+                    <span class="ql-icon">&#9675;</span>
+                    <span>Edit Home Page</span>
+                </a>
+                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/service.html" target="_blank" rel="noopener" class="quick-link">
+                    <span class="ql-icon">&#9675;</span>
+                    <span>Edit Services</span>
+                </a>
+                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/lovebook.html" target="_blank" rel="noopener" class="quick-link">
+                    <span class="ql-icon">&#9675;</span>
+                    <span>Edit Love Book</span>
+                </a>
+                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/Client/clients-config.js" target="_blank" rel="noopener" class="quick-link">
+                    <span class="ql-icon">&#9674;</span>
+                    <span>Manage Client Codes</span>
+                </a>
+                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/Admin/admin-data.js" target="_blank" rel="noopener" class="quick-link">
+                    <span class="ql-icon">&#9674;</span>
+                    <span>Edit Admin Data</span>
+                </a>
+            </div>
+        </section>
+
+        <footer class="admin-footer">
+            <p>&copy; 2026 RNB Events</p>
+            <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+        </footer>
+
+    </main>
+
+    <!-- Add Prospect Modal -->
+    <div id="modal-prospect" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">Add Prospect</h3>
+            <form id="form-prospect" onsubmit="return false;">
+                <div class="form-row">
+                    <label class="form-label">NAME</label>
+                    <input type="text"  id="f-name"      class="form-input" placeholder="Full Name">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">EMAIL</label>
+                    <input type="email" id="f-email"     class="form-input" placeholder="email@example.com">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">PHONE</label>
+                    <input type="text"  id="f-phone"     class="form-input" placeholder="716-555-0000">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">EVENT TYPE</label>
+                    <input type="text"  id="f-etype"     class="form-input" placeholder="Wedding, Sweet 16…">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">EVENT DATE</label>
+                    <input type="text"  id="f-edate"     class="form-input" placeholder="Month Year">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">STATUS</label>
+                    <select id="f-status" class="form-input">
+                        <option>New Lead</option>
+                        <option>In Conversation</option>
+                        <option>Proposal Sent</option>
+                        <option>Booked</option>
+                        <option>Lost</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">NOTES</label>
+                    <textarea id="f-notes" class="form-input form-textarea" placeholder="Any relevant notes…"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" onclick="closeModal('modal-prospect')">CANCEL</button>
+                    <button type="submit" class="modal-save"   onclick="saveProspect()">SAVE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="modal-task" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">Add Website Task</h3>
+            <form onsubmit="return false;">
+                <div class="form-row">
+                    <label class="form-label">SECTION</label>
+                    <input type="text" id="t-section" class="form-input" placeholder="Home, Service, Love Book…">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">TASK</label>
+                    <textarea id="t-task" class="form-input form-textarea" placeholder="Describe the change needed…"></textarea>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">PRIORITY</label>
+                    <select id="t-priority" class="form-input">
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">GITHUB FILE (optional)</label>
+                    <input type="text" id="t-file" class="form-input" placeholder="index.html">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" onclick="closeModal('modal-task')">CANCEL</button>
+                    <button type="submit" class="modal-save"   onclick="saveTask()">SAVE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin-data.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospect Portal | RNB Events</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="prospect.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+</head>
+<body>
+
+    <!-- ACCESS GATE -->
+    <div id="access-gate" class="gate-overlay">
+        <div class="gate-card">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">PROSPECT ACCESS</p>
+            <h1 class="gate-title">Welcome</h1>
+            <p class="gate-subtitle">You've been personally invited to explore what RNB Events can create for you.<br>Enter your invite code to continue.</p>
+            <form class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input type="password" id="access-input" class="gate-input" placeholder="Enter Invite Code" autocomplete="off" maxlength="32">
+                    <button type="submit" class="gate-btn" onclick="checkAccess()">ENTER</button>
+                </div>
+                <p id="gate-error" class="gate-error" aria-live="polite"></p>
+            </form>
+            <p class="gate-footer">Interested in working with us? <a href="mailto:hello@rnbevents716.com">Reach out</a></p>
+        </div>
+    </div>
+
+    <!-- PORTAL CONTENT -->
+    <main id="portal-content" class="portal hidden">
+
+        <header class="portal-header">
+            <a href="/" class="portal-home-link">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+            </a>
+            <span class="portal-badge">PROSPECT PORTAL</span>
+            <button class="portal-logout" onclick="logOut()">SIGN OUT</button>
+        </header>
+
+        <section class="portal-hero">
+            <div class="portal-hero-inner">
+                <p class="portal-hero-label">YOUR JOURNEY STARTS HERE</p>
+                <h2 class="portal-hero-title">Hello, <span id="prospect-name">Future Client</span></h2>
+                <p class="portal-hero-sub">We're so excited to potentially be part of your story.</p>
+            </div>
+        </section>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="status-bar">
+            <div class="status-bar-inner container">
+                <span class="status-label">YOUR INQUIRY STATUS</span>
+                <span class="status-badge" id="prospect-status">New Inquiry</span>
+                <span class="status-next" id="prospect-next">Your coordinator will reach out within 24–48 hours.</span>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <section class="portal-dashboard container">
+
+            <div class="portal-card">
+                <div class="card-icon">&#9675;</div>
+                <h3 class="card-title">Our Services</h3>
+                <p class="card-desc">Full event planning, day-of coordination, floral & design, and customized packages built around your vision.</p>
+                <a href="/service" class="card-link" target="_blank">EXPLORE SERVICES &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9674;</div>
+                <h3 class="card-title">The Love Book</h3>
+                <p class="card-desc">Browse our portfolio of real events and love stories we've had the honour of bringing to life.</p>
+                <a href="/lovebook" class="card-link" target="_blank">VIEW PORTFOLIO &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9671;</div>
+                <h3 class="card-title">Crafting Moments</h3>
+                <p class="card-desc">See how we transform a vision into reality — from the first sketch to the final detail.</p>
+                <a href="/crafting-moments" class="card-link" target="_blank">SEE THE PROCESS &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9670;</div>
+                <h3 class="card-title">Your Event Vision</h3>
+                <p class="card-desc" id="vision-desc">Tell us everything — your dream, your style, your date. We'll take it from there.</p>
+                <a href="mailto:hello@rnbevents716.com?subject=My Event Vision" class="card-link">SHARE YOUR VISION &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9633;</div>
+                <h3 class="card-title">Consultation</h3>
+                <p class="card-desc">Ready to take the next step? Book a complimentary consultation with your planning team.</p>
+                <a href="/service" class="card-link" target="_blank">BOOK NOW &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9632;</div>
+                <h3 class="card-title">Message Us</h3>
+                <p class="card-desc">Questions? We're here. Reach out anytime and we'll get back to you promptly.</p>
+                <a href="mailto:hello@rnbevents716.com" class="card-link">SEND A MESSAGE &rarr;</a>
+            </div>
+
+        </section>
+
+        <footer class="portal-footer">
+            <p>&copy; 2026 RNB Events &mdash; <a href="/">rnbevents716.com</a></p>
+            <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+        </footer>
+
+    </main>
+
+    <script src="prospect.js"></script>
+</body>
+</html>

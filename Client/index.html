@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Portal | RNB Events</title>
-    <!-- Prevent search engines from indexing this page -->
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="portal.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
-    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -21,9 +19,7 @@
 </head>
 <body>
 
-    <!-- ========================
-         ACCESS GATE
-    ========================= -->
+    <!-- ACCESS GATE -->
     <div id="access-gate" class="gate-overlay">
         <div class="gate-card">
             <div class="gate-logo">
@@ -34,14 +30,7 @@
             <p class="gate-subtitle">This portal is exclusively for confirmed RNB Events clients.<br>Enter your access code to continue.</p>
             <form id="access-form" class="gate-form" onsubmit="return false;">
                 <div class="input-wrapper">
-                    <input
-                        type="password"
-                        id="access-input"
-                        class="gate-input"
-                        placeholder="Enter Access Code"
-                        autocomplete="off"
-                        maxlength="32"
-                    >
+                    <input type="password" id="access-input" class="gate-input" placeholder="Enter Access Code" autocomplete="off" maxlength="32">
                     <button type="submit" class="gate-btn" onclick="checkAccess()">ENTER</button>
                 </div>
                 <p id="gate-error" class="gate-error" aria-live="polite"></p>
@@ -50,12 +39,9 @@
         </div>
     </div>
 
-    <!-- ========================
-         PORTAL CONTENT
-    ========================= -->
+    <!-- PORTAL CONTENT -->
     <main id="portal-content" class="portal hidden">
 
-        <!-- Top Bar -->
         <header class="portal-header">
             <a href="/" class="portal-home-link">
                 <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
@@ -64,59 +50,71 @@
             <button class="portal-logout" onclick="logOut()">SIGN OUT</button>
         </header>
 
-        <!-- Hero Welcome -->
+        <!-- Hero Welcome — personalized -->
         <section class="portal-hero">
             <div class="portal-hero-inner">
                 <p class="portal-hero-label">EXCLUSIVELY YOURS</p>
-                <h2 class="portal-hero-title">Your Event Journey</h2>
+                <h2 class="portal-hero-title"><span id="portal-client-name">Your</span> Event Journey</h2>
                 <p class="portal-hero-sub">Everything you need — in one beautiful place.</p>
             </div>
         </section>
 
+        <!-- Event Info Strip -->
+        <div class="event-strip container">
+            <div class="event-strip-item">
+                <span class="strip-label">EVENT TYPE</span>
+                <span class="strip-value" id="portal-event-type">–</span>
+            </div>
+            <div class="event-strip-divider"></div>
+            <div class="event-strip-item">
+                <span class="strip-label">EVENT DATE</span>
+                <span class="strip-value" id="portal-event-date">–</span>
+            </div>
+            <div class="event-strip-divider"></div>
+            <div class="event-strip-item">
+                <span class="strip-label">VENUE</span>
+                <span class="strip-value" id="portal-event-venue">–</span>
+            </div>
+        </div>
+
         <!-- Dashboard Grid -->
         <section class="portal-dashboard container">
 
-            <!-- Card: Planning Timeline -->
             <div class="portal-card">
                 <div class="card-icon">&#9675;</div>
                 <h3 class="card-title">Planning Timeline</h3>
                 <p class="card-desc">Stay on track with key milestones, deadlines, and upcoming check-ins for your event.</p>
-                <a href="#timeline" class="card-link">VIEW TIMELINE &rarr;</a>
+                <a href="/Client/timeline" class="card-link">VIEW TIMELINE &rarr;</a>
             </div>
 
-            <!-- Card: Your Mood Board -->
             <div class="portal-card">
                 <div class="card-icon">&#9674;</div>
                 <h3 class="card-title">Mood Board</h3>
                 <p class="card-desc">Explore the curated vision and aesthetic direction we're building for your special day.</p>
-                <a href="#moodboard" class="card-link">VIEW MOOD BOARD &rarr;</a>
+                <a href="/Client/moodboard" class="card-link">VIEW MOOD BOARD &rarr;</a>
             </div>
 
-            <!-- Card: Vendor Directory -->
             <div class="portal-card">
                 <div class="card-icon">&#9671;</div>
                 <h3 class="card-title">Vendor Directory</h3>
                 <p class="card-desc">Contact details and status for every vendor involved in making your event extraordinary.</p>
-                <a href="#vendors" class="card-link">VIEW VENDORS &rarr;</a>
+                <a href="/Client/vendors" class="card-link">VIEW VENDORS &rarr;</a>
             </div>
 
-            <!-- Card: Documents & Contracts -->
             <div class="portal-card">
                 <div class="card-icon">&#9670;</div>
                 <h3 class="card-title">Documents</h3>
                 <p class="card-desc">Access your signed contracts, invoices, and any important files shared by your team.</p>
-                <a href="#documents" class="card-link">VIEW DOCUMENTS &rarr;</a>
+                <a href="/Client/documents" class="card-link">VIEW DOCUMENTS &rarr;</a>
             </div>
 
-            <!-- Card: Photo Gallery -->
             <div class="portal-card">
                 <div class="card-icon">&#9633;</div>
                 <h3 class="card-title">Inspiration Gallery</h3>
                 <p class="card-desc">A private collection of inspiration images and design references for your event.</p>
-                <a href="#gallery" class="card-link">VIEW GALLERY &rarr;</a>
+                <a href="/Client/gallery" class="card-link">VIEW GALLERY &rarr;</a>
             </div>
 
-            <!-- Card: Message Your Planner -->
             <div class="portal-card">
                 <div class="card-icon">&#9632;</div>
                 <h3 class="card-title">Message Us</h3>
@@ -126,40 +124,15 @@
 
         </section>
 
-        <!-- ---- Sections (placeholders, ready to expand) ---- -->
-
-        <section id="timeline" class="portal-section container">
-            <h2 class="section-title">Planning Timeline</h2>
-            <p class="section-coming">Your personalized timeline will appear here. Check back after your kickoff meeting.</p>
-        </section>
-
-        <section id="moodboard" class="portal-section container">
-            <h2 class="section-title">Mood Board</h2>
-            <p class="section-coming">Your mood board is being crafted. It will be shared here once ready.</p>
-        </section>
-
-        <section id="vendors" class="portal-section container">
-            <h2 class="section-title">Vendor Directory</h2>
-            <p class="section-coming">Vendor details will be populated as your event team is confirmed.</p>
-        </section>
-
-        <section id="documents" class="portal-section container">
-            <h2 class="section-title">Documents & Contracts</h2>
-            <p class="section-coming">Shared files and signed agreements will appear here.</p>
-        </section>
-
-        <section id="gallery" class="portal-section container">
-            <h2 class="section-title">Inspiration Gallery</h2>
-            <p class="section-coming">Your private inspiration gallery will be curated and shared here.</p>
-        </section>
-
         <!-- Footer -->
         <footer class="portal-footer">
             <p>&copy; 2026 RNB Events &mdash; <a href="/">rnbevents716.com</a></p>
+            <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
         </footer>
 
     </main>
 
+    <script src="clients-config.js"></script>
     <script src="portal.js"></script>
 </body>
 </html>

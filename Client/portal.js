@@ -1,22 +1,10 @@
 /* ===========================
    CLIENT PORTAL — ACCESS GATE
+   Reads codes from clients-config.js (RNB_CLIENTS)
    =========================== */
 
 (function () {
     'use strict';
-
-    // -------------------------------------------------
-    // CONFIG
-    // To add or change codes, update this array.
-    // Each entry: { code: 'XXXXX', name: 'Client Name' }
-    // Keep codes out of public repos — use environment
-    // variables or a backend for production.
-    // -------------------------------------------------
-    const VALID_CODES = [
-        { code: 'RNB2026', name: 'Client' },
-        // Add more client codes here:
-        // { code: 'SMITHWEDDING', name: 'The Smith Wedding' },
-    ];
 
     const SESSION_KEY = 'rnb_portal_access';
     const gate        = document.getElementById('access-gate');
@@ -29,8 +17,8 @@
     // -------------------------------------------------
     function init() {
         const saved = sessionStorage.getItem(SESSION_KEY);
-        if (saved && findCode(saved)) {
-            showPortal();
+        if (saved && findClient(saved)) {
+            showPortal(saved);
         }
     }
 
@@ -45,12 +33,12 @@
             return;
         }
 
-        const match = findCode(entered);
+        const client = findClient(entered);
 
-        if (match) {
+        if (client) {
             sessionStorage.setItem(SESSION_KEY, entered);
             clearError();
-            showPortal();
+            showPortal(entered);
         } else {
             showError('Invalid access code. Please check your code and try again.');
             input.value = '';
@@ -71,17 +59,31 @@
     }
 
     // -------------------------------------------------
-    // Helpers
+    // Helpers — reads from clients-config.js
     // -------------------------------------------------
-    function findCode(code) {
-        return VALID_CODES.find(function (entry) {
-            return entry.code === code.toUpperCase();
-        });
+    function findClient(code) {
+        return window.RNB_CLIENTS && window.RNB_CLIENTS[code.toUpperCase()];
     }
 
-    function showPortal() {
+    function personalizePortal(client) {
+        // Update welcome name in hero
+        var nameEl = document.getElementById('portal-client-name');
+        if (nameEl && client.firstName) nameEl.textContent = client.firstName + '\'s';
+
+        // Update event info strip
+        var typeEl  = document.getElementById('portal-event-type');
+        var dateEl  = document.getElementById('portal-event-date');
+        var venueEl = document.getElementById('portal-event-venue');
+        if (typeEl)  typeEl.textContent  = client.eventType  || '–';
+        if (dateEl)  dateEl.textContent  = client.eventDate  || '–';
+        if (venueEl) venueEl.textContent = client.eventVenue || '–';
+    }
+
+    function showPortal(code) {
         gate.style.display = 'none';
         portal.classList.remove('hidden');
+        var client = findClient(code || sessionStorage.getItem(SESSION_KEY));
+        if (client) personalizePortal(client);
     }
 
     function showError(msg) {

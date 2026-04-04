@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning Timeline | RNB Events Client Portal</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script>if (!sessionStorage.getItem('rnb_portal_access')) { location.replace('/Client'); }</script>
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="portal-header">
+        <a href="/" class="portal-home-link">
+            <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+        </a>
+        <span class="portal-badge">CLIENT PORTAL</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Client" class="portal-back">&larr; DASHBOARD</a>
+            <button class="portal-logout" onclick="portalSignOut()">SIGN OUT</button>
+        </div>
+    </header>
+
+    <div class="subpage-hero">
+        <div class="subpage-hero-inner">
+            <p class="portal-hero-label">CLIENT PORTAL</p>
+            <h1 class="subpage-hero-title">Planning Timeline</h1>
+        </div>
+    </div>
+
+    <main class="container subpage-content" id="timeline-content">
+        <!-- Rendered by JS -->
+    </main>
+
+    <footer class="portal-footer">
+        <p>&copy; 2026 RNB Events &mdash; <a href="/">rnbevents716.com</a></p>
+        <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+    </footer>
+
+    <script src="clients-config.js"></script>
+    <script src="portal-page.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var client = window.currentClient;
+            var el = document.getElementById('timeline-content');
+
+            if (!client.timeline || client.timeline.length === 0) {
+                renderComingSoon('timeline-content', 'Your personalized timeline will appear here after your kickoff meeting.');
+                return;
+            }
+
+            var html = '<div class="timeline">';
+            client.timeline.forEach(function (item) {
+                html += '<div class="timeline-item ' + item.status + '">' +
+                    '<div class="timeline-marker"></div>' +
+                    '<div class="timeline-body">' +
+                        '<span class="timeline-date">' + item.date + '</span>' +
+                        '<h3 class="timeline-milestone">' + item.milestone + '</h3>' +
+                        '<p class="timeline-notes">' + item.notes + '</p>' +
+                        '<span class="timeline-status-badge ' + item.status + '">' + capitalize(item.status) + '</span>' +
+                    '</div>' +
+                '</div>';
+            });
+            html += '</div>';
+            el.innerHTML = html;
+        });
+    </script>
+</body>
+</html>

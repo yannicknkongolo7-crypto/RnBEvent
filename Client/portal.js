@@ -1,157 +1,89 @@
 /* ===========================
    CLIENT PORTAL — ACCESS GATE
-   Reads codes from clients-config.js (RNB_CLIENTS)
-   Also fetches dynamic clients from cloud backend
+   Reads client data from clients-config.js (RNB_CLIENTS_RAW)
    =========================== */
 
 (function () {
     'use strict';
 
-    const SESSION_KEY = 'rnb_portal_access';
-    const gate        = document.getElementById('access-gate');
-    const portal      = document.getElementById('portal-content');
-    const input       = document.getElementById('access-input');
-    const errorEl     = document.getElementById('gate-error');
+    var SESSION_KEY = 'rnb_portal_access';
+    var gate        = document.getElementById('access-gate');
+    var portal      = document.getElementById('portal-content');
+    var input       = document.getElementById('access-input');
+    var errorEl     = document.getElementById('gate-error');
 
-    var cloudClients = {};
-
-    // Hash helper — SHA-256 via Web Crypto
     function sha256(str) {
         return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
             return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
         });
     }
 
-    // Fetch dynamic clients from cloud
-    function fetchCloudClients() {
-        var url = window.RNB_CLOUD_URL;
-        if (!url) return Promise.resolve();
-        return fetch(url + '?action=getClients', { redirect: 'follow' })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (Array.isArray(data.clients)) {
-                    data.clients.forEach(function (c) {
-                        if (c && c.codeHash) cloudClients[c.codeHash] = c;
-                    });
-                }
-            })
-            .catch(function () { /* offline — use static only */ });
+    function findClient(hash) {
+        return window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[hash] || null;
     }
 
-    // -------------------------------------------------
-    // On load: fetch cloud clients, then check session
-    // -------------------------------------------------
     function init() {
-        fetchCloudClients().then(function () {
-            const saved = sessionStorage.getItem(SESSION_KEY);
-            if (saved && findClient(saved)) {
-                showPortal(saved);
-            }
-        });
+        var saved = sessionStorage.getItem(SESSION_KEY);
+        if (saved && findClient(saved)) {
+            showPortal(saved);
+        }
     }
 
-    // -------------------------------------------------
-    // Validate and grant access
-    // -------------------------------------------------
     function checkAccess() {
-        const entered = (input.value || '').trim().toUpperCase();
-
-        if (!entered) {
-            showError('Please enter your access code.');
-            return;
-        }
+        var entered = (input.value || '').trim().toUpperCase();
+        if (!entered) { showError('Please enter your access code.'); return; }
 
         sha256(entered).then(function (hash) {
             var client = findClient(hash);
-
             if (client) {
                 sessionStorage.setItem(SESSION_KEY, hash);
-                clearError();
+                errorEl.textContent = '';
                 showPortal(hash);
-                return;
+            } else {
+                showError('Invalid access code. Please check your code and try again.');
+                input.value = '';
+                input.focus();
             }
-
-            // Not found locally — try a fresh cloud fetch in case data just synced
-            showError('Checking\u2026');
-            fetchCloudClients().then(function () {
-                var retry = findClient(hash);
-                if (retry) {
-                    sessionStorage.setItem(SESSION_KEY, hash);
-                    clearError();
-                    showPortal(hash);
-                } else {
-                    showError('Invalid access code. Please check your code and try again.');
-                    input.value = '';
-                    input.focus();
-                }
-            });
         });
     }
 
-    // -------------------------------------------------
-    // Log out / clear session
-    // -------------------------------------------------
     function logOut() {
         sessionStorage.removeItem(SESSION_KEY);
         portal.classList.add('hidden');
         gate.style.display = 'flex';
         input.value = '';
-        clearError();
+        errorEl.textContent = '';
         input.focus();
     }
 
-    // -------------------------------------------------
-    // Helpers — reads from clients-config.js
-    // -------------------------------------------------
-    function findClient(code) {
-        return (window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[code]) || cloudClients[code] || null;
-    }
-
     function personalizePortal(client) {
-        // Update welcome name in hero
-        var nameEl = document.getElementById('portal-client-name');
-        if (nameEl && client.firstName) nameEl.textContent = client.firstName + '\'s';
-
-        // Update event info strip
+        var nameEl  = document.getElementById('portal-client-name');
         var typeEl  = document.getElementById('portal-event-type');
         var dateEl  = document.getElementById('portal-event-date');
         var venueEl = document.getElementById('portal-event-venue');
-        if (typeEl)  typeEl.textContent  = client.eventType  || '–';
-        if (dateEl)  dateEl.textContent  = client.eventDate  || '–';
-        if (venueEl) venueEl.textContent = client.eventVenue || '–';
+        if (nameEl && client.firstName) nameEl.textContent = client.firstName + '\'s';
+        if (typeEl)  typeEl.textContent  = client.eventType  || '\u2013';
+        if (dateEl)  dateEl.textContent  = client.eventDate  || '\u2013';
+        if (venueEl) venueEl.textContent = client.eventVenue || '\u2013';
     }
 
-    function showPortal(code) {
+    function showPortal(hash) {
         gate.style.display = 'none';
         portal.classList.remove('hidden');
-        var client = findClient(code || sessionStorage.getItem(SESSION_KEY));
+        var client = findClient(hash || sessionStorage.getItem(SESSION_KEY));
         if (client) personalizePortal(client);
     }
 
-    function showError(msg) {
-        errorEl.textContent = msg;
-    }
+    function showError(msg) { errorEl.textContent = msg; }
 
-    function clearError() {
-        errorEl.textContent = '';
-    }
-
-    // -------------------------------------------------
-    // Allow Enter key to submit
-    // -------------------------------------------------
     if (input) {
         input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                checkAccess();
-            }
+            if (e.key === 'Enter') checkAccess();
         });
     }
 
-    // Expose to inline onclick handlers
     window.checkAccess = checkAccess;
     window.logOut      = logOut;
 
-    // Boot
     init();
-
 })();

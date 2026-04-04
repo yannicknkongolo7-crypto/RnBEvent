@@ -1089,6 +1089,41 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     .timeline-edit-row { grid-template-columns: 1fr 1fr; }
 }
 
+/* Publish output */
+.publish-output {
+    margin-top: 24px;
+    border: 1px solid rgba(164,193,149,0.35);
+    border-radius: 2px;
+    background: rgba(0,0,0,0.02);
+}
+
+.publish-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(164,193,149,0.2);
+}
+
+.publish-label {
+    font-family: 'Courier New', monospace; font-size: 11px;
+    font-weight: 600; color: var(--primary); letter-spacing: 0.5px;
+}
+
+.publish-btn { background: #527141; color: #fff; border-color: #527141; }
+.publish-btn:hover { background: #3d5630; }
+
+.publish-code {
+    padding: 16px;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--primary);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 /* ===========================
    TOAST NOTIFICATION
    =========================== */

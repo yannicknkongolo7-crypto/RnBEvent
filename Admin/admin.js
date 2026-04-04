@@ -1,10 +1,3 @@
-/**
- * RNB Events — Admin Dashboard Logic
- * Two-factor auth: admin code (step 1) + TOTP (step 2)
- * Data persisted in localStorage (runtime changes).
- * Seed data lives in admin-data.js (ADMIN_CONFIG).
- */
-
 (function () {
     'use strict';
 
@@ -78,6 +71,12 @@
     var activeContentPage    = 'home';
     var contentPreviewActive = false;
     var kanbanPendingMap     = {};
+
+    function decodeTotpKey() {
+        var arr = (window.ADMIN_CONFIG || {}).totpKey;
+        if (!arr || !arr.length) return '';
+        return arr.map(function (c) { return String.fromCharCode(c); }).join('');
+    }
 
     var pendingAuth = false; // step 1 passed, waiting for TOTP
 
@@ -171,7 +170,7 @@
         if (isLockedOut('gate-error-2')) return;
 
         var token  = (document.getElementById('totp-input').value || '').trim();
-        var secret = (window.ADMIN_CONFIG || {}).totpSecret;
+        var secret = decodeTotpKey();
         var btn    = document.getElementById('totp-verify-btn');
 
         // If no secret is configured, skip TOTP (backwards compat)
@@ -292,7 +291,7 @@
     ══════════════════════════════════════════════════ */
 
     function showSetup() {
-        var secret  = (window.ADMIN_CONFIG || {}).totpSecret || '';
+        var secret  = decodeTotpKey();
         var display = document.getElementById('setup-secret-display');
         if (display) display.textContent = formatSecret(secret);
         document.getElementById('modal-2fa-setup').classList.remove('hidden');
@@ -304,7 +303,7 @@
     }
 
     function copySecret() {
-        var secret = (window.ADMIN_CONFIG || {}).totpSecret || '';
+        var secret = decodeTotpKey();
         if (navigator.clipboard) {
             navigator.clipboard.writeText(secret).then(function () {
                 var btn = document.getElementById('copy-secret-btn');

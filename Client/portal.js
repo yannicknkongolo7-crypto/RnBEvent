@@ -12,6 +12,13 @@
     const input       = document.getElementById('access-input');
     const errorEl     = document.getElementById('gate-error');
 
+    // Hash helper — SHA-256 via Web Crypto
+    function sha256(str) {
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+            return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+        });
+    }
+
     // -------------------------------------------------
     // On load: check if already authenticated
     // -------------------------------------------------
@@ -33,17 +40,19 @@
             return;
         }
 
-        const client = findClient(entered);
+        sha256(entered).then(function (hash) {
+            const client = findClient(hash);
 
-        if (client) {
-            sessionStorage.setItem(SESSION_KEY, entered);
-            clearError();
-            showPortal(entered);
-        } else {
-            showError('Invalid access code. Please check your code and try again.');
-            input.value = '';
-            input.focus();
-        }
+            if (client) {
+                sessionStorage.setItem(SESSION_KEY, hash);
+                clearError();
+                showPortal(hash);
+            } else {
+                showError('Invalid access code. Please check your code and try again.');
+                input.value = '';
+                input.focus();
+            }
+        });
     }
 
     // -------------------------------------------------
@@ -62,7 +71,7 @@
     // Helpers — reads from clients-config.js
     // -------------------------------------------------
     function findClient(code) {
-        return window.RNB_CLIENTS && window.RNB_CLIENTS[code.toUpperCase()];
+        return window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[code];
     }
 
     function personalizePortal(client) {

@@ -9,31 +9,29 @@
 
     var SESSION_KEY = 'rnb_prospect_access';
 
-    // Prospect entries: code -> prospect data
+    // Prospect entries: SHA-256 hash of code -> prospect data
     var PROSPECTS = {
-        'PROSPECT2026': {
-            code:       'PROSPECT2026',
+        '163186aafe0ebf03f5369f5df213786e0db611875e2aa90b095569a675760553': {
             firstName:  'Future Client',
             eventType:  '',
             status:     'New Inquiry',
-            nextStep:   'Your coordinator will reach out within 24–48 hours.'
+            nextStep:   'Your coordinator will reach out within 24\u201348 hours.'
         }
-        // Add prospects:
-        // ,'JONES0726': {
-        //     code:      'JONES0726',
-        //     firstName: 'Jennifer',
-        //     eventType: 'Birthday Celebration',
-        //     status:    'In Conversation',
-        //     nextStep:  'Proposal being prepared — expect it by April 8.'
-        // }
     };
+
+    // Hash helper
+    function sha256(str) {
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+            return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+        });
+    }
 
     var gate    = document.getElementById('access-gate');
     var portal  = document.getElementById('portal-content');
     var input   = document.getElementById('access-input');
     var errorEl = document.getElementById('gate-error');
 
-    // On load: check session
+    // On load: check session (stored as hash)
     (function init() {
         var saved = sessionStorage.getItem(SESSION_KEY);
         if (saved && PROSPECTS[saved]) {
@@ -45,15 +43,17 @@
         var entered = (input.value || '').trim().toUpperCase();
         if (!entered) { showError('Please enter your invite code.'); return; }
 
-        if (PROSPECTS[entered]) {
-            sessionStorage.setItem(SESSION_KEY, entered);
-            clearError();
-            showPortal(entered);
-        } else {
-            showError('Invalid invite code. Please check your code and try again.');
-            input.value = '';
-            input.focus();
-        }
+        sha256(entered).then(function (hash) {
+            if (PROSPECTS[hash]) {
+                sessionStorage.setItem(SESSION_KEY, hash);
+                clearError();
+                showPortal(hash);
+            } else {
+                showError('Invalid invite code. Please check your code and try again.');
+                input.value = '';
+                input.focus();
+            }
+        });
     }
 
     function logOut() {

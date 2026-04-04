@@ -9,16 +9,16 @@
 
     var SESSION_KEY = 'rnb_portal_access';
 
-    // Redirect immediately if no valid session
+    // Redirect immediately if no valid session (code stored as hash)
     var code = sessionStorage.getItem(SESSION_KEY);
-    if (!code || !window.RNB_CLIENTS || !window.RNB_CLIENTS[code]) {
+    if (!code || !window.RNB_CLIENTS_RAW || !window.RNB_CLIENTS_RAW[code]) {
         sessionStorage.removeItem(SESSION_KEY);
         window.location.replace('/Client');
         throw new Error('Redirecting to gate.');
     }
 
     // Expose current client globally for page scripts
-    window.currentClient = window.RNB_CLIENTS[code];
+    window.currentClient = window.RNB_CLIENTS_RAW[code];
     window.currentCode   = code;
 
     // Sign-out helper (used by inline onclick in sub-pages)

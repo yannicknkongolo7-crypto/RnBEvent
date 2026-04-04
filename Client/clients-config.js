@@ -1,19 +1,14 @@
 /**
  * RNB Events — Client Data Configuration
- * ──────────────────────────────────────────
- * Each access code maps to one client's full portal data.
- * Add new confirmed clients by creating a new entry below.
- *
- * Status values for timeline items: 'done' | 'upcoming' | 'pending'
- * Status values for vendors:        'Confirmed' | 'Pending' | 'TBD'
- * Type values for documents:        'Contract' | 'Invoice' | 'Proposal' | 'Other'
+ * Keys are SHA-256 hashes of access codes.
+ * To add a client: hash the code with SHA-256, use the hash as property key.
  */
 
-window.RNB_CLIENTS = {
+window.RNB_CLIENTS = {};
+window.RNB_CLIENTS_RAW = {
 
-    /* ── Demo / Default ──────────────────────────────── */
-    'RNB2026': {
-        code:         'RNB2026',
+    /* Demo / Default */
+    '684973f6603b162f638b24ac44c5c3412272de00fd98656232567ff0786bbaad': {
         firstName:    'Valued Client',
         fullName:     'Valued Client',
         eventType:    'Special Event',
@@ -48,22 +43,6 @@ window.RNB_CLIENTS = {
         ]
     }
 
-    /* ── Add new confirmed clients below ─────────────────
-    ,
-    'SMITHWED26': {
-        code:         'SMITHWED26',
-        firstName:    'Sarah',
-        fullName:     'Sarah & Michael Smith',
-        eventType:    'Wedding',
-        eventDate:    'October 12, 2026',
-        eventVenue:   'The Mansion on Delaware',
-        planner:      'Rachael',
-        plannerEmail: 'hello@rnbevents716.com',
-        timeline:  [],
-        vendors:   [],
-        moodboard: { palette: [], images: [], description: '' },
-        documents: [],
-        gallery:   []
-    }
-    ──────────────────────────────────────────────────── */
+    /* To add clients, hash the new access code with SHA-256
+       and add a new entry using the hash as key. */
 };

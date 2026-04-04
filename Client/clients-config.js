@@ -41,8 +41,26 @@ window.RNB_CLIENTS_RAW = {
         gallery: [
             // { url: 'https://...', caption: 'Inspiration photo' }
         ]
-    }
+    },
 
-    /* To add clients, hash the new access code with SHA-256
-       and add a new entry using the hash as key. */
+    /* Joelle & Laurent 2026 — Code: LAUJO2026 */
+    'df6c3337ce83af6846eb93761c3f4fa3f7f74b285098706d6ab674ebd81bb079': {
+        firstName:    'Joelle & Laurent',
+        fullName:     'Joelle & Laurent 2026',
+        eventType:    'Wedding',
+        eventDate:    'November 20th',
+        eventVenue:   'TBD',
+        planner:      'RNB Events Team',
+        plannerEmail: 'hello@rnbevents716.com',
+
+        timeline: [],
+        vendors: [],
+        moodboard: {
+            palette:     [],
+            images:      [],
+            description: 'Your mood board is being curated by your planning team. Check back soon.'
+        },
+        documents: [],
+        gallery: []
+    }
 };

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Portal | RNB Events</title>
+    <!-- Prevent search engines from indexing this page -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+</head>
+<body>
+
+    <!-- ========================
+         ACCESS GATE
+    ========================= -->
+    <div id="access-gate" class="gate-overlay">
+        <div class="gate-card">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">CLIENT ACCESS</p>
+            <h1 class="gate-title">Welcome Back</h1>
+            <p class="gate-subtitle">This portal is exclusively for confirmed RNB Events clients.<br>Enter your access code to continue.</p>
+            <form id="access-form" class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input
+                        type="password"
+                        id="access-input"
+                        class="gate-input"
+                        placeholder="Enter Access Code"
+                        autocomplete="off"
+                        maxlength="32"
+                    >
+                    <button type="submit" class="gate-btn" onclick="checkAccess()">ENTER</button>
+                </div>
+                <p id="gate-error" class="gate-error" aria-live="polite"></p>
+            </form>
+            <p class="gate-footer">Don't have your code? <a href="mailto:hello@rnbevents716.com">Contact us</a></p>
+        </div>
+    </div>
+
+    <!-- ========================
+         PORTAL CONTENT
+    ========================= -->
+    <main id="portal-content" class="portal hidden">
+
+        <!-- Top Bar -->
+        <header class="portal-header">
+            <a href="/" class="portal-home-link">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+            </a>
+            <span class="portal-badge">CLIENT PORTAL</span>
+            <button class="portal-logout" onclick="logOut()">SIGN OUT</button>
+        </header>
+
+        <!-- Hero Welcome -->
+        <section class="portal-hero">
+            <div class="portal-hero-inner">
+                <p class="portal-hero-label">EXCLUSIVELY YOURS</p>
+                <h2 class="portal-hero-title">Your Event Journey</h2>
+                <p class="portal-hero-sub">Everything you need — in one beautiful place.</p>
+            </div>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <section class="portal-dashboard container">
+
+            <!-- Card: Planning Timeline -->
+            <div class="portal-card">
+                <div class="card-icon">&#9675;</div>
+                <h3 class="card-title">Planning Timeline</h3>
+                <p class="card-desc">Stay on track with key milestones, deadlines, and upcoming check-ins for your event.</p>
+                <a href="#timeline" class="card-link">VIEW TIMELINE &rarr;</a>
+            </div>
+
+            <!-- Card: Your Mood Board -->
+            <div class="portal-card">
+                <div class="card-icon">&#9674;</div>
+                <h3 class="card-title">Mood Board</h3>
+                <p class="card-desc">Explore the curated vision and aesthetic direction we're building for your special day.</p>
+                <a href="#moodboard" class="card-link">VIEW MOOD BOARD &rarr;</a>
+            </div>
+
+            <!-- Card: Vendor Directory -->
+            <div class="portal-card">
+                <div class="card-icon">&#9671;</div>
+                <h3 class="card-title">Vendor Directory</h3>
+                <p class="card-desc">Contact details and status for every vendor involved in making your event extraordinary.</p>
+                <a href="#vendors" class="card-link">VIEW VENDORS &rarr;</a>
+            </div>
+
+            <!-- Card: Documents & Contracts -->
+            <div class="portal-card">
+                <div class="card-icon">&#9670;</div>
+                <h3 class="card-title">Documents</h3>
+                <p class="card-desc">Access your signed contracts, invoices, and any important files shared by your team.</p>
+                <a href="#documents" class="card-link">VIEW DOCUMENTS &rarr;</a>
+            </div>
+
+            <!-- Card: Photo Gallery -->
+            <div class="portal-card">
+                <div class="card-icon">&#9633;</div>
+                <h3 class="card-title">Inspiration Gallery</h3>
+                <p class="card-desc">A private collection of inspiration images and design references for your event.</p>
+                <a href="#gallery" class="card-link">VIEW GALLERY &rarr;</a>
+            </div>
+
+            <!-- Card: Message Your Planner -->
+            <div class="portal-card">
+                <div class="card-icon">&#9632;</div>
+                <h3 class="card-title">Message Us</h3>
+                <p class="card-desc">Have a question? Send a direct message to your RNB Events planning team.</p>
+                <a href="mailto:hello@rnbevents716.com" class="card-link">SEND A MESSAGE &rarr;</a>
+            </div>
+
+        </section>
+
+        <!-- ---- Sections (placeholders, ready to expand) ---- -->
+
+        <section id="timeline" class="portal-section container">
+            <h2 class="section-title">Planning Timeline</h2>
+            <p class="section-coming">Your personalized timeline will appear here. Check back after your kickoff meeting.</p>
+        </section>
+
+        <section id="moodboard" class="portal-section container">
+            <h2 class="section-title">Mood Board</h2>
+            <p class="section-coming">Your mood board is being crafted. It will be shared here once ready.</p>
+        </section>
+
+        <section id="vendors" class="portal-section container">
+            <h2 class="section-title">Vendor Directory</h2>
+            <p class="section-coming">Vendor details will be populated as your event team is confirmed.</p>
+        </section>
+
+        <section id="documents" class="portal-section container">
+            <h2 class="section-title">Documents & Contracts</h2>
+            <p class="section-coming">Shared files and signed agreements will appear here.</p>
+        </section>
+
+        <section id="gallery" class="portal-section container">
+            <h2 class="section-title">Inspiration Gallery</h2>
+            <p class="section-coming">Your private inspiration gallery will be curated and shared here.</p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="portal-footer">
+            <p>&copy; 2026 RNB Events &mdash; <a href="/">rnbevents716.com</a></p>
+        </footer>
+
+    </main>
+
+    <script src="portal.js"></script>
+</body>
+</html>

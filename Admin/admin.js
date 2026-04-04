@@ -1,6 +1,13 @@
 (function () {
     'use strict';
 
+    /* ── Global error safety net ─────────────────────── */
+    window.onerror = function (msg, src, line) {
+        console.error('Admin error:', msg, src, line);
+        var t = document.getElementById('admin-toast');
+        if (t) { t.textContent = 'Something went wrong — check console.'; t.classList.add('toast-visible'); setTimeout(function () { t.classList.remove('toast-visible'); }, 4000); }
+    };
+
     var SESSION_KEY     = 'rnb_admin_access';
     var STORAGE_PROS    = 'rnb_admin_prospects';
     var STORAGE_TASKS   = 'rnb_admin_tasks';
@@ -344,19 +351,32 @@
         contentDrafts = safeJSON(localStorage.getItem(STORAGE_CONTENT)) || {};
     }
 
+    function safeSave(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            showToast('Storage full — clear old data or remove image drafts.');
+            console.error('localStorage write failed:', e);
+            return false;
+        }
+    }
+
     function saveProspectsToStorage() {
-        localStorage.setItem(STORAGE_PROS, JSON.stringify(state.prospects));
+        safeSave(STORAGE_PROS, state.prospects);
     }
 
     function saveTasksToStorage() {
-        localStorage.setItem(STORAGE_TASKS, JSON.stringify(state.tasks));
+        safeSave(STORAGE_TASKS, state.tasks);
     }
 
     /* ── Render all ──────────────────────────────────── */
     function renderAll() {
-        renderStats();
-        renderCRM(state.activeFilter);
-        renderTasks();        renderKanban();    }
+        try { renderStats(); } catch (e) { console.error('renderStats', e); }
+        try { renderCRM(state.activeFilter); } catch (e) { console.error('renderCRM', e); }
+        try { renderTasks(); } catch (e) { console.error('renderTasks', e); }
+        try { renderKanban(); } catch (e) { console.error('renderKanban', e); }
+    }
 
     /* ── Stats Row ───────────────────────────────────── */
     function renderStats() {
@@ -770,8 +790,8 @@
     function saveContentDrafts() {
         saveCurrentContentFields();
         var existing = safeJSON(localStorage.getItem(STORAGE_CONTENT));
-        if (existing) localStorage.setItem(STORAGE_CONTENT_HISTORY, JSON.stringify(existing));
-        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
+        if (existing) safeSave(STORAGE_CONTENT_HISTORY, existing);
+        safeSave(STORAGE_CONTENT, contentDrafts);
         showToast('All drafts saved.');
     }
 
@@ -857,8 +877,8 @@
     function submitContentPage() {
         saveCurrentContentFields();
         var existing = safeJSON(localStorage.getItem(STORAGE_CONTENT));
-        if (existing) localStorage.setItem(STORAGE_CONTENT_HISTORY, JSON.stringify(existing));
-        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
+        if (existing) safeSave(STORAGE_CONTENT_HISTORY, existing);
+        safeSave(STORAGE_CONTENT, contentDrafts);
         showToast(activeContentPage.toUpperCase() + ' page changes submitted.');
     }
 
@@ -866,7 +886,7 @@
         var history = safeJSON(localStorage.getItem(STORAGE_CONTENT_HISTORY));
         if (!history) { showToast('No previous save to undo to.'); return; }
         contentDrafts = history;
-        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
+        safeSave(STORAGE_CONTENT, contentDrafts);
         renderContentFields(activeContentPage);
         showToast('Restored to last saved state.');
     }

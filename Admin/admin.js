@@ -112,6 +112,9 @@
     }
 
     function sha256Hex(str) {
+        if (!crypto || !crypto.subtle) {
+            return Promise.reject(new Error('Secure context required'));
+        }
         return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
             return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
         });
@@ -161,6 +164,8 @@
             step2.classList.remove('hidden');
             var totpInput = document.getElementById('totp-input');
             if (totpInput) totpInput.focus();
+        }).catch(function () {
+            showErr('gate-error-1', 'Authentication error. Ensure you are using HTTPS.');
         });
     }
 
@@ -729,7 +734,7 @@
                     html += '<div class="img-preview-col">' +
                         '<div class="img-preview-label draft-lbl">DRAFT (PENDING)</div>' +
                         '<img src="' + sanitizeImageSrc(val) + '" class="img-thumb img-thumb-draft">' +
-                        '<button class="img-remove-btn" onclick="removeImageDraft(\'' + f.key + \')">&#215; REMOVE</button>' +
+                        '<button class="img-remove-btn" onclick="removeImageDraft(\'' + escJS(f.key) + '\')">&#215; REMOVE</button>' +
                         '</div>';
                 }
                 html += '</div>';

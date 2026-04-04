@@ -1,7 +1,7 @@
 /* Admin runtime config */
 window.ADMIN_CONFIG = {
     codeHash: '47d538bc9bbdba86910d104f78b851d87356c7fcee36e214878a5a24f7bbedf4',
-    totpKey: [83,78,66,69,86,55,83,69,67,82,51,84,65,68,77,50],
+    totpKey: [82,78,66,69,86,55,83,69,67,82,51,84,65,68,77,50],
     prospects: [
         {
             id:        'p1',

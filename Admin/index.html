@@ -14,20 +14,94 @@
 
     <!-- ACCESS GATE -->
     <div id="access-gate" class="gate-overlay">
-        <div class="gate-card">
+
+        <!-- STEP 1 — Admin Code -->
+        <div id="gate-step1" class="gate-card">
             <div class="gate-logo">
                 <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
             </div>
             <p class="gate-label">ADMIN ACCESS</p>
             <h1 class="gate-title">RNB Dashboard</h1>
             <p class="gate-subtitle">Administrative access only. This area is not public.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot active"><span>1</span></div>
+                <div class="step-line"></div>
+                <div class="step-dot"><span>2</span></div>
+            </div>
+
             <form class="gate-form" onsubmit="return false;">
                 <div class="input-wrapper">
                     <input type="password" id="access-input" class="gate-input" placeholder="Admin Code" autocomplete="off" maxlength="64">
-                    <button type="submit" class="gate-btn" onclick="adminLogin()">ENTER</button>
+                    <button type="submit" class="gate-btn" onclick="adminStep1()">NEXT &rsaquo;</button>
                 </div>
-                <p id="gate-error" class="gate-error" aria-live="polite"></p>
+                <p id="gate-error-1" class="gate-error" aria-live="polite"></p>
             </form>
+        </div>
+
+        <!-- STEP 2 — TOTP -->
+        <div id="gate-step2" class="gate-card hidden">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">TWO-FACTOR AUTH</p>
+            <h1 class="gate-title">Verify Identity</h1>
+            <p class="gate-subtitle">Enter the 6-digit code from your authenticator app.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot done"><span>&#10003;</span></div>
+                <div class="step-line done"></div>
+                <div class="step-dot active"><span>2</span></div>
+            </div>
+
+            <form class="gate-form" onsubmit="return false;">
+                <input type="text" id="totp-input" class="totp-input"
+                    placeholder="000000" inputmode="numeric"
+                    pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                <button id="totp-verify-btn" type="submit" class="gate-btn totp-btn" onclick="adminStep2()">VERIFY</button>
+                <p id="gate-error-2" class="gate-error" aria-live="polite"></p>
+            </form>
+
+            <div class="gate-2fa-footer">
+                <button class="text-btn" onclick="showSetup()">&#9881; First time? Set up authenticator</button>
+                <button class="text-btn back-btn" onclick="backToStep1()">&larr; Back</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 2FA SETUP MODAL -->
+    <div id="modal-2fa-setup" class="modal-overlay hidden">
+        <div class="modal-card setup-modal">
+            <h3 class="modal-title">Set Up Authenticator App</h3>
+            <p class="setup-intro">Add this key to <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app.</p>
+
+            <ol class="setup-steps">
+                <li>Open your authenticator app</li>
+                <li>Tap <strong>"+"</strong> or <strong>"Add account"</strong></li>
+                <li>Choose <strong>"Enter setup key"</strong></li>
+                <li>Enter the account name and key below</li>
+                <li>Save — the app will start generating 6-digit codes</li>
+            </ol>
+
+            <div class="setup-field">
+                <span class="setup-field-label">ACCOUNT NAME</span>
+                <code class="setup-code">RNB Events Admin</code>
+            </div>
+
+            <div class="setup-field">
+                <span class="setup-field-label">SECRET KEY</span>
+                <div class="setup-secret-row">
+                    <code id="setup-secret-display" class="setup-code secret-code"></code>
+                    <button id="copy-secret-btn" class="copy-btn" onclick="copySecret()">COPY</button>
+                </div>
+            </div>
+
+            <p class="setup-note">&#9888; Keep this key private. It is the second factor for your admin login.</p>
+
+            <div class="modal-actions">
+                <button class="modal-save" onclick="closeModal('modal-2fa-setup')">DONE — I&rsquo;VE SET IT UP</button>
+            </div>
         </div>
     </div>
 

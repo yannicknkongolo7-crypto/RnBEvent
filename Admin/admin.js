@@ -1,5 +1,6 @@
 /**
  * RNB Events — Admin Dashboard Logic
+ * Two-factor auth: admin code (step 1) + TOTP (step 2)
  * Data persisted in localStorage (runtime changes).
  * Seed data lives in admin-data.js (ADMIN_CONFIG).
  */
@@ -15,7 +16,6 @@
     var gate    = document.getElementById('access-gate');
     var content = document.getElementById('admin-content');
     var input   = document.getElementById('access-input');
-    var errorEl = document.getElementById('gate-error');
 
     /* ── State ───────────────────────────────────────── */
     var state = {
@@ -24,6 +24,8 @@
         activeFilter: 'all'
     };
 
+    var pendingAuth = false; // step 1 passed, waiting for TOTP
+
     /* ── Boot ────────────────────────────────────────── */
     (function init() {
         if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
@@ -31,26 +33,176 @@
         }
     })();
 
-    /* ── Auth ────────────────────────────────────────── */
-    function adminLogin() {
-        var entered = (input.value || '').trim();
-        if (!window.ADMIN_CONFIG || entered !== window.ADMIN_CONFIG.code) {
-            showError('Invalid admin code.');
-            input.value = '';
-            input.focus();
+    /* ══════════════════════════════════════════════════
+       TWO-FACTOR AUTH
+    ══════════════════════════════════════════════════ */
+
+    /** Step 1 — validate admin code */
+    function adminStep1() {
+        var entered = (input ? input.value : '').trim();
+        var cfg = window.ADMIN_CONFIG || {};
+
+        if (!entered || entered !== cfg.code) {
+            showErr('gate-error-1', 'Invalid admin code.');
+            if (input) { input.value = ''; input.focus(); }
             return;
         }
-        clearError();
-        sessionStorage.setItem(SESSION_KEY, 'ok');
-        showDashboard();
+
+        clearErr('gate-error-1');
+        pendingAuth = true;
+
+        document.getElementById('gate-step1').classList.add('hidden');
+        var step2 = document.getElementById('gate-step2');
+        step2.classList.remove('hidden');
+        var totpInput = document.getElementById('totp-input');
+        if (totpInput) totpInput.focus();
     }
 
+    /** Step 2 — validate TOTP code */
+    function adminStep2() {
+        if (!pendingAuth) return;
+
+        var token  = (document.getElementById('totp-input').value || '').trim();
+        var secret = (window.ADMIN_CONFIG || {}).totpSecret;
+        var btn    = document.getElementById('totp-verify-btn');
+
+        // If no secret is configured, skip TOTP (backwards compat)
+        if (!secret) {
+            sessionStorage.setItem(SESSION_KEY, 'ok');
+            pendingAuth = false;
+            showDashboard();
+            return;
+        }
+
+        if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+            showErr('gate-error-2', 'Please enter a 6-digit code.');
+            return;
+        }
+
+        if (btn) { btn.textContent = 'VERIFYING\u2026'; btn.disabled = true; }
+
+        verifyTOTP(secret, token).then(function (valid) {
+            if (btn) { btn.textContent = 'VERIFY'; btn.disabled = false; }
+
+            if (valid) {
+                pendingAuth = false;
+                clearErr('gate-error-2');
+                sessionStorage.setItem(SESSION_KEY, 'ok');
+                showDashboard();
+            } else {
+                showErr('gate-error-2', 'Invalid or expired code. Please try again.');
+                document.getElementById('totp-input').value = '';
+                document.getElementById('totp-input').focus();
+            }
+        });
+    }
+
+    /** Go back to step 1 */
+    function backToStep1() {
+        pendingAuth = false;
+        document.getElementById('gate-step2').classList.add('hidden');
+        document.getElementById('gate-step1').classList.remove('hidden');
+        document.getElementById('totp-input').value = '';
+        clearErr('gate-error-2');
+        if (input) input.focus();
+    }
+
+    /** Sign out */
     function adminLogout() {
         sessionStorage.removeItem(SESSION_KEY);
         content.classList.add('hidden');
         gate.style.display = 'flex';
-        input.value = '';
+        // Reset to step 1
+        document.getElementById('gate-step2').classList.add('hidden');
+        document.getElementById('gate-step1').classList.remove('hidden');
+        if (input) { input.value = ''; }
+        pendingAuth = false;
     }
+
+    /* ══════════════════════════════════════════════════
+       TOTP — RFC 6238 via Web Crypto API (no libs)
+    ══════════════════════════════════════════════════ */
+
+    function base32Decode(base32) {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        var clean = base32.toUpperCase().replace(/=+$/, '').replace(/\s/g, '');
+        var bits = 0, val = 0, idx = 0;
+        var out = new Uint8Array(Math.floor(clean.length * 5 / 8));
+        for (var i = 0; i < clean.length; i++) {
+            var c = chars.indexOf(clean[i]);
+            if (c === -1) continue;
+            val = (val << 5) | c;
+            bits += 5;
+            if (bits >= 8) {
+                out[idx++] = (val >>> (bits - 8)) & 0xff;
+                bits -= 8;
+            }
+        }
+        return out.buffer;
+    }
+
+    function verifyTOTP(secret, token) {
+        var keyData;
+        try { keyData = base32Decode(secret); } catch (e) { return Promise.resolve(false); }
+
+        return crypto.subtle.importKey(
+            'raw', keyData,
+            { name: 'HMAC', hash: { name: 'SHA-1' } },
+            false, ['sign']
+        ).then(function (cryptoKey) {
+            var now = Math.floor(Date.now() / 1000 / 30);
+            // Check ±1 window (90 s grace for clock drift)
+            var checks = [-1, 0, 1].map(function (delta) {
+                var buf  = new ArrayBuffer(8);
+                var view = new DataView(buf);
+                view.setUint32(4, now + delta, false); // counter in low 4 bytes (big-endian)
+                return crypto.subtle.sign('HMAC', cryptoKey, buf).then(function (sig) {
+                    var hash   = new Uint8Array(sig);
+                    var offset = hash[19] & 0xf;
+                    var code   = (
+                        ((hash[offset]     & 0x7f) << 24) |
+                        ((hash[offset + 1] & 0xff) << 16) |
+                        ((hash[offset + 2] & 0xff) <<  8) |
+                         (hash[offset + 3] & 0xff)
+                    ) % 1000000;
+                    return code.toString().padStart(6, '0') === token;
+                });
+            });
+            return Promise.all(checks).then(function (results) {
+                return results.some(Boolean);
+            });
+        }).catch(function () { return false; });
+    }
+
+    /* ══════════════════════════════════════════════════
+       2FA SETUP MODAL
+    ══════════════════════════════════════════════════ */
+
+    function showSetup() {
+        var secret  = (window.ADMIN_CONFIG || {}).totpSecret || '';
+        var display = document.getElementById('setup-secret-display');
+        if (display) display.textContent = formatSecret(secret);
+        document.getElementById('modal-2fa-setup').classList.remove('hidden');
+    }
+
+    function formatSecret(s) {
+        // Group into blocks of 4 for readability: XXXX XXXX XXXX XXXX
+        return s.toUpperCase().replace(/(.{4})/g, '$1 ').trim();
+    }
+
+    function copySecret() {
+        var secret = (window.ADMIN_CONFIG || {}).totpSecret || '';
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(secret).then(function () {
+                var btn = document.getElementById('copy-secret-btn');
+                if (btn) { btn.textContent = 'COPIED!'; setTimeout(function () { btn.textContent = 'COPY'; }, 2000); }
+            });
+        }
+    }
+
+    /* ══════════════════════════════════════════════════
+       DASHBOARD
+    ══════════════════════════════════════════════════ */
 
     function showDashboard() {
         gate.style.display = 'none';
@@ -298,19 +450,38 @@
 
     /* ── Helpers ─────────────────────────────────────── */
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function showError(msg) { if (errorEl) errorEl.textContent = msg; }
-    function clearError()   { if (errorEl) errorEl.textContent = ''; }
+    function showErr(id, msg) { var el = document.getElementById(id); if (el) el.textContent = msg; }
+    function clearErr(id)    { var el = document.getElementById(id); if (el) el.textContent = ''; }
     function esc(s)         { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function safeJSON(s)    { try { return JSON.parse(s); } catch(e) { return null; } }
     function today()        { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
 
+    // Keyboard: Enter on step 1
     if (input) {
-        input.addEventListener('keydown', function (e) { if (e.key === 'Enter') adminLogin(); });
+        input.addEventListener('keydown', function (e) { if (e.key === 'Enter') adminStep1(); });
     }
+    // Keyboard: Enter on TOTP field
+    document.addEventListener('DOMContentLoaded', function () {
+        var totpInput = document.getElementById('totp-input');
+        if (totpInput) {
+            totpInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') adminStep2(); });
+            // Auto-submit when 6 digits entered
+            totpInput.addEventListener('input', function () {
+                if (this.value.replace(/\D/g,'').length === 6) {
+                    this.value = this.value.replace(/\D/g,'').slice(0,6);
+                    adminStep2();
+                }
+            });
+        }
+    });
 
     /* ── Expose to HTML ──────────────────────────────── */
-    window.adminLogin       = adminLogin;
+    window.adminStep1       = adminStep1;
+    window.adminStep2       = adminStep2;
+    window.backToStep1      = backToStep1;
     window.adminLogout      = adminLogout;
+    window.showSetup        = showSetup;
+    window.copySecret       = copySecret;
     window.filterProspects  = filterProspects;
     window.openAddProspect  = openAddProspect;
     window.editProspect     = editProspect;

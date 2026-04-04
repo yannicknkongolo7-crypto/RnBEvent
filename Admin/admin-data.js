@@ -8,8 +8,17 @@
 
 window.ADMIN_CONFIG = {
 
-    /* Admin access code – change this! */
+    /* ── Admin access code (step 1) – change this! ───── */
     code: 'RNBADMIN2026',
+
+    /* ── TOTP secret for Google Authenticator (step 2) ──
+     * Base32 format (A-Z and 2-7 only).
+     * IMPORTANT: Change this before deploying — do NOT
+     * share or commit the real secret publicly.
+     * Use this value when setting up your authenticator app.
+     * Default: RNBEV7SECR3TADM2
+     * ─────────────────────────────────────────────────── */
+    totpSecret: 'RNBEV7SECR3TADM2',
 
     /* ── Prospect CRM ─────────────────────────────────────
      * status options:

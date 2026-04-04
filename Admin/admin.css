@@ -140,6 +140,220 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     margin-top: 10px; min-height: 18px;
 }
 
+/* ── Step Indicator ──────────────────────────────── */
+
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 24px 0 28px;
+}
+
+.step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--sage-light);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.step-dot.active {
+    border-color: var(--sage-medium);
+    background: var(--sage-medium);
+    color: var(--white);
+}
+
+.step-dot.done {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--white);
+    font-size: 14px;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    transition: var(--transition);
+    max-width: 80px;
+}
+
+.step-line.done {
+    background: var(--accent);
+}
+
+/* ── TOTP Input ───────────────────────────────────── */
+
+.totp-input {
+    width: 100%;
+    padding: 18px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    letter-spacing: 16px;
+    color: var(--primary);
+    text-align: center;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.3s;
+    margin-bottom: 14px;
+    display: block;
+}
+
+.totp-input:focus {
+    border-color: var(--sage-medium);
+    background: var(--white);
+}
+
+.totp-input::placeholder {
+    color: var(--sage-light);
+    letter-spacing: 10px;
+}
+
+.totp-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 11px;
+    letter-spacing: 4px;
+}
+
+/* ── 2FA Footer Links ─────────────────────────────── */
+
+.gate-2fa-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    color: var(--sage-medium);
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 4px 0;
+}
+
+.text-btn:hover { color: var(--primary); }
+.back-btn       { color: var(--sage-light); }
+.back-btn:hover { color: var(--sage-medium); }
+
+/* ── 2FA Setup Modal ──────────────────────────────── */
+
+.setup-modal { max-width: 520px; }
+
+.setup-intro {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-mid);
+    letter-spacing: 0.5px;
+    line-height: 1.8;
+    margin-bottom: 24px;
+}
+
+.setup-steps {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 0.5px;
+    line-height: 2.2;
+    margin: 0 0 28px 18px;
+}
+
+.setup-steps strong { font-weight: 500; color: var(--primary); }
+
+.setup-field {
+    margin-bottom: 18px;
+}
+
+.setup-field-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    color: var(--sage-medium);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.setup-code {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--primary);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 12px 16px;
+    word-break: break-all;
+}
+
+.secret-code {
+    font-size: 16px;
+    letter-spacing: 4px;
+    text-align: center;
+    color: var(--sage-medium);
+}
+
+.setup-secret-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.setup-secret-row .setup-code { flex: 1; }
+
+.copy-btn {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    padding: 12px 16px;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.copy-btn:hover { background: var(--sage-medium); }
+
+.setup-note {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    color: #a07c30;
+    background: #fdf8ee;
+    border: 1px solid #e8d5a0;
+    border-radius: 2px;
+    padding: 10px 14px;
+    margin-top: 20px;
+    line-height: 1.7;
+}
+
 /* ===========================
    ADMIN HEADER
    =========================== */

@@ -8,8 +8,10 @@
 
 window.ADMIN_CONFIG = {
 
-    /* ── Admin access code (step 1) – change this! ───── */
-    code: 'RNBADMIN2026',
+    /* ── Admin access code (step 1) — SHA-256 hash.
+     * To change, hash your new code with SHA-256 and
+     * replace this value. Never store the plain code. ── */
+    codeHash: '47d538bc9bbdba86910d104f78b851d87356c7fcee36e214878a5a24f7bbedf4',
 
     /* ── TOTP secret for Google Authenticator (step 2) ──
      * Base32 format (A-Z and 2-7 only).

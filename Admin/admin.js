@@ -81,6 +81,43 @@
 
     var pendingAuth = false; // step 1 passed, waiting for TOTP
 
+    /* ── Auth Lockout ────────────────────────────────── */
+    var AUTH_MAX_ATTEMPTS = 5;
+    var AUTH_LOCKOUT_MS   = 300000; // 5 minutes
+    var authAttempts  = parseInt(sessionStorage.getItem('rnb_auth_attempts') || '0', 10);
+    var authLockUntil = parseInt(sessionStorage.getItem('rnb_auth_lockuntil') || '0', 10);
+
+    function recordFailedAttempt(errId) {
+        authAttempts++;
+        sessionStorage.setItem('rnb_auth_attempts', String(authAttempts));
+        if (authAttempts >= AUTH_MAX_ATTEMPTS) {
+            authLockUntil = Date.now() + AUTH_LOCKOUT_MS;
+            sessionStorage.setItem('rnb_auth_lockuntil', String(authLockUntil));
+            showErr(errId, 'Too many failed attempts. Try again in 5 minutes.');
+            return true;
+        }
+        return false;
+    }
+
+    function isLockedOut(errId) {
+        if (authLockUntil && Date.now() < authLockUntil) {
+            showErr(errId, 'Too many failed attempts. Try again in 5 minutes.');
+            return true;
+        }
+        if (authLockUntil && Date.now() >= authLockUntil) {
+            authAttempts = 0; authLockUntil = 0;
+            sessionStorage.removeItem('rnb_auth_attempts');
+            sessionStorage.removeItem('rnb_auth_lockuntil');
+        }
+        return false;
+    }
+
+    function sha256Hex(str) {
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+            return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+        });
+    }
+
     /* ── Boot ────────────────────────────────────────── */
     (function init() {
         if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
@@ -92,30 +129,46 @@
        TWO-FACTOR AUTH
     ══════════════════════════════════════════════════ */
 
-    /** Step 1 — validate admin code */
+    /** Step 1 — validate admin code (SHA-256 hash comparison) */
     function adminStep1() {
+        if (isLockedOut('gate-error-1')) return;
+
         var entered = (input ? input.value : '').trim();
         var cfg = window.ADMIN_CONFIG || {};
 
-        if (!entered || entered !== cfg.code) {
+        if (!entered) {
             showErr('gate-error-1', 'Invalid admin code.');
             if (input) { input.value = ''; input.focus(); }
             return;
         }
 
-        clearErr('gate-error-1');
-        pendingAuth = true;
+        sha256Hex(entered).then(function (hash) {
+            if (hash !== cfg.codeHash) {
+                if (!recordFailedAttempt('gate-error-1')) {
+                    showErr('gate-error-1', 'Invalid admin code.');
+                }
+                if (input) { input.value = ''; input.focus(); }
+                return;
+            }
 
-        document.getElementById('gate-step1').classList.add('hidden');
-        var step2 = document.getElementById('gate-step2');
-        step2.classList.remove('hidden');
-        var totpInput = document.getElementById('totp-input');
-        if (totpInput) totpInput.focus();
+            authAttempts = 0;
+            sessionStorage.removeItem('rnb_auth_attempts');
+            sessionStorage.removeItem('rnb_auth_lockuntil');
+            clearErr('gate-error-1');
+            pendingAuth = true;
+
+            document.getElementById('gate-step1').classList.add('hidden');
+            var step2 = document.getElementById('gate-step2');
+            step2.classList.remove('hidden');
+            var totpInput = document.getElementById('totp-input');
+            if (totpInput) totpInput.focus();
+        });
     }
 
     /** Step 2 — validate TOTP code */
     function adminStep2() {
         if (!pendingAuth) return;
+        if (isLockedOut('gate-error-2')) return;
 
         var token  = (document.getElementById('totp-input').value || '').trim();
         var secret = (window.ADMIN_CONFIG || {}).totpSecret;
@@ -140,12 +193,17 @@
             if (btn) { btn.textContent = 'VERIFY'; btn.disabled = false; }
 
             if (valid) {
+                authAttempts = 0;
+                sessionStorage.removeItem('rnb_auth_attempts');
+                sessionStorage.removeItem('rnb_auth_lockuntil');
                 pendingAuth = false;
                 clearErr('gate-error-2');
                 sessionStorage.setItem(SESSION_KEY, 'ok');
                 showDashboard();
             } else {
-                showErr('gate-error-2', 'Invalid or expired code. Please try again.');
+                if (!recordFailedAttempt('gate-error-2')) {
+                    showErr('gate-error-2', 'Invalid or expired code. Please try again.');
+                }
                 document.getElementById('totp-input').value = '';
                 document.getElementById('totp-input').focus();
             }
@@ -272,11 +330,11 @@
 
         // Prospects: merge seed + localStorage additions
         var stored = safeJSON(localStorage.getItem(STORAGE_PROS));
-        state.prospects = stored && stored.length ? stored : (cfg.prospects || []).slice();
+        state.prospects = Array.isArray(stored) && stored.length ? stored : (cfg.prospects || []).slice();
 
         // Tasks: merge seed + localStorage additions
         var storedT = safeJSON(localStorage.getItem(STORAGE_TASKS));
-        state.tasks = storedT && storedT.length ? storedT : (cfg.websiteTasks || []).slice();
+        state.tasks = Array.isArray(storedT) && storedT.length ? storedT : (cfg.websiteTasks || []).slice();
 
         // Content drafts
         contentDrafts = safeJSON(localStorage.getItem(STORAGE_CONTENT)) || {};
@@ -345,8 +403,8 @@
                 '<span class="crm-date">'  + esc(p.eventDate  || '–') + '</span>' +
                 '<span><span class="crm-status ' + statusCls + '">' + esc(p.status) + '</span></span>' +
                 '<span class="crm-actions">' +
-                    '<button class="crm-act-btn" onclick="editProspect(\'' + p.id + '\')">EDIT</button>' +
-                    '<button class="crm-act-btn del-btn" onclick="deleteProspect(\'' + p.id + '\')">DEL</button>' +
+                    '<button class="crm-act-btn" onclick="editProspect(\'' + escJS(p.id) + '\')">EDIT</button>' +
+                    '<button class="crm-act-btn del-btn" onclick="deleteProspect(\'' + escJS(p.id) + '\')">DEL</button>' +
                 '</span>' +
             '</div>';
         });
@@ -380,13 +438,13 @@
                     '<span class="task-priority ' + (t.priority || 'Low') + '">' + esc(t.priority || 'Low') + '</span>' +
                 '</div>' +
                 '<div class="task-right">' +
-                    '<select class="task-status-sel" onchange="updateTaskStatus(\'' + t.id + '\', this.value)">' +
+                    '<select class="task-status-sel" onchange="updateTaskStatus(\'' + escJS(t.id) + '\', this.value)">' +
                         taskOption('Pending',     t.status) +
                         taskOption('In Progress', t.status) +
                         taskOption('Done',        t.status) +
                     '</select>' +
                     githubLink +
-                    '<button class="task-del-btn" onclick="deleteTask(\'' + t.id + '\')">REMOVE</button>' +
+                    '<button class="task-del-btn" onclick="deleteTask(\'' + escJS(t.id) + '\')">REMOVE</button>' +
                 '</div>' +
             '</div>';
         });
@@ -543,13 +601,13 @@
             }
             cards.forEach(function (p) {
                 html += '<div class="kanban-card" draggable="true" ' +
-                    'ondragstart="onKanbanDragStart(event, \'' + p.id + '\')" ' +
+                    'ondragstart="onKanbanDragStart(event, \'' + escJS(p.id) + '\')" ' +
                     'ondragend="onKanbanDragEnd(event)">' +
                     '<div class="kanban-card-name">' + esc(p.name) + '</div>' +
                     (p.eventType ? '<div class="kanban-card-meta">' + esc(p.eventType) + '</div>' : '') +
                     (p.eventDate ? '<div class="kanban-card-meta">' + esc(p.eventDate)  + '</div>' : '') +
                     (p.phone     ? '<div class="kanban-card-contact">' + esc(p.phone)   + '</div>' : '') +
-                    '<button class="kanban-edit-btn" onclick="editProspect(\'' + p.id + '\')">EDIT</button>' +
+                    '<button class="kanban-edit-btn" onclick="editProspect(\'' + escJS(p.id) + '\')">EDIT</button>' +
                 '</div>';
             });
 
@@ -668,10 +726,10 @@
                     '<img src="' + esc(f.currentSrc) + '" class="img-thumb" ' +
                     'onerror="this.style.display=\'none\'">' +
                     '</div>';
-                if (val) {
+                if (val && sanitizeImageSrc(val)) {
                     html += '<div class="img-preview-col">' +
                         '<div class="img-preview-label draft-lbl">DRAFT (PENDING)</div>' +
-                        '<img src="' + val + '" class="img-thumb img-thumb-draft">' +
+                        '<img src="' + sanitizeImageSrc(val) + '" class="img-thumb img-thumb-draft">' +
                         '<button class="img-remove-btn" onclick="removeImageDraft(\'' + f.key + \')">&#215; REMOVE</button>' +
                         '</div>';
                 }
@@ -747,7 +805,7 @@
                         '<div class="change-img-arrow">&rarr;</div>' +
                         '<div class="change-img-col">' +
                             '<div class="change-img-lbl">' + esc(fname) + '</div>' +
-                            '<img src="' + contentDrafts[f.key] + '" class="change-thumb change-thumb-new">' +
+                            '<img src="' + sanitizeImageSrc(contentDrafts[f.key]) + '" class="change-thumb change-thumb-new">' +
                         '</div>' +
                     '</div>' +
                 '</div>';
@@ -828,6 +886,11 @@
     function handleImageFieldChange(key, inputEl) {
         var file = inputEl.files && inputEl.files[0];
         if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+            alert('Only image files are allowed.');
+            inputEl.value = '';
+            return;
+        }
         if (file.size > 3 * 1024 * 1024) {
             alert('Image is larger than 3 MB. Please resize it first to avoid storage issues.');
         }
@@ -850,7 +913,9 @@
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showErr(id, msg) { var el = document.getElementById(id); if (el) el.textContent = msg; }
     function clearErr(id)    { var el = document.getElementById(id); if (el) el.textContent = ''; }
-    function esc(s)         { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function esc(s)         { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function escJS(s)       { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+    function sanitizeImageSrc(s) { return (typeof s === 'string' && (/^data:image\//.test(s) || /^https?:\/\//.test(s))) ? s : ''; }
     function safeJSON(s)    { try { return JSON.parse(s); } catch(e) { return null; } }
     function today()        { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }    function showToast(msg) {
         var t = document.getElementById('admin-toast');

@@ -68,11 +68,23 @@
                 sessionStorage.setItem(SESSION_KEY, hash);
                 clearError();
                 showPortal(hash);
-            } else {
-                showError('Invalid access code. Please check your code and try again.');
-                input.value = '';
-                input.focus();
+                return;
             }
+
+            // Not found locally — try a fresh cloud fetch in case data just synced
+            showError('Checking\u2026');
+            fetchCloudClients().then(function () {
+                var retry = findClient(hash);
+                if (retry) {
+                    sessionStorage.setItem(SESSION_KEY, hash);
+                    clearError();
+                    showPortal(hash);
+                } else {
+                    showError('Invalid access code. Please check your code and try again.');
+                    input.value = '';
+                    input.focus();
+                }
+            });
         });
     }
 

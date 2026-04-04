@@ -336,6 +336,10 @@
         loadState();
         renderAll();
         syncFromCloud();
+        // Ensure localStorage clients are pushed to cloud (covers first-deploy gap)
+        if (state.clients.length) {
+            cloudPush({ clients: state.clients });
+        }
     }
 
     /* ── State load/save ─────────────────────────────── */

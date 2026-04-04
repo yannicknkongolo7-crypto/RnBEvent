@@ -846,8 +846,213 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
    RESPONSIVE
    =========================== */
 
-@media (max-width: 1100px) {
-    .kanban-board { grid-template-columns: repeat(3, 1fr); }
+/* ===========================
+   KANBAN SUBMIT BAR
+   =========================== */
+
+#kanban-submit-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: #fff8f0;
+    border: 1px solid #f0c490;
+    border-radius: 2px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
+    transition: opacity 0.2s;
+}
+#kanban-submit-bar.bar-visible { display: flex; }
+
+.kbar-msg {
+    font-size: 11px; font-weight: 500; letter-spacing: 1px;
+    color: #b87333;
+}
+
+.kbar-actions { display: flex; gap: 8px; }
+
+.kbar-submit {
+    font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 500;
+    letter-spacing: 2px; padding: 8px 20px; cursor: pointer;
+    background: var(--primary); color: var(--white); border: none;
+    border-radius: 2px; transition: var(--transition);
+}
+.kbar-submit:hover { background: var(--sage-medium); }
+
+.kbar-discard {
+    font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 500;
+    letter-spacing: 2px; padding: 8px 14px; cursor: pointer;
+    background: transparent; color: #b87333; border: 1px solid #f0c490;
+    border-radius: 2px; transition: var(--transition);
+}
+.kbar-discard:hover { background: #fadbd8; border-color: #c0392b; color: #c0392b; }
+
+.kanban-card-pending {
+    border: 1.5px dashed #e8a84b;
+    background: #fffaf3;
+}
+
+.kanban-pending-badge {
+    font-size: 8px; font-weight: 600; letter-spacing: 2px;
+    color: #b87333; background: #fff0d4;
+    padding: 2px 7px; border-radius: 10px;
+    display: inline-block; margin-bottom: 5px;
+}
+
+/* ===========================
+   CONTENT EDITOR — ADDITIONS
+   =========================== */
+
+.content-tab-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.content-tab-row .content-page-tabs { margin-bottom: 0; }
+
+.preview-toggle-btn {
+    font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 500;
+    letter-spacing: 1.5px; padding: 7px 16px;
+    background: transparent; border: 1px solid var(--panel-border);
+    color: var(--sage-medium); cursor: pointer; transition: var(--transition);
+    white-space: nowrap;
+}
+.preview-toggle-btn:hover,
+.preview-toggle-btn.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+.content-preview-pane {
+    margin-bottom: 24px;
+    border: 1px solid var(--panel-border);
+    border-radius: 2px;
+    overflow: hidden;
+    background: #f9f9f7;
+}
+
+.content-preview-iframe {
+    width: 100%;
+    height: 500px;
+    border: none;
+    display: block;
+}
+
+.content-undo-btn {
+    background: transparent;
+    color: var(--sage-medium);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+.content-undo-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ===========================
+   IMAGE FIELD
+   =========================== */
+
+.img-field-row { margin-top: 4px; }
+
+.img-preview-pair {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.img-preview-col { display: flex; flex-direction: column; gap: 6px; }
+
+.img-preview-label {
+    font-size: 8px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--sage-light);
+}
+.draft-lbl { color: #527141; }
+
+.img-thumb {
+    width: 120px; height: 80px;
+    object-fit: cover;
+    border: 1px solid var(--panel-border);
+    border-radius: 2px;
+    display: block;
+}
+.img-thumb-draft { border-color: #77a361; }
+
+.img-remove-btn {
+    font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 500;
+    letter-spacing: 1px; color: #c0392b; background: transparent;
+    border: 1px solid #fadbd8; padding: 3px 8px; cursor: pointer;
+    border-radius: 2px; transition: var(--transition); width: 120px;
+}
+.img-remove-btn:hover { background: #fadbd8; }
+
+.img-upload-label { cursor: pointer; }
+.img-file-input { display: none; }
+
+.img-upload-btn {
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 500;
+    letter-spacing: 1.5px; padding: 8px 18px;
+    background: var(--white); color: var(--primary);
+    border: 1.5px solid var(--primary); border-radius: 2px;
+    transition: var(--transition);
+}
+.img-upload-label:hover .img-upload-btn { background: var(--primary); color: var(--white); }
+
+.img-fname {
+    display: inline-block; margin-top: 6px; margin-left: 8px;
+    font-size: 10px; color: var(--sage-medium); font-family: monospace;
+}
+
+/* ===========================
+   CHANGE DIFF — IMAGE
+   =========================== */
+
+.change-img-pair {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.change-img-col { display: flex; flex-direction: column; gap: 4px; }
+
+.change-img-lbl {
+    font-size: 8px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--sage-light);
+}
+
+.change-img-arrow {
+    font-size: 20px; color: var(--sage-light);
+    align-self: center;
+}
+
+.change-thumb {
+    width: 80px; height: 56px; object-fit: cover;
+    border: 1px solid var(--panel-border); border-radius: 2px;
+}
+.change-thumb-new { border-color: #77a361; }
+
+/* ===========================
+   TOAST NOTIFICATION
+   =========================== */
+
+.admin-toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--primary); color: var(--white);
+    font-family: 'Montserrat', sans-serif; font-size: 11px;
+    font-weight: 500; letter-spacing: 1.5px;
+    padding: 12px 28px; border-radius: 2px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 99999;
+    white-space: nowrap;
+}
+.admin-toast.toast-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 @media (max-width: 1024px) {

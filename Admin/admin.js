@@ -11,32 +11,56 @@
     var SESSION_KEY     = 'rnb_admin_access';
     var STORAGE_PROS    = 'rnb_admin_prospects';
     var STORAGE_TASKS   = 'rnb_admin_tasks';
-    var STORAGE_CONTENT = 'rnb_content_drafts';
+    var STORAGE_CONTENT         = 'rnb_content_drafts';
+    var STORAGE_CONTENT_HISTORY = 'rnb_content_drafts_history';
+
+    var CONTENT_PAGE_URLS = {
+        home:     'https://rnbevents716.com/',
+        service:  'https://rnbevents716.com/service',
+        lovebook: 'https://rnbevents716.com/lovebook',
+        about:    'https://rnbevents716.com/about',
+        crafting: 'https://rnbevents716.com/crafting-moments'
+    };
 
     var CONTENT_SCHEMA = {
         home: [
             { key: 'home_hero_headline', label: 'Hero — Main Headline',      type: 'text',     hint: 'Primary heading on the home page' },
             { key: 'home_hero_subtitle', label: 'Hero — Tagline / Subtitle', type: 'text',     hint: 'Subheading below the main headline' },
-            { key: 'home_intro_text',    label: 'Intro Paragraph',           type: 'textarea', hint: 'Opening paragraph visible below the hero section' },
-            { key: 'home_cta_label',     label: 'CTA Button Text',           type: 'text',     hint: 'e.g. “Book a Consultation”' }
+            { key: 'home_intro_text',    label: 'Intro Paragraph',           type: 'textarea', hint: 'Opening paragraph below hero section' },
+            { key: 'home_cta_label',     label: 'CTA Button Text',           type: 'text',     hint: 'e.g. “Book a Consultation”' },
+            { key: 'home_wedding_img',   label: 'Weddings Card — Photo',    type: 'image',    hint: 'Service card image for Weddings',         currentSrc: 'https://rnbevents716.com/Weddings.jpeg' },
+            { key: 'home_corp_img',      label: 'Corporate Card — Photo',   type: 'image',    hint: 'Service card image for Corporate Events', currentSrc: 'https://rnbevents716.com/Corporate%20Event.jpg' },
+            { key: 'home_social_img',    label: 'Social Card — Photo',      type: 'image',    hint: 'Service card image for Social Events',    currentSrc: 'https://rnbevents716.com/Social%20Event.jpeg' }
         ],
         service: [
-            { key: 'svc_headline',       label: 'Services — Page Headline',  type: 'text',     hint: 'e.g. “Our Services”' },
-            { key: 'svc_intro',          label: 'Services — Intro Text',    type: 'textarea', hint: 'Opening paragraph for the Services page' },
-            { key: 'svc_cta',            label: 'Services — CTA Text',      type: 'text',     hint: 'Call-to-action button label' }
+            { key: 'svc_headline', label: 'Services — Page Headline', type: 'text',     hint: 'e.g. “Our Services”' },
+            { key: 'svc_intro',    label: 'Services — Intro Text',    type: 'textarea', hint: 'Opening paragraph for the Services page' },
+            { key: 'svc_cta',      label: 'Services — CTA Text',      type: 'text',     hint: 'Call-to-action button label' }
         ],
         lovebook: [
-            { key: 'lb_headline',        label: 'Love Book — Headline',     type: 'text',     hint: 'e.g. “The Love Book”' },
-            { key: 'lb_intro',           label: 'Love Book — Intro Text',   type: 'textarea', hint: 'Description at the top of the Love Book page' }
+            { key: 'lb_headline', label: 'Love Book — Headline',   type: 'text',     hint: 'e.g. “The Love Book”' },
+            { key: 'lb_intro',    label: 'Love Book — Intro Text', type: 'textarea', hint: 'Description at the top of the Love Book page' },
+            { key: 'lb_photo_1',  label: 'Gallery Photo 1',          type: 'image',    hint: 'First gallery photo',  currentSrc: 'https://rnbevents716.com/1.jpeg' },
+            { key: 'lb_photo_2',  label: 'Gallery Photo 2',          type: 'image',    hint: 'Second gallery photo', currentSrc: 'https://rnbevents716.com/2.jpeg' },
+            { key: 'lb_photo_3',  label: 'Gallery Photo 3',          type: 'image',    hint: 'Third gallery photo',  currentSrc: 'https://rnbevents716.com/3.jpeg' },
+            { key: 'lb_photo_4',  label: 'Gallery Photo 4',          type: 'image',    hint: 'Fourth gallery photo', currentSrc: 'https://rnbevents716.com/4.JPG' }
         ],
         about: [
-            { key: 'about_headline',     label: 'About — Page Headline',    type: 'text',     hint: 'e.g. “About RNB Events”' },
-            { key: 'about_bio',          label: 'Bio / Description',         type: 'textarea', hint: 'Main bio or brand description text' },
-            { key: 'about_mission',      label: 'Mission Statement',         type: 'textarea', hint: 'Your mission or values statement' }
+            { key: 'about_headline', label: 'About — Page Headline', type: 'text',     hint: 'e.g. “About RNB Events”' },
+            { key: 'about_bio',      label: 'Bio / Description',     type: 'textarea', hint: 'Main bio or brand description text' },
+            { key: 'about_mission',  label: 'Mission Statement',     type: 'textarea', hint: 'Your mission or values statement' },
+            { key: 'about_photo_1',  label: 'About Photo 1',         type: 'image',    hint: 'First about-us gallery photo',  currentSrc: 'https://rnbevents716.com/about-1.jpeg' },
+            { key: 'about_photo_2',  label: 'About Photo 2',         type: 'image',    hint: 'Second about-us gallery photo', currentSrc: 'https://rnbevents716.com/about-2.JPG' },
+            { key: 'about_photo_3',  label: 'About Photo 3',         type: 'image',    hint: 'Third about-us gallery photo',  currentSrc: 'https://rnbevents716.com/about-3.JPG' }
         ],
         crafting: [
-            { key: 'cm_headline',        label: 'Crafting Moments — Headline', type: 'text',     hint: 'Page hero headline' },
-            { key: 'cm_intro',           label: 'Intro Paragraph',               type: 'textarea', hint: 'Opening text for the Crafting Moments page' }
+            { key: 'cm_headline', label: 'Crafting Moments — Headline', type: 'text',     hint: 'Page hero headline' },
+            { key: 'cm_intro',    label: 'Intro Paragraph',             type: 'textarea', hint: 'Opening text for the Crafting Moments page' },
+            { key: 'cm_photo_1',  label: 'Gallery Photo 1',             type: 'image',    hint: 'First gallery photo',  currentSrc: 'https://rnbevents716.com/crafting-1.jpeg' },
+            { key: 'cm_photo_2',  label: 'Gallery Photo 2',             type: 'image',    hint: 'Second gallery photo', currentSrc: 'https://rnbevents716.com/crafting-2.jpeg' },
+            { key: 'cm_photo_3',  label: 'Gallery Photo 3',             type: 'image',    hint: 'Third gallery photo',  currentSrc: 'https://rnbevents716.com/crafting-3.jpeg' },
+            { key: 'cm_photo_4',  label: 'Gallery Photo 4',             type: 'image',    hint: 'Fourth gallery photo', currentSrc: 'https://rnbevents716.com/crafting-4.jpeg' },
+            { key: 'cm_photo_5',  label: 'Gallery Photo 5',             type: 'image',    hint: 'Fifth gallery photo',  currentSrc: 'https://rnbevents716.com/crafting-5.jpeg' }
         ]
     };
 
@@ -50,8 +74,11 @@
         tasks:        [],
         activeFilter: 'all'
     };
-    var contentDrafts     = {};
-    var activeContentPage = 'home';
+    var contentDrafts        = {};
+    var activeContentPage    = 'home';
+    var contentPreviewActive = false;
+    var kanbanPendingMap     = {};
+
     var pendingAuth = false; // step 1 passed, waiting for TOTP
 
     /* ── Boot ────────────────────────────────────────── */
@@ -559,13 +586,49 @@
         e.currentTarget.classList.remove('drag-over');
         var id = e.dataTransfer.getData('text/plain');
         var p  = state.prospects.find(function (x) { return x.id === id; });
-        if (p && p.status !== newStatus) {
-            p.status = newStatus;
-            saveProspectsToStorage();
-            renderKanban();
-            renderStats();
-            renderCRM(state.activeFilter);
+        if (!p) return;
+        var curStatus = kanbanPendingMap.hasOwnProperty(p.id) ? kanbanPendingMap[p.id] : p.status;
+        if (curStatus === newStatus) return;
+        kanbanPendingMap[p.id] = newStatus;
+        renderKanban();
+    }
+
+    function kanbanSubmit() {
+        var count = Object.keys(kanbanPendingMap).length;
+        if (!count) return;
+        Object.keys(kanbanPendingMap).forEach(function (id) {
+            var p = state.prospects.find(function (x) { return x.id === id; });
+            if (p) p.status = kanbanPendingMap[p.id];
+        });
+        kanbanPendingMap = {};
+        saveProspectsToStorage();
+        renderAll();
+        showToast(count + ' status change' + (count > 1 ? 's' : '') + ' submitted.');
+    }
+
+    function kanbanDiscard() {
+        var count = Object.keys(kanbanPendingMap).length;
+        kanbanPendingMap = {};
+        renderKanban();
+        if (count) showToast('Changes discarded.');
+    }
+
+    function renderKanbanSubmitBar() {
+        var count = Object.keys(kanbanPendingMap).length;
+        var bar   = document.getElementById('kanban-submit-bar');
+        if (!bar) return;
+        if (!count) {
+            bar.innerHTML = '';
+            bar.classList.remove('bar-visible');
+            return;
         }
+        bar.classList.add('bar-visible');
+        bar.innerHTML =
+            '<span class="kbar-msg">&#9679; ' + count + ' pending status change' + (count > 1 ? 's' : '') + '</span>' +
+            '<div class="kbar-actions">' +
+                '<button class="kbar-discard" onclick="kanbanDiscard()">DISCARD</button>' +
+                '<button class="kbar-submit" onclick="kanbanSubmit()">SUBMIT CHANGES</button>' +
+            '</div>';
     }
 
     /* ══════════════════════════════════════════════════
@@ -578,6 +641,10 @@
         document.querySelectorAll('.ctab').forEach(function (b) { b.classList.remove('active'); });
         if (btn) btn.classList.add('active');
         renderContentFields(page);
+        if (contentPreviewActive) {
+            var iframe = document.getElementById('content-preview-iframe');
+            if (iframe) iframe.src = CONTENT_PAGE_URLS[page] || '';
+        }
     }
 
     function renderContentFields(page) {
@@ -588,11 +655,35 @@
         var html = '';
         fields.forEach(function (f) {
             var val = contentDrafts[f.key] || '';
-            html += '<div class="content-field-row">' +
-                '<label class="content-field-label">' + esc(f.label) +
-                    '<span class="content-field-key">  ' + esc(f.key) + '</span>' +
-                '</label>';
-            if (f.type === 'textarea') {
+            html += '<div class="content-field-row">';
+            html += '<label class="content-field-label">' + esc(f.label) +
+                '<span class="content-field-key">  ' + esc(f.key) + '</span></label>';
+
+            if (f.type === 'image') {
+                var fname = contentDrafts[f.key + '__filename'] || '';
+                html += '<div class="img-field-row">';
+                html += '<div class="img-preview-pair">';
+                html += '<div class="img-preview-col">' +
+                    '<div class="img-preview-label">CURRENT (LIVE)</div>' +
+                    '<img src="' + esc(f.currentSrc) + '" class="img-thumb" ' +
+                    'onerror="this.style.display=\'none\'">' +
+                    '</div>';
+                if (val) {
+                    html += '<div class="img-preview-col">' +
+                        '<div class="img-preview-label draft-lbl">DRAFT (PENDING)</div>' +
+                        '<img src="' + val + '" class="img-thumb img-thumb-draft">' +
+                        '<button class="img-remove-btn" onclick="removeImageDraft(\'' + f.key + \')">&#215; REMOVE</button>' +
+                        '</div>';
+                }
+                html += '</div>';
+                html += '<label class="img-upload-label">' +
+                    '<input type="file" id="cf-' + f.key + '" class="img-file-input" ' +
+                    'accept="image/*" onchange="handleImageFieldChange(\'' + f.key + '\', this)">' +
+                    '<span class="img-upload-btn">' + (val ? '&#8635; REPLACE' : '+ UPLOAD NEW') + '</span>' +
+                    '</label>';
+                if (fname) html += '<span class="img-fname">&#128196; ' + esc(fname) + '</span>';
+                html += '</div>';
+            } else if (f.type === 'textarea') {
                 html += '<textarea id="cf-' + f.key + '" class="content-field-input content-field-area" ' +
                     'placeholder="' + esc(f.hint) + '">' + esc(val) + '</textarea>';
             } else {
@@ -608,6 +699,7 @@
     function saveCurrentContentFields() {
         var fields = CONTENT_SCHEMA[activeContentPage] || [];
         fields.forEach(function (f) {
+            if (f.type === 'image') return; // handled via handleImageFieldChange
             var el = document.getElementById('cf-' + f.key);
             if (el) contentDrafts[f.key] = el.value.trim();
         });
@@ -615,13 +707,10 @@
 
     function saveContentDrafts() {
         saveCurrentContentFields();
+        var existing = safeJSON(localStorage.getItem(STORAGE_CONTENT));
+        if (existing) localStorage.setItem(STORAGE_CONTENT_HISTORY, JSON.stringify(existing));
         localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
-        var btn = document.querySelector('.content-editor-actions .panel-btn');
-        if (btn) {
-            var orig = btn.textContent;
-            btn.textContent = 'SAVED \u2714';
-            setTimeout(function () { btn.textContent = orig; }, 2000);
-        }
+        showToast('All drafts saved.');
     }
 
     function viewContentChanges() {
@@ -634,14 +723,33 @@
         var html  = '';
 
         pages.forEach(function (page) {
-            var changed = CONTENT_SCHEMA[page].filter(function (f) { return contentDrafts[f.key]; });
-            if (!changed.length) return;
-            any   = true;
+            var txtChanged = CONTENT_SCHEMA[page].filter(function (f) { return f.type !== 'image' && contentDrafts[f.key]; });
+            var imgChanged = CONTENT_SCHEMA[page].filter(function (f) { return f.type === 'image' && contentDrafts[f.key]; });
+            if (!txtChanged.length && !imgChanged.length) return;
+            any = true;
             html += '<div class="change-group"><h4 class="change-page">' + page.toUpperCase() + '</h4>';
-            changed.forEach(function (f) {
+            txtChanged.forEach(function (f) {
                 html += '<div class="change-item">' +
                     '<div class="change-field-label">' + esc(f.label) + '</div>' +
                     '<div class="change-content">'     + esc(contentDrafts[f.key]) + '</div>' +
+                '</div>';
+            });
+            imgChanged.forEach(function (f) {
+                var fname = contentDrafts[f.key + '__filename'] || 'uploaded-file';
+                html += '<div class="change-item">' +
+                    '<div class="change-field-label">' + esc(f.label) +
+                        ' <span style="color:#b89a5e;font-size:9px;">[IMAGE]</span></div>' +
+                    '<div class="change-img-pair">' +
+                        '<div class="change-img-col">' +
+                            '<div class="change-img-lbl">CURRENT</div>' +
+                            '<img src="' + esc(f.currentSrc) + '" class="change-thumb">' +
+                        '</div>' +
+                        '<div class="change-img-arrow">&rarr;</div>' +
+                        '<div class="change-img-col">' +
+                            '<div class="change-img-lbl">' + esc(fname) + '</div>' +
+                            '<img src="' + contentDrafts[f.key] + '" class="change-thumb change-thumb-new">' +
+                        '</div>' +
+                    '</div>' +
                 '</div>';
             });
             html += '</div>';
@@ -657,12 +765,19 @@
     function copyAllChanges() {
         var lines = [];
         Object.keys(CONTENT_SCHEMA).forEach(function (page) {
-            var changed = CONTENT_SCHEMA[page].filter(function (f) { return contentDrafts[f.key]; });
-            if (!changed.length) return;
+            var txtChanged = CONTENT_SCHEMA[page].filter(function (f) { return f.type !== 'image' && contentDrafts[f.key]; });
+            var imgChanged = CONTENT_SCHEMA[page].filter(function (f) { return f.type === 'image' && contentDrafts[f.key]; });
+            if (!txtChanged.length && !imgChanged.length) return;
             lines.push('=== ' + page.toUpperCase() + ' ===');
-            changed.forEach(function (f) {
+            txtChanged.forEach(function (f) {
                 lines.push(f.label + ':');
                 lines.push(contentDrafts[f.key]);
+                lines.push('');
+            });
+            imgChanged.forEach(function (f) {
+                lines.push('[IMAGE CHANGE] ' + f.label + ':');
+                lines.push('  Replace: ' + f.currentSrc);
+                lines.push('  With file: ' + (contentDrafts[f.key + '__filename'] || 'uploaded-file'));
                 lines.push('');
             });
         });
@@ -675,14 +790,76 @@
         }
     }
 
+    /* ── Additional Content Functions ───────────────── */
+
+    function submitContentPage() {
+        saveCurrentContentFields();
+        var existing = safeJSON(localStorage.getItem(STORAGE_CONTENT));
+        if (existing) localStorage.setItem(STORAGE_CONTENT_HISTORY, JSON.stringify(existing));
+        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
+        showToast(activeContentPage.toUpperCase() + ' page changes submitted.');
+    }
+
+    function undoContentDraft() {
+        var history = safeJSON(localStorage.getItem(STORAGE_CONTENT_HISTORY));
+        if (!history) { showToast('No previous save to undo to.'); return; }
+        contentDrafts = history;
+        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
+        renderContentFields(activeContentPage);
+        showToast('Restored to last saved state.');
+    }
+
+    function toggleContentPreview() {
+        contentPreviewActive = !contentPreviewActive;
+        var pane = document.getElementById('content-preview-pane');
+        var btn  = document.getElementById('preview-toggle-btn');
+        var iframe = document.getElementById('content-preview-iframe');
+        if (contentPreviewActive) {
+            if (iframe) iframe.src = CONTENT_PAGE_URLS[activeContentPage] || '';
+            if (pane)  pane.classList.remove('hidden');
+            if (btn)   btn.textContent = '\u00d7 HIDE PREVIEW';
+        } else {
+            if (iframe) iframe.src = 'about:blank';
+            if (pane)  pane.classList.add('hidden');
+            if (btn)   btn.textContent = '\u25a1 PREVIEW LIVE';
+        }
+    }
+
+    function handleImageFieldChange(key, inputEl) {
+        var file = inputEl.files && inputEl.files[0];
+        if (!file) return;
+        if (file.size > 3 * 1024 * 1024) {
+            alert('Image is larger than 3 MB. Please resize it first to avoid storage issues.');
+        }
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            contentDrafts[key] = e.target.result;
+            contentDrafts[key + '__filename'] = file.name;
+            renderContentFields(activeContentPage);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImageDraft(key) {
+        delete contentDrafts[key];
+        delete contentDrafts[key + '__filename'];
+        renderContentFields(activeContentPage);
+    }
+
     /* ── Helpers ─────────────────────────────────────── */
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showErr(id, msg) { var el = document.getElementById(id); if (el) el.textContent = msg; }
     function clearErr(id)    { var el = document.getElementById(id); if (el) el.textContent = ''; }
     function esc(s)         { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function safeJSON(s)    { try { return JSON.parse(s); } catch(e) { return null; } }
-    function today()        { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
-
+    function today()        { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }    function showToast(msg) {
+        var t = document.getElementById('admin-toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('toast-visible');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(function () { t.classList.remove('toast-visible'); }, 2800);
+    }
     // Keyboard: Enter on step 1
     if (input) {
         input.addEventListener('keydown', function (e) { if (e.key === 'Enter') adminStep1(); });
@@ -720,15 +897,22 @@
     window.deleteTask       = deleteTask;
     window.closeModal       = closeModal;
     // Admin Tools
-    window.switchTool           = switchTool;
-    window.switchContentTab     = switchContentTab;
-    window.saveContentDrafts    = saveContentDrafts;
-    window.viewContentChanges   = viewContentChanges;
-    window.copyAllChanges       = copyAllChanges;
-    window.onKanbanDragStart    = onKanbanDragStart;
-    window.onKanbanDragEnd      = onKanbanDragEnd;
-    window.onKanbanDragOver     = onKanbanDragOver;
-    window.onKanbanDragLeave    = onKanbanDragLeave;
-    window.onKanbanDrop         = onKanbanDrop;
+    window.switchTool             = switchTool;
+    window.switchContentTab       = switchContentTab;
+    window.saveContentDrafts      = saveContentDrafts;
+    window.viewContentChanges     = viewContentChanges;
+    window.copyAllChanges         = copyAllChanges;
+    window.onKanbanDragStart      = onKanbanDragStart;
+    window.onKanbanDragEnd        = onKanbanDragEnd;
+    window.onKanbanDragOver       = onKanbanDragOver;
+    window.onKanbanDragLeave      = onKanbanDragLeave;
+    window.onKanbanDrop           = onKanbanDrop;
+    window.kanbanSubmit           = kanbanSubmit;
+    window.kanbanDiscard          = kanbanDiscard;
+    window.submitContentPage      = submitContentPage;
+    window.undoContentDraft       = undoContentDraft;
+    window.toggleContentPreview   = toggleContentPreview;
+    window.handleImageFieldChange = handleImageFieldChange;
+    window.removeImageDraft       = removeImageDraft;
 
-})();
+})()

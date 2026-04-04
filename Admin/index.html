@@ -166,23 +166,31 @@
 
             <!-- Kanban Board -->
             <div id="tool-kanban" class="tool-panel">
-                <p class="tool-desc">Drag and drop prospect cards between columns to update their status. Click EDIT on any card to modify details.</p>
+                <p class="tool-desc">Drag prospect cards between columns to stage a status change, then hit <strong>SUBMIT CHANGES</strong> to confirm. Click EDIT on any card to modify details.</p>
+                <div id="kanban-submit-bar"></div>
                 <div class="kanban-board" id="kanban-board"><!-- Populated by JS --></div>
             </div>
 
             <!-- Content Editor -->
             <div id="tool-content" class="tool-panel hidden">
-                <p class="tool-desc">Draft text and caption changes for your website pages. Save drafts, then use <strong>View All Changes</strong> to generate a summary for your developer.</p>
-                <div class="content-page-tabs">
-                    <button class="ctab active" onclick="switchContentTab('home', this)">HOME</button>
-                    <button class="ctab" onclick="switchContentTab('service', this)">SERVICE</button>
-                    <button class="ctab" onclick="switchContentTab('lovebook', this)">LOVE BOOK</button>
-                    <button class="ctab" onclick="switchContentTab('about', this)">ABOUT</button>
-                    <button class="ctab" onclick="switchContentTab('crafting', this)">CRAFTING MOMENTS</button>
+                <p class="tool-desc">Draft text, captions, and image replacements per page. Preview the live site inline, then submit per tab or view all changes at once.</p>
+                <div class="content-tab-row">
+                    <div class="content-page-tabs">
+                        <button class="ctab active" onclick="switchContentTab('home', this)">HOME</button>
+                        <button class="ctab" onclick="switchContentTab('service', this)">SERVICE</button>
+                        <button class="ctab" onclick="switchContentTab('lovebook', this)">LOVE BOOK</button>
+                        <button class="ctab" onclick="switchContentTab('about', this)">ABOUT</button>
+                        <button class="ctab" onclick="switchContentTab('crafting', this)">CRAFTING MOMENTS</button>
+                    </div>
+                    <button id="preview-toggle-btn" class="preview-toggle-btn" onclick="toggleContentPreview()">&#9633; PREVIEW LIVE</button>
+                </div>
+                <div id="content-preview-pane" class="content-preview-pane hidden">
+                    <iframe id="content-preview-iframe" class="content-preview-iframe" title="Live site preview"></iframe>
                 </div>
                 <div id="content-editor-fields"><!-- Populated by JS --></div>
                 <div class="content-editor-actions">
-                    <button class="panel-btn" onclick="saveContentDrafts()">SAVE DRAFTS</button>
+                    <button class="panel-btn" onclick="submitContentPage()">SUBMIT THIS PAGE</button>
+                    <button class="panel-btn content-undo-btn" onclick="undoContentDraft()">&#8630; UNDO</button>
                     <button class="panel-btn content-view-btn" onclick="viewContentChanges()">VIEW ALL CHANGES</button>
                 </div>
             </div>
@@ -287,6 +295,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="admin-toast" class="admin-toast"></div>
 
     <script src="admin-data.js"></script>
     <script src="admin.js"></script>

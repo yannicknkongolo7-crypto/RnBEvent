@@ -8,10 +8,37 @@
 (function () {
     'use strict';
 
-    var SESSION_KEY   = 'rnb_admin_access';
-    var STORAGE_PROS  = 'rnb_admin_prospects';
-    var STORAGE_TASKS = 'rnb_admin_tasks';
-    var GITHUB_BASE   = 'https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/';
+    var SESSION_KEY     = 'rnb_admin_access';
+    var STORAGE_PROS    = 'rnb_admin_prospects';
+    var STORAGE_TASKS   = 'rnb_admin_tasks';
+    var STORAGE_CONTENT = 'rnb_content_drafts';
+
+    var CONTENT_SCHEMA = {
+        home: [
+            { key: 'home_hero_headline', label: 'Hero — Main Headline',      type: 'text',     hint: 'Primary heading on the home page' },
+            { key: 'home_hero_subtitle', label: 'Hero — Tagline / Subtitle', type: 'text',     hint: 'Subheading below the main headline' },
+            { key: 'home_intro_text',    label: 'Intro Paragraph',           type: 'textarea', hint: 'Opening paragraph visible below the hero section' },
+            { key: 'home_cta_label',     label: 'CTA Button Text',           type: 'text',     hint: 'e.g. “Book a Consultation”' }
+        ],
+        service: [
+            { key: 'svc_headline',       label: 'Services — Page Headline',  type: 'text',     hint: 'e.g. “Our Services”' },
+            { key: 'svc_intro',          label: 'Services — Intro Text',    type: 'textarea', hint: 'Opening paragraph for the Services page' },
+            { key: 'svc_cta',            label: 'Services — CTA Text',      type: 'text',     hint: 'Call-to-action button label' }
+        ],
+        lovebook: [
+            { key: 'lb_headline',        label: 'Love Book — Headline',     type: 'text',     hint: 'e.g. “The Love Book”' },
+            { key: 'lb_intro',           label: 'Love Book — Intro Text',   type: 'textarea', hint: 'Description at the top of the Love Book page' }
+        ],
+        about: [
+            { key: 'about_headline',     label: 'About — Page Headline',    type: 'text',     hint: 'e.g. “About RNB Events”' },
+            { key: 'about_bio',          label: 'Bio / Description',         type: 'textarea', hint: 'Main bio or brand description text' },
+            { key: 'about_mission',      label: 'Mission Statement',         type: 'textarea', hint: 'Your mission or values statement' }
+        ],
+        crafting: [
+            { key: 'cm_headline',        label: 'Crafting Moments — Headline', type: 'text',     hint: 'Page hero headline' },
+            { key: 'cm_intro',           label: 'Intro Paragraph',               type: 'textarea', hint: 'Opening text for the Crafting Moments page' }
+        ]
+    };
 
     var gate    = document.getElementById('access-gate');
     var content = document.getElementById('admin-content');
@@ -23,7 +50,8 @@
         tasks:        [],
         activeFilter: 'all'
     };
-
+    var contentDrafts     = {};
+    var activeContentPage = 'home';
     var pendingAuth = false; // step 1 passed, waiting for TOTP
 
     /* ── Boot ────────────────────────────────────────── */
@@ -222,6 +250,9 @@
         // Tasks: merge seed + localStorage additions
         var storedT = safeJSON(localStorage.getItem(STORAGE_TASKS));
         state.tasks = storedT && storedT.length ? storedT : (cfg.websiteTasks || []).slice();
+
+        // Content drafts
+        contentDrafts = safeJSON(localStorage.getItem(STORAGE_CONTENT)) || {};
     }
 
     function saveProspectsToStorage() {
@@ -236,8 +267,7 @@
     function renderAll() {
         renderStats();
         renderCRM(state.activeFilter);
-        renderTasks();
-    }
+        renderTasks();        renderKanban();    }
 
     /* ── Stats Row ───────────────────────────────────── */
     function renderStats() {
@@ -314,7 +344,7 @@
         var html = '';
         state.tasks.forEach(function (t) {
             var githubLink = t.githubFile
-                ? '<a href="' + GITHUB_BASE + t.githubFile + '" target="_blank" rel="noopener" class="task-github-link">EDIT ON GITHUB</a>'
+                ? '<span class="task-file-ref">&#128196; ' + esc(t.githubFile) + '</span>'
                 : '';
             html += '<div class="task-row status-' + (t.status || '').replace(/\s+/g, '-') + '" data-id="' + t.id + '">' +
                 '<div class="task-left">' +
@@ -448,6 +478,203 @@
         renderTasks();
     }
 
+    /* ══════════════════════════════════════════════════
+       ADMIN TOOLS — KANBAN BOARD
+    ══════════════════════════════════════════════════ */
+
+    var KANBAN_COLS = ['New Lead', 'In Conversation', 'Proposal Sent', 'Booked', 'Lost'];
+
+    function switchTool(name, btn) {
+        document.querySelectorAll('.tool-tab').forEach(function (b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        document.getElementById('tool-kanban').classList.toggle('hidden', name !== 'kanban');
+        document.getElementById('tool-content').classList.toggle('hidden', name !== 'content');
+        if (name === 'kanban')  renderKanban();
+        if (name === 'content') renderContentFields(activeContentPage);
+    }
+
+    function renderKanban() {
+        var board = document.getElementById('kanban-board');
+        if (!board) return;
+
+        var html = '';
+        KANBAN_COLS.forEach(function (col) {
+            var cards    = state.prospects.filter(function (p) { return p.status === col; });
+            var colClass = col.replace(/\s+/g, '-');
+            html += '<div class="kanban-col" data-status="' + col + '" ' +
+                'ondragover="onKanbanDragOver(event)" ' +
+                'ondragleave="onKanbanDragLeave(event)" ' +
+                'ondrop="onKanbanDrop(event, \'' + col + '\')">' +
+                '<div class="kanban-col-header kanban-status-' + colClass + '">' +
+                    '<span>' + col + '</span>' +
+                    '<span class="kanban-count">' + cards.length + '</span>' +
+                '</div>' +
+                '<div class="kanban-cards">';
+
+            if (!cards.length) {
+                html += '<div class="kanban-empty">Drop here</div>';
+            }
+            cards.forEach(function (p) {
+                html += '<div class="kanban-card" draggable="true" ' +
+                    'ondragstart="onKanbanDragStart(event, \'' + p.id + '\')" ' +
+                    'ondragend="onKanbanDragEnd(event)">' +
+                    '<div class="kanban-card-name">' + esc(p.name) + '</div>' +
+                    (p.eventType ? '<div class="kanban-card-meta">' + esc(p.eventType) + '</div>' : '') +
+                    (p.eventDate ? '<div class="kanban-card-meta">' + esc(p.eventDate)  + '</div>' : '') +
+                    (p.phone     ? '<div class="kanban-card-contact">' + esc(p.phone)   + '</div>' : '') +
+                    '<button class="kanban-edit-btn" onclick="editProspect(\'' + p.id + '\')">EDIT</button>' +
+                '</div>';
+            });
+
+            html += '</div></div>';
+        });
+
+        board.innerHTML = html;
+    }
+
+    function onKanbanDragStart(e, id) {
+        e.dataTransfer.setData('text/plain', id);
+        e.dataTransfer.effectAllowed = 'move';
+        e.currentTarget.classList.add('dragging');
+    }
+
+    function onKanbanDragEnd(e) {
+        e.currentTarget.classList.remove('dragging');
+    }
+
+    function onKanbanDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.classList.add('drag-over');
+    }
+
+    function onKanbanDragLeave(e) {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+    }
+
+    function onKanbanDrop(e, newStatus) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        var id = e.dataTransfer.getData('text/plain');
+        var p  = state.prospects.find(function (x) { return x.id === id; });
+        if (p && p.status !== newStatus) {
+            p.status = newStatus;
+            saveProspectsToStorage();
+            renderKanban();
+            renderStats();
+            renderCRM(state.activeFilter);
+        }
+    }
+
+    /* ══════════════════════════════════════════════════
+       ADMIN TOOLS — CONTENT EDITOR
+    ══════════════════════════════════════════════════ */
+
+    function switchContentTab(page, btn) {
+        saveCurrentContentFields();
+        activeContentPage = page;
+        document.querySelectorAll('.ctab').forEach(function (b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        renderContentFields(page);
+    }
+
+    function renderContentFields(page) {
+        var fields = CONTENT_SCHEMA[page] || [];
+        var el     = document.getElementById('content-editor-fields');
+        if (!el) return;
+
+        var html = '';
+        fields.forEach(function (f) {
+            var val = contentDrafts[f.key] || '';
+            html += '<div class="content-field-row">' +
+                '<label class="content-field-label">' + esc(f.label) +
+                    '<span class="content-field-key">  ' + esc(f.key) + '</span>' +
+                '</label>';
+            if (f.type === 'textarea') {
+                html += '<textarea id="cf-' + f.key + '" class="content-field-input content-field-area" ' +
+                    'placeholder="' + esc(f.hint) + '">' + esc(val) + '</textarea>';
+            } else {
+                html += '<input type="text" id="cf-' + f.key + '" class="content-field-input" ' +
+                    'value="' + esc(val) + '" placeholder="' + esc(f.hint) + '">';
+            }
+            html += '</div>';
+        });
+
+        el.innerHTML = html;
+    }
+
+    function saveCurrentContentFields() {
+        var fields = CONTENT_SCHEMA[activeContentPage] || [];
+        fields.forEach(function (f) {
+            var el = document.getElementById('cf-' + f.key);
+            if (el) contentDrafts[f.key] = el.value.trim();
+        });
+    }
+
+    function saveContentDrafts() {
+        saveCurrentContentFields();
+        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(contentDrafts));
+        var btn = document.querySelector('.content-editor-actions .panel-btn');
+        if (btn) {
+            var orig = btn.textContent;
+            btn.textContent = 'SAVED \u2714';
+            setTimeout(function () { btn.textContent = orig; }, 2000);
+        }
+    }
+
+    function viewContentChanges() {
+        saveCurrentContentFields();
+        var el = document.getElementById('content-changes-list');
+        if (!el) return;
+
+        var pages = Object.keys(CONTENT_SCHEMA);
+        var any   = false;
+        var html  = '';
+
+        pages.forEach(function (page) {
+            var changed = CONTENT_SCHEMA[page].filter(function (f) { return contentDrafts[f.key]; });
+            if (!changed.length) return;
+            any   = true;
+            html += '<div class="change-group"><h4 class="change-page">' + page.toUpperCase() + '</h4>';
+            changed.forEach(function (f) {
+                html += '<div class="change-item">' +
+                    '<div class="change-field-label">' + esc(f.label) + '</div>' +
+                    '<div class="change-content">'     + esc(contentDrafts[f.key]) + '</div>' +
+                '</div>';
+            });
+            html += '</div>';
+        });
+
+        el.innerHTML = any
+            ? html
+            : '<p style="font-size:11px;color:#527141;padding:20px 0;">No drafts saved yet. Use the Content Editor tab to draft changes.</p>';
+
+        document.getElementById('modal-content-changes').classList.remove('hidden');
+    }
+
+    function copyAllChanges() {
+        var lines = [];
+        Object.keys(CONTENT_SCHEMA).forEach(function (page) {
+            var changed = CONTENT_SCHEMA[page].filter(function (f) { return contentDrafts[f.key]; });
+            if (!changed.length) return;
+            lines.push('=== ' + page.toUpperCase() + ' ===');
+            changed.forEach(function (f) {
+                lines.push(f.label + ':');
+                lines.push(contentDrafts[f.key]);
+                lines.push('');
+            });
+        });
+        if (!lines.length) return;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(lines.join('\n')).then(function () {
+                var btn = document.querySelector('#modal-content-changes .modal-cancel');
+                if (btn) { btn.textContent = 'COPIED!'; setTimeout(function () { btn.textContent = 'COPY ALL'; }, 2000); }
+            });
+        }
+    }
+
     /* ── Helpers ─────────────────────────────────────── */
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showErr(id, msg) { var el = document.getElementById(id); if (el) el.textContent = msg; }
@@ -492,5 +719,16 @@
     window.updateTaskStatus = updateTaskStatus;
     window.deleteTask       = deleteTask;
     window.closeModal       = closeModal;
+    // Admin Tools
+    window.switchTool           = switchTool;
+    window.switchContentTab     = switchContentTab;
+    window.saveContentDrafts    = saveContentDrafts;
+    window.viewContentChanges   = viewContentChanges;
+    window.copyAllChanges       = copyAllChanges;
+    window.onKanbanDragStart    = onKanbanDragStart;
+    window.onKanbanDragEnd      = onKanbanDragEnd;
+    window.onKanbanDragOver     = onKanbanDragOver;
+    window.onKanbanDragLeave    = onKanbanDragLeave;
+    window.onKanbanDrop         = onKanbanDrop;
 
 })();

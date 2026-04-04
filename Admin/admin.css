@@ -586,13 +586,12 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     border-radius: 2px; color: var(--primary); background: var(--white); cursor: pointer;
 }
 
-.task-github-link {
-    font-size: 9px; font-weight: 500; letter-spacing: 2px;
-    color: var(--sage-medium); border: 1px solid var(--border);
-    padding: 5px 10px; border-radius: 2px; white-space: nowrap;
-    transition: var(--transition);
+.task-file-ref {
+    font-size: 9px; font-weight: 500; letter-spacing: 1px;
+    color: var(--sage-light); font-family: monospace;
+    padding: 3px 8px; background: #f5f5f0; border-radius: 2px;
+    white-space: nowrap;
 }
-.task-github-link:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
 
 .task-del-btn {
     font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 500;
@@ -603,30 +602,174 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 .task-del-btn:hover { background: #c0392b; color: var(--white); border-color: #c0392b; }
 
 /* ===========================
-   QUICK LINKS
+   ADMIN TOOLS
    =========================== */
 
-.admin-quick-links {
-    padding: 0 40px 48px;
+.admin-tools {
+    padding: 0 40px 60px;
     max-width: 1280px;
 }
 
-.quick-links-grid {
+.tools-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.tools-tabs { display: flex; gap: 4px; }
+
+.tool-tab {
+    font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 500;
+    letter-spacing: 1.5px; padding: 8px 20px; cursor: pointer;
+    background: transparent; border: 1px solid var(--panel-border);
+    color: var(--sage-medium); transition: var(--transition);
+}
+.tool-tab.active, .tool-tab:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+.tool-desc {
+    font-size: 11px; color: var(--sage-medium); letter-spacing: 0.5px;
+    margin-bottom: 24px; font-weight: 300;
+}
+
+/* ── Kanban Board ──────────────────────────────────── */
+
+.kanban-board {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    align-items: start;
 }
 
-.quick-link {
-    display: flex; align-items: center; gap: 12px;
+.kanban-col {
+    background: var(--panel-bg); border: 1px solid var(--panel-border);
+    border-radius: 2px; min-height: 280px;
+    display: flex; flex-direction: column;
+    transition: border-color 0.2s, background 0.2s;
+}
+.kanban-col.drag-over { border-color: var(--accent); background: #f0f4ed; }
+
+.kanban-col-header {
+    padding: 10px 14px; font-size: 9px; font-weight: 500; letter-spacing: 2px;
+    text-transform: uppercase; display: flex; justify-content: space-between;
+    align-items: center; border-bottom: 1px solid var(--panel-border);
+}
+
+.kanban-status-New-Lead        { color: #2980b9; background: #eaf4fb; }
+.kanban-status-In-Conversation { color: #8e44ad; background: #f5eef8; }
+.kanban-status-Proposal-Sent   { color: #d35400; background: #fdf2e9; }
+.kanban-status-Booked          { color: #1e8449; background: #e9f7ef; }
+.kanban-status-Lost            { color: #7f8c8d; background: #f2f3f4; }
+
+.kanban-count {
+    background: rgba(0,0,0,0.08); padding: 1px 7px;
+    border-radius: 10px; font-size: 10px;
+}
+
+.kanban-cards {
+    padding: 10px; flex: 1;
+    display: flex; flex-direction: column; gap: 8px;
+}
+
+.kanban-empty {
+    font-size: 10px; color: var(--sage-light); text-align: center;
+    padding: 28px 0; border: 1px dashed var(--panel-border); border-radius: 2px;
+    letter-spacing: 1px;
+}
+
+.kanban-card {
     background: var(--white); border: 1px solid var(--panel-border);
-    border-radius: 2px; padding: 18px 20px;
-    font-size: 11px; font-weight: 500; letter-spacing: 1px;
-    color: var(--primary); transition: var(--transition);
+    border-radius: 2px; padding: 11px 14px;
+    cursor: grab; transition: var(--transition); user-select: none;
 }
-.quick-link:hover { box-shadow: var(--shadow); border-color: var(--sage-light); color: var(--sage-medium); }
+.kanban-card:hover { box-shadow: var(--shadow); }
+.kanban-card.dragging { opacity: 0.45; cursor: grabbing; }
 
-.ql-icon { color: var(--sage-light); font-size: 14px; flex-shrink: 0; }
+.kanban-card-name    { font-size: 12px; font-weight: 500; color: var(--primary); margin-bottom: 4px; }
+.kanban-card-meta    { font-size: 10px; color: var(--sage-medium); letter-spacing: 0.3px; line-height: 1.5; }
+.kanban-card-contact { font-size: 10px; color: var(--sage-light); margin-top: 3px; }
+
+.kanban-edit-btn {
+    margin-top: 9px; font-family: 'Montserrat', sans-serif;
+    font-size: 9px; font-weight: 500; letter-spacing: 1.5px;
+    background: transparent; border: 1px solid var(--sage-light);
+    color: var(--sage-medium); padding: 3px 10px; cursor: pointer;
+    transition: var(--transition); border-radius: 2px;
+}
+.kanban-edit-btn:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+/* ── Content Editor ──────────────────────────────── */
+
+.content-page-tabs {
+    display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 24px;
+}
+
+.ctab {
+    font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 500;
+    letter-spacing: 1.5px; padding: 6px 16px; cursor: pointer;
+    background: transparent; border: 1px solid var(--panel-border);
+    color: var(--sage-medium); transition: var(--transition);
+}
+.ctab.active, .ctab:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+#content-editor-fields { margin-bottom: 24px; }
+
+.content-field-row { margin-bottom: 20px; }
+
+.content-field-label {
+    display: block; font-size: 9px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--sage-medium); margin-bottom: 7px;
+}
+
+.content-field-key {
+    color: var(--sage-light); font-size: 8px; letter-spacing: 1px; font-family: monospace;
+}
+
+.content-field-input {
+    width: 100%; border: 1px solid var(--panel-border);
+    background: var(--panel-bg); color: var(--primary);
+    font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 300;
+    padding: 10px 14px; outline: none; transition: var(--transition); box-sizing: border-box;
+}
+.content-field-input:focus { border-color: var(--accent); background: var(--white); }
+
+.content-field-area { resize: vertical; min-height: 80px; }
+
+.content-editor-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+.content-view-btn {
+    background: transparent; color: var(--primary); border: 1px solid var(--primary);
+    transition: var(--transition);
+}
+.content-view-btn:hover { background: var(--primary); color: var(--white); }
+
+/* Content Changes Modal */
+.change-group { margin-bottom: 24px; }
+
+.change-page {
+    font-size: 9px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--sage-light); border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 8px; margin-bottom: 12px;
+}
+
+.change-item {
+    margin-bottom: 12px; padding-left: 12px;
+    border-left: 2px solid var(--accent);
+}
+
+.change-field-label {
+    font-size: 9px; font-weight: 500; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--sage-medium); margin-bottom: 4px;
+}
+
+.change-content {
+    font-size: 12px; color: var(--primary); font-weight: 300; word-break: break-word;
+}
 
 /* ===========================
    MODALS
@@ -703,11 +846,17 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
    RESPONSIVE
    =========================== */
 
+@media (max-width: 1100px) {
+    .kanban-board { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 1024px) {
     .admin-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
+    .kanban-board { grid-template-columns: repeat(2, 1fr); }
+    .tools-header { flex-direction: column; align-items: flex-start; }
     .crm-row { grid-template-columns: 1fr 1fr; }
     .crm-row.crm-head { display: none; }
     .admin-header { padding: 14px 20px; }

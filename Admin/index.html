@@ -154,34 +154,37 @@
 
         </div>
 
-        <!-- ── Quick Links ── -->
-        <section class="admin-quick-links container">
-            <h2 class="panel-title" style="margin-bottom:20px;">Quick Links</h2>
-            <div class="quick-links-grid">
-                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent" target="_blank" rel="noopener" class="quick-link">
-                    <span class="ql-icon">&#9670;</span>
-                    <span>GitHub Repo</span>
-                </a>
-                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/index.html" target="_blank" rel="noopener" class="quick-link">
-                    <span class="ql-icon">&#9675;</span>
-                    <span>Edit Home Page</span>
-                </a>
-                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/service.html" target="_blank" rel="noopener" class="quick-link">
-                    <span class="ql-icon">&#9675;</span>
-                    <span>Edit Services</span>
-                </a>
-                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/lovebook.html" target="_blank" rel="noopener" class="quick-link">
-                    <span class="ql-icon">&#9675;</span>
-                    <span>Edit Love Book</span>
-                </a>
-                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/Client/clients-config.js" target="_blank" rel="noopener" class="quick-link">
-                    <span class="ql-icon">&#9674;</span>
-                    <span>Manage Client Codes</span>
-                </a>
-                <a href="https://github.com/yannicknkongolo7-crypto/RnBEvent/edit/main/Admin/admin-data.js" target="_blank" rel="noopener" class="quick-link">
-                    <span class="ql-icon">&#9674;</span>
-                    <span>Edit Admin Data</span>
-                </a>
+        <!-- ── Admin Tools ── -->
+        <section class="admin-tools container">
+            <div class="tools-header">
+                <h2 class="panel-title">Admin Tools</h2>
+                <div class="tools-tabs">
+                    <button class="tool-tab active" onclick="switchTool('kanban', this)">PROSPECT KANBAN</button>
+                    <button class="tool-tab" onclick="switchTool('content', this)">CONTENT EDITOR</button>
+                </div>
+            </div>
+
+            <!-- Kanban Board -->
+            <div id="tool-kanban" class="tool-panel">
+                <p class="tool-desc">Drag and drop prospect cards between columns to update their status. Click EDIT on any card to modify details.</p>
+                <div class="kanban-board" id="kanban-board"><!-- Populated by JS --></div>
+            </div>
+
+            <!-- Content Editor -->
+            <div id="tool-content" class="tool-panel hidden">
+                <p class="tool-desc">Draft text and caption changes for your website pages. Save drafts, then use <strong>View All Changes</strong> to generate a summary for your developer.</p>
+                <div class="content-page-tabs">
+                    <button class="ctab active" onclick="switchContentTab('home', this)">HOME</button>
+                    <button class="ctab" onclick="switchContentTab('service', this)">SERVICE</button>
+                    <button class="ctab" onclick="switchContentTab('lovebook', this)">LOVE BOOK</button>
+                    <button class="ctab" onclick="switchContentTab('about', this)">ABOUT</button>
+                    <button class="ctab" onclick="switchContentTab('crafting', this)">CRAFTING MOMENTS</button>
+                </div>
+                <div id="content-editor-fields"><!-- Populated by JS --></div>
+                <div class="content-editor-actions">
+                    <button class="panel-btn" onclick="saveContentDrafts()">SAVE DRAFTS</button>
+                    <button class="panel-btn content-view-btn" onclick="viewContentChanges()">VIEW ALL CHANGES</button>
+                </div>
             </div>
         </section>
 
@@ -261,14 +264,27 @@
                     </select>
                 </div>
                 <div class="form-row">
-                    <label class="form-label">GITHUB FILE (optional)</label>
-                    <input type="text" id="t-file" class="form-input" placeholder="index.html">
+                    <label class="form-label">FILE REFERENCE (optional)</label>
+                    <input type="text" id="t-file" class="form-input" placeholder="index.html, service.html…">
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="modal-cancel" onclick="closeModal('modal-task')">CANCEL</button>
                     <button type="submit" class="modal-save"   onclick="saveTask()">SAVE</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- View Content Changes Modal -->
+    <div id="modal-content-changes" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">Pending Content Changes</h3>
+            <p style="font-size:11px;color:#527141;letter-spacing:0.5px;margin-bottom:20px;">Share this summary with your developer to update the live website.</p>
+            <div id="content-changes-list"><!-- Populated by JS --></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="copyAllChanges()">COPY ALL</button>
+                <button class="modal-save" onclick="closeModal('modal-content-changes')">CLOSE</button>
+            </div>
         </div>
     </div>
 

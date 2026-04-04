@@ -1,6 +1,6 @@
 /* ===========================
    CLIENT PORTAL — ACCESS GATE
-   Reads client data from clients-config.js (RNB_CLIENTS_RAW)
+   Fetches live client data from cloud, falls back to static clients-config.js
    =========================== */
 
 (function () {
@@ -11,6 +11,7 @@
     var portal      = document.getElementById('portal-content');
     var input       = document.getElementById('access-input');
     var errorEl     = document.getElementById('gate-error');
+    var cloudReady  = false;
 
     function sha256(str) {
         return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
@@ -18,15 +19,40 @@
         });
     }
 
+    /* Fetch clients from Google Sheets, merge into RNB_CLIENTS_RAW */
+    function fetchCloudClients() {
+        var url = window.RNB_CLOUD_URL;
+        if (!url) return Promise.resolve();
+        return fetch(url + '?action=getClients', { redirect: 'follow' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (Array.isArray(data.clients)) {
+                    if (!window.RNB_CLIENTS_RAW) window.RNB_CLIENTS_RAW = {};
+                    data.clients.forEach(function (c) {
+                        if (c && c.codeHash) {
+                            window.RNB_CLIENTS_RAW[c.codeHash] = c;
+                        }
+                    });
+                }
+                cloudReady = true;
+            })
+            .catch(function (e) {
+                console.warn('Cloud client fetch failed, using static config:', e);
+                cloudReady = true;
+            });
+    }
+
     function findClient(hash) {
         return window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[hash] || null;
     }
 
     function init() {
-        var saved = sessionStorage.getItem(SESSION_KEY);
-        if (saved && findClient(saved)) {
-            showPortal(saved);
-        }
+        fetchCloudClients().then(function () {
+            var saved = sessionStorage.getItem(SESSION_KEY);
+            if (saved && findClient(saved)) {
+                showPortal(saved);
+            }
+        });
     }
 
     function checkAccess() {
@@ -39,6 +65,20 @@
                 sessionStorage.setItem(SESSION_KEY, hash);
                 errorEl.textContent = '';
                 showPortal(hash);
+            } else if (!cloudReady) {
+                /* Cloud not loaded yet — try fetching once more */
+                fetchCloudClients().then(function () {
+                    var c2 = findClient(hash);
+                    if (c2) {
+                        sessionStorage.setItem(SESSION_KEY, hash);
+                        errorEl.textContent = '';
+                        showPortal(hash);
+                    } else {
+                        showError('Invalid access code. Please check your code and try again.');
+                        input.value = '';
+                        input.focus();
+                    }
+                });
             } else {
                 showError('Invalid access code. Please check your code and try again.');
                 input.value = '';

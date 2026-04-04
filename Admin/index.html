@@ -200,19 +200,12 @@
 
             <!-- Client Manager -->
             <div id="tool-clients" class="tool-panel hidden">
-                <p class="tool-desc">Create and manage client portal access codes. Each client gets a unique code that unlocks their personalized view at <strong>/Client</strong>. After adding or editing clients, click <strong>PUBLISH</strong> to generate the config file — then paste it into <code>Client/clients-config.js</code> and push.</p>
+                <p class="tool-desc">Create and manage client portal access codes. Each client gets a unique code that unlocks their personalized view at <strong>/Client</strong>. Click <strong>PUBLISH</strong> to push all client data live — the portal fetches credentials directly from the cloud.</p>
                 <div style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="panel-btn" onclick="openAddClient()">+ NEW CLIENT</button>
                     <button class="panel-btn publish-btn" onclick="publishClientsConfig()">&#9650; PUBLISH CLIENTS</button>
                 </div>
                 <div id="clients-list"><!-- Populated by JS --></div>
-                <div id="publish-output" class="publish-output hidden">
-                    <div class="publish-header">
-                        <span class="publish-label">clients-config.js</span>
-                        <button class="panel-btn" onclick="copyPublishedConfig()">COPY TO CLIPBOARD</button>
-                    </div>
-                    <pre id="publish-code" class="publish-code"></pre>
-                </div>
             </div>
         </section>
 

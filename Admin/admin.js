@@ -1234,52 +1234,36 @@
             showToast('No clients to publish.');
             return;
         }
+        if (!CLOUD_URL) {
+            showToast('Cloud URL not configured.');
+            return;
+        }
 
-        var js = 'window.RNB_CLIENTS = {};\nwindow.RNB_CLIENTS_RAW = {\n';
-
-        state.clients.forEach(function (c, i) {
-            var entry = {
-                firstName:    c.firstName    || '',
-                fullName:     c.fullName     || '',
-                eventType:    c.eventType    || '',
-                eventDate:    c.eventDate    || '',
-                eventVenue:   c.eventVenue   || '',
-                planner:      c.planner      || 'RNB Events Team',
-                plannerEmail: c.plannerEmail || 'hello@rnbevents716.com',
-                timeline:     c.timeline     || [],
-                vendors:      c.vendors      || [],
-                moodboard:    c.moodboard    || { palette: [], images: [], description: 'Your mood board is being curated by your planning team. Check back soon.' },
-                documents:    c.documents    || [],
-                gallery:      c.gallery      || []
-            };
-            js += '\n    /* ' + (c.fullName || c.accessCode) + ' */\n';
-            js += '    \'' + c.codeHash + '\': ' + JSON.stringify(entry, null, 8).replace(/\n/g, '\n    ');
-            if (i < state.clients.length - 1) js += ',';
-            js += '\n';
-        });
-
-        js += '};\n';
-
-        var el    = document.getElementById('publish-output');
-        var code  = document.getElementById('publish-code');
-        code.textContent = js;
-        el.classList.remove('hidden');
-        showToast('Config generated — copy and paste into Client/clients-config.js');
-    }
-
-    function copyPublishedConfig() {
-        var code = document.getElementById('publish-code');
-        if (!code) return;
-        navigator.clipboard.writeText(code.textContent).then(function () {
-            showToast('Copied to clipboard! Paste into Client/clients-config.js and push.');
-        }).catch(function () {
-            var range = document.createRange();
-            range.selectNodeContents(code);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            showToast('Select All applied — press Ctrl+C to copy.');
+        updateSyncStatus('syncing');
+        fetch(CLOUD_URL, {
+            method:   'POST',
+            headers:  { 'Content-Type': 'text/plain' },
+            body:     JSON.stringify({ clients: state.clients }),
+            redirect: 'follow'
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data && data.ok) {
+                updateSyncStatus('synced');
+                showToast('Published ' + state.clients.length + ' client(s) to live portal.');
+            } else {
+                updateSyncStatus('error');
+                showToast('Publish may have failed — check cloud status.');
+            }
+        })
+        .catch(function (e) {
+            console.error('Publish error:', e);
+            updateSyncStatus('error');
+            showToast('Publish failed — check your connection.');
         });
     }
+
+    function copyPublishedConfig() { /* no longer needed */ }
 
     /* ── Helpers ─────────────────────────────────────── */
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }

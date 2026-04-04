@@ -1,7 +1,7 @@
 /**
  * RNB Events — Portal Sub-page Auth + Init
  * Included by all Client sub-pages (timeline, moodboard, etc.)
- * Must be loaded AFTER clients-config.js
+ * Fetches live data from cloud, falls back to static clients-config.js
  */
 
 (function () {
@@ -10,32 +10,60 @@
     var SESSION_KEY = 'rnb_portal_access';
     var code = sessionStorage.getItem(SESSION_KEY);
 
-    if (!code || !window.RNB_CLIENTS_RAW || !window.RNB_CLIENTS_RAW[code]) {
-        sessionStorage.removeItem(SESSION_KEY);
+    if (!code) {
         window.location.replace('/Client');
         throw new Error('Redirecting to gate.');
     }
 
-    window.currentClient = window.RNB_CLIENTS_RAW[code];
-    window.currentCode   = code;
+    function bootPortal() {
+        if (!window.RNB_CLIENTS_RAW || !window.RNB_CLIENTS_RAW[code]) {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.replace('/Client');
+            return;
+        }
 
-    window.portalSignOut = function () {
-        sessionStorage.removeItem(SESSION_KEY);
-        window.location.replace('/Client');
-    };
+        window.currentClient = window.RNB_CLIENTS_RAW[code];
+        window.currentCode   = code;
 
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.planner-email-link').forEach(function (el) {
-            if (window.currentClient && window.currentClient.plannerEmail) {
-                el.href = 'mailto:' + window.currentClient.plannerEmail;
-            }
+        window.portalSignOut = function () {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.replace('/Client');
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.planner-email-link').forEach(function (el) {
+                if (window.currentClient && window.currentClient.plannerEmail) {
+                    el.href = 'mailto:' + window.currentClient.plannerEmail;
+                }
+            });
+            document.querySelectorAll('.client-first-name').forEach(function (el) {
+                if (window.currentClient && window.currentClient.firstName) {
+                    el.textContent = window.currentClient.firstName;
+                }
+            });
         });
-        document.querySelectorAll('.client-first-name').forEach(function (el) {
-            if (window.currentClient && window.currentClient.firstName) {
-                el.textContent = window.currentClient.firstName;
-            }
-        });
-    });
+    }
+
+    /* Fetch from cloud first, then boot */
+    var url = window.RNB_CLOUD_URL;
+    if (url) {
+        fetch(url + '?action=getClients', { redirect: 'follow' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (Array.isArray(data.clients)) {
+                    if (!window.RNB_CLIENTS_RAW) window.RNB_CLIENTS_RAW = {};
+                    data.clients.forEach(function (c) {
+                        if (c && c.codeHash) {
+                            window.RNB_CLIENTS_RAW[c.codeHash] = c;
+                        }
+                    });
+                }
+            })
+            .catch(function () { /* fallback to static */ })
+            .then(bootPortal);
+    } else {
+        bootPortal();
+    }
 
     window.capitalize = function (s) {
         return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;

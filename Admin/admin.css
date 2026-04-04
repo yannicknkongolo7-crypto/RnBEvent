@@ -375,6 +375,16 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     border: 1px solid rgba(164,193,149,0.3); padding: 6px 14px; border-radius: 2px;
 }
 
+/* Sync indicator */
+.sync-indicator {
+    font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 500;
+    letter-spacing: 1px; padding: 4px 10px; border-radius: 2px;
+    transition: opacity 0.3s, color 0.3s;
+}
+.sync-syncing { color: #e0c97f; }
+.sync-synced  { color: var(--sage-light); }
+.sync-error   { color: #d9534f; }
+
 .portal-logout {
     background: transparent;
     border: 1.5px solid rgba(164,193,149,0.4);

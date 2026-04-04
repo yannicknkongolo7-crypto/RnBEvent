@@ -333,6 +333,7 @@
         content.classList.remove('hidden');
         loadState();
         renderAll();
+        syncFromCloud();
     }
 
     /* ── State load/save ─────────────────────────────── */
@@ -364,10 +365,118 @@
 
     function saveProspectsToStorage() {
         safeSave(STORAGE_PROS, state.prospects);
+        cloudPush({ prospects: state.prospects });
     }
 
     function saveTasksToStorage() {
         safeSave(STORAGE_TASKS, state.tasks);
+        cloudPush({ tasks: state.tasks });
+    }
+
+    /* ══════════════════════════════════════════════════
+       CLOUD SYNC — Google Sheets via Apps Script
+    ══════════════════════════════════════════════════ */
+
+    var CLOUD_URL = (window.ADMIN_CONFIG || {}).cloudApiUrl || '';
+
+    function cloudGet() {
+        if (!CLOUD_URL) return Promise.resolve(null);
+        updateSyncStatus('syncing');
+        return fetch(CLOUD_URL + '?action=getAll', { redirect: 'follow' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { updateSyncStatus('synced'); return data; })
+            .catch(function (e) { console.error('Cloud fetch:', e); updateSyncStatus('error'); return null; });
+    }
+
+    function cloudPush(payload) {
+        if (!CLOUD_URL) return;
+        updateSyncStatus('syncing');
+        fetch(CLOUD_URL, {
+            method:   'POST',
+            headers:  { 'Content-Type': 'text/plain' },
+            body:     JSON.stringify(filterCloudPayload(payload)),
+            redirect: 'follow'
+        })
+        .then(function () { updateSyncStatus('synced'); })
+        .catch(function (e) { console.error('Cloud push:', e); updateSyncStatus('error'); });
+    }
+
+    function filterCloudPayload(payload) {
+        if (!payload.content) return payload;
+        var clean = {};
+        Object.keys(payload.content).forEach(function (k) {
+            if (String(payload.content[k]).indexOf('data:image') !== 0) {
+                clean[k] = payload.content[k];
+            }
+        });
+        payload.content = clean;
+        return payload;
+    }
+
+    function syncFromCloud() {
+        cloudGet().then(function (data) {
+            if (!data) return;
+            var changed = false;
+            if (Array.isArray(data.prospects) && data.prospects.length) {
+                state.prospects = data.prospects;
+                safeSave(STORAGE_PROS, state.prospects);
+                changed = true;
+            }
+            if (Array.isArray(data.tasks) && data.tasks.length) {
+                state.tasks = data.tasks;
+                safeSave(STORAGE_TASKS, state.tasks);
+                changed = true;
+            }
+            if (data.content && Object.keys(data.content).length) {
+                Object.keys(data.content).forEach(function (k) {
+                    if (!contentDrafts.hasOwnProperty(k)) {
+                        contentDrafts[k] = data.content[k];
+                    }
+                });
+                safeSave(STORAGE_CONTENT, contentDrafts);
+                changed = true;
+            }
+            if (changed) renderAll();
+        });
+    }
+
+    function updateSyncStatus(status) {
+        var el = document.getElementById('sync-status');
+        if (!el) return;
+        el.className = 'sync-indicator sync-' + status;
+        if (status === 'syncing') el.textContent = '\u21BB Syncing\u2026';
+        else if (status === 'synced')  el.textContent = '\u2713 Synced';
+        else if (status === 'error')   el.textContent = '\u2715 Offline';
+        else el.textContent = '';
+    }
+
+    /* ══════════════════════════════════════════════════
+       IMAGE COMPRESSION — Canvas API
+    ══════════════════════════════════════════════════ */
+
+    function compressImage(file, maxDim, quality) {
+        maxDim  = maxDim  || 1200;
+        quality = quality || 0.7;
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onerror = reject;
+                img.onload = function () {
+                    var w = img.width, h = img.height;
+                    if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+                    if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+                    var canvas = document.createElement('canvas');
+                    canvas.width  = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
     /* ── Render all ──────────────────────────────────── */
@@ -792,6 +901,7 @@
         var existing = safeJSON(localStorage.getItem(STORAGE_CONTENT));
         if (existing) safeSave(STORAGE_CONTENT_HISTORY, existing);
         safeSave(STORAGE_CONTENT, contentDrafts);
+        cloudPush({ content: contentDrafts });
         showToast('All drafts saved.');
     }
 
@@ -879,6 +989,7 @@
         var existing = safeJSON(localStorage.getItem(STORAGE_CONTENT));
         if (existing) safeSave(STORAGE_CONTENT_HISTORY, existing);
         safeSave(STORAGE_CONTENT, contentDrafts);
+        cloudPush({ content: contentDrafts });
         showToast(activeContentPage.toUpperCase() + ' page changes submitted.');
     }
 
@@ -915,16 +1026,18 @@
             inputEl.value = '';
             return;
         }
-        if (file.size > 3 * 1024 * 1024) {
-            alert('Image is larger than 3 MB. Please resize it first to avoid storage issues.');
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Image is larger than 10 MB. Please use a smaller file.');
+            inputEl.value = '';
+            return;
         }
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            contentDrafts[key] = e.target.result;
+        compressImage(file, 1200, 0.7).then(function (dataUrl) {
+            contentDrafts[key] = dataUrl;
             contentDrafts[key + '__filename'] = file.name;
             renderContentFields(activeContentPage);
-        };
-        reader.readAsDataURL(file);
+        }).catch(function () {
+            alert('Failed to process image. Try a different file.');
+        });
     }
 
     function removeImageDraft(key) {

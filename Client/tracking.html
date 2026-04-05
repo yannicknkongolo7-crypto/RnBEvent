@@ -43,29 +43,22 @@
     <script src="clients-config.js"></script>
     <script src="portal-page.js"></script>
     <script>
+        var NOTES_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-notes';
+
         document.addEventListener('DOMContentLoaded', function () {
             var client = window.currentClient;
+            var codeHash = window.currentCode;
             var el = document.getElementById('tracking-content');
             var notes = client.trackingNotes || {};
 
-            var sections = [
+            /* ── Read-only sections (planner & team) ──── */
+            var readOnlySections = [
                 { key: 'plannerTodos', title: 'Event Planner To-Dos' },
-                { key: 'teamTodos',    title: 'RNB Team To-Dos' },
-                { key: 'clientTodos',  title: 'Client To-Dos (if Applicable)' }
+                { key: 'teamTodos',    title: 'RNB Team To-Dos' }
             ];
 
-            var hasAny = sections.some(function (s) {
-                var items = notes[s.key];
-                return items && items.length > 0;
-            });
-
-            if (!hasAny) {
-                renderComingSoon('tracking-content', 'Your tracking notes will appear here once your planning team adds action items.');
-                return;
-            }
-
             var html = '';
-            sections.forEach(function (section) {
+            readOnlySections.forEach(function (section) {
                 var items = notes[section.key] || [];
                 html += '<div class="tracking-section">';
                 html += '<h2 class="tracking-section-title">' + section.title + '</h2>';
@@ -78,7 +71,7 @@
                         html += '<li class="tracking-item ' + statusClass + '">';
                         html += '<span class="tracking-bullet"></span>';
                         html += '<span class="tracking-text">' + escHtml(item.text || '') + '</span>';
-                        html += '<span class="tracking-status ' + statusClass + '">' + escHtml(capitalize(item.status || 'Pending')) + '</span>';
+                        html += '<span class="tracking-status ' + statusClass + '">' + escHtml(formatStatus(item.status)) + '</span>';
                         html += '</li>';
                     });
                     html += '</ul>';
@@ -86,11 +79,128 @@
                 html += '</div>';
             });
 
+            /* ── Editable section (client to-dos) ────── */
+            html += '<div class="tracking-section tracking-editable">';
+            html += '<h2 class="tracking-section-title">Client To-Dos</h2>';
+            html += '<div id="client-todos-list"></div>';
+            html += '<div class="tracking-add-row">';
+            html += '<input type="text" id="new-todo-text" class="tracking-input" placeholder="Add a new to-do..." maxlength="500">';
+            html += '<button type="button" id="add-todo-btn" class="tracking-add-btn">+ ADD</button>';
+            html += '</div>';
+            html += '<button type="button" id="save-todos-btn" class="tracking-save-btn">SAVE CHANGES</button>';
+            html += '<p id="save-status" class="tracking-save-status"></p>';
+            html += '</div>';
+
             el.innerHTML = html;
+
+            /* ── Populate editable list ─────────────── */
+            var clientTodos = (notes.clientTodos || []).map(function (item) {
+                return { text: item.text, status: item.status || 'pending' };
+            });
+
+            renderClientTodos();
+
+            document.getElementById('add-todo-btn').addEventListener('click', addTodo);
+            document.getElementById('new-todo-text').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); addTodo(); }
+            });
+            document.getElementById('save-todos-btn').addEventListener('click', saveTodos);
+
+            function addTodo() {
+                var input = document.getElementById('new-todo-text');
+                var text = (input.value || '').trim();
+                if (!text) return;
+                clientTodos.push({ text: text, status: 'pending' });
+                input.value = '';
+                renderClientTodos();
+            }
+
+            function removeTodo(index) {
+                clientTodos.splice(index, 1);
+                renderClientTodos();
+            }
+
+            function updateStatus(index, newStatus) {
+                clientTodos[index].status = newStatus;
+                renderClientTodos();
+            }
+
+            function renderClientTodos() {
+                var list = document.getElementById('client-todos-list');
+                if (!clientTodos.length) {
+                    list.innerHTML = '<p class="tracking-empty">No items yet. Add your first to-do above.</p>';
+                    return;
+                }
+                var h = '<ul class="tracking-list tracking-list-editable">';
+                clientTodos.forEach(function (item, i) {
+                    var sc = 'status-' + (item.status || 'pending').replace(/\s+/g, '-');
+                    h += '<li class="tracking-item ' + sc + '">';
+                    h += '<span class="tracking-bullet"></span>';
+                    h += '<span class="tracking-text">' + escHtml(item.text) + '</span>';
+                    h += '<select class="tracking-status-select ' + sc + '" data-index="' + i + '">';
+                    ['pending', 'in-progress', 'done', 'not-applicable'].forEach(function (s) {
+                        h += '<option value="' + s + '"' + (item.status === s ? ' selected' : '') + '>' + formatStatus(s) + '</option>';
+                    });
+                    h += '</select>';
+                    h += '<button type="button" class="tracking-remove-btn" data-index="' + i + '" title="Remove">&times;</button>';
+                    h += '</li>';
+                });
+                h += '</ul>';
+                list.innerHTML = h;
+
+                /* Attach events */
+                list.querySelectorAll('.tracking-status-select').forEach(function (sel) {
+                    sel.addEventListener('change', function () {
+                        updateStatus(parseInt(this.dataset.index), this.value);
+                    });
+                });
+                list.querySelectorAll('.tracking-remove-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        removeTodo(parseInt(this.dataset.index));
+                    });
+                });
+            }
+
+            function saveTodos() {
+                var btn = document.getElementById('save-todos-btn');
+                var status = document.getElementById('save-status');
+                btn.disabled = true;
+                btn.textContent = 'SAVING...';
+                status.textContent = '';
+
+                fetch(NOTES_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: codeHash, clientTodos: clientTodos })
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.ok) {
+                        status.textContent = 'Saved!';
+                        status.className = 'tracking-save-status save-ok';
+                    } else {
+                        status.textContent = 'Save failed: ' + (data.error || 'Unknown error');
+                        status.className = 'tracking-save-status save-err';
+                    }
+                })
+                .catch(function (e) {
+                    status.textContent = 'Save failed: ' + e;
+                    status.className = 'tracking-save-status save-err';
+                })
+                .then(function () {
+                    btn.disabled = false;
+                    btn.textContent = 'SAVE CHANGES';
+                });
+            }
         });
 
         function escHtml(s) {
             return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function formatStatus(s) {
+            var map = { 'pending': 'Pending', 'in-progress': 'In Progress', 'done': 'Done', 'not-applicable': 'N/A' };
+            return map[s] || s;
         }
     </script>
 </body>

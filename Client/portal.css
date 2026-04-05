@@ -1004,3 +1004,144 @@ a {
         margin-left: 22px;
     }
 }
+
+/* ── Tracking Notes — Editable Client Section ── */
+
+.tracking-editable {
+    border: 1.5px solid var(--accent);
+}
+
+.tracking-add-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    align-items: center;
+}
+
+.tracking-input {
+    flex: 1;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88rem;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.25s;
+}
+
+.tracking-input:focus {
+    border-color: var(--accent);
+}
+
+.tracking-add-btn {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--white);
+    cursor: pointer;
+    transition: background 0.25s;
+    white-space: nowrap;
+}
+
+.tracking-add-btn:hover {
+    background: var(--sage-medium);
+}
+
+.tracking-list-editable .tracking-item {
+    gap: 10px;
+}
+
+.tracking-status-select {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--cream);
+    color: var(--text-mid);
+    cursor: pointer;
+    outline: none;
+    flex-shrink: 0;
+}
+
+.tracking-status-select.status-done           { background: #e8f4e8; color: var(--accent); }
+.tracking-status-select.status-in-progress    { background: #fdf8ee; color: #a07c30; }
+.tracking-status-select.status-pending        { background: #f0f0f0; color: #777; }
+.tracking-status-select.status-not-applicable { background: #f5f5f5; color: #aaa; }
+
+.tracking-remove-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #c44;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.tracking-remove-btn:hover {
+    background: rgba(204, 68, 68, 0.1);
+}
+
+.tracking-save-btn {
+    display: block;
+    margin-top: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--white);
+    cursor: pointer;
+    transition: background 0.25s, opacity 0.25s;
+}
+
+.tracking-save-btn:hover {
+    background: var(--sage-medium);
+}
+
+.tracking-save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tracking-save-status {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    margin-top: 8px;
+    min-height: 1.2em;
+}
+
+.save-ok  { color: var(--accent); }
+.save-err { color: #c44; }
+
+@media (max-width: 600px) {
+    .tracking-add-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tracking-list-editable .tracking-item {
+        flex-wrap: wrap;
+    }
+    .tracking-status-select {
+        margin-left: 22px;
+    }
+}

@@ -7,15 +7,34 @@
 (function () {
     'use strict';
 
-    var SESSION_KEY = 'rnb_portal_access';
-    var code = sessionStorage.getItem(SESSION_KEY);
+    var SESSION_KEY   = 'rnb_portal_access';
+    var ROLE_KEY      = 'rnb_portal_role';
+    var ROLE_NAME_KEY = 'rnb_portal_role_name';
+
+    var code     = sessionStorage.getItem(SESSION_KEY);
+    var roleVal  = sessionStorage.getItem(ROLE_KEY)      || 'couple';
+    var roleName = sessionStorage.getItem(ROLE_NAME_KEY) || 'Client';
 
     if (!code) {
         window.location.replace('/Client');
         throw new Error('Redirecting to gate.');
     }
 
+    /* ── Build roles map: any hash → { primaryHash, role } ─── */
+    function buildRolesMap() {
+        window.RNB_CLIENTS_ROLES = window.RNB_CLIENTS_ROLES || {};
+        var raw = window.RNB_CLIENTS_RAW || {};
+        Object.keys(raw).forEach(function (primaryHash) {
+            var c = raw[primaryHash];
+            if (!c || !c.codeHash) return;
+            window.RNB_CLIENTS_ROLES[c.codeHash] = { primaryHash: c.codeHash, role: 'couple' };
+            if (c.plannerCodeHash) window.RNB_CLIENTS_ROLES[c.plannerCodeHash] = { primaryHash: c.codeHash, role: 'planner' };
+            if (c.teamCodeHash)    window.RNB_CLIENTS_ROLES[c.teamCodeHash]    = { primaryHash: c.codeHash, role: 'rnbTeam' };
+        });
+    }
+
     function bootPortal() {
+        // code is the PRIMARY codeHash stored at login
         var client = window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[code];
         if (!client || client.active === false) {
             sessionStorage.removeItem(SESSION_KEY);
@@ -23,11 +42,16 @@
             return;
         }
 
-        window.currentClient = window.RNB_CLIENTS_RAW[code];
-        window.currentCode   = code;
+        window.currentClient   = client;
+        window.currentCode     = code;
+        window.currentRole     = roleVal;
+        window.currentRoleName = roleName;
 
         window.portalSignOut = function () {
             sessionStorage.removeItem(SESSION_KEY);
+            sessionStorage.removeItem(ROLE_KEY);
+            sessionStorage.removeItem(ROLE_NAME_KEY);
+            try { localStorage.removeItem('rnb_portal_remember'); } catch (e) {}
             window.location.replace('/Client');
         };
 
@@ -71,11 +95,13 @@
                             window.RNB_CLIENTS_RAW[c.codeHash] = c;
                         }
                     });
+                    buildRolesMap();
                 }
             })
-            .catch(function () { /* fallback to static */ })
+            .catch(function () { buildRolesMap(); /* fallback to static */ })
             .then(bootPortal);
     } else {
+        buildRolesMap();
         bootPortal();
     }
 
@@ -110,16 +136,37 @@
         return '';
     };
 
+    window.formatNoteTs = function (isoTs) {
+        if (!isoTs) return '';
+        try {
+            var d = new Date(isoTs);
+            return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+        } catch (e) { return isoTs; }
+    };
+
     window.RNB_SECTION_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section';
 
-    window.savePortalSection = function (section, data, statusEl, btnEl) {
+    window.savePortalSection = function (section, data, statusEl, btnEl, editAction) {
         btnEl.disabled = true;
         btnEl.textContent = 'SAVING...';
         statusEl.textContent = '';
+        var payload = {
+            codeHash: window.currentCode,
+            section: section,
+            data: data
+        };
+        if (editAction) {
+            payload.editLogEntry = {
+                ts:       new Date().toISOString(),
+                role:     window.currentRole     || 'couple',
+                roleName: window.currentRoleName || 'Client',
+                action:   editAction
+            };
+        }
         return fetch(window.RNB_SECTION_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ codeHash: window.currentCode, section: section, data: data })
+            body: JSON.stringify(payload)
         })
         .then(function (r) { return r.json(); })
         .then(function (res) {

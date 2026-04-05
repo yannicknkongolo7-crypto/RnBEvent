@@ -331,14 +331,29 @@
             <form id="form-client" onsubmit="return false;">
                 <div class="form-row-grid">
                     <div class="form-row">
-                        <label class="form-label">ACCESS CODE</label>
+                        <label class="form-label">ACCESS CODE <span style="font-size:10px;font-weight:300">(Couple)</span></label>
                         <input type="text" id="c-code" class="form-input" placeholder="e.g. SMITH2026">
-                        <small class="form-hint">Client will enter this at /Client to access their portal</small>
+                        <small class="form-hint">Couple uses this code to access their portal</small>
                     </div>
                     <div class="form-row">
                         <label class="form-label">CLIENT NAME</label>
                         <input type="text" id="c-name" class="form-input" placeholder="Full Name">
                     </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">PLANNER CODE <span style="font-size:10px;font-weight:300">(auto-generated)</span></label>
+                        <input type="text" id="c-planner-code" class="form-input" placeholder="PLAN-XXXXXX" maxlength="20">
+                        <small class="form-hint">Event planner uses this to access the portal</small>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">TEAM CODE <span style="font-size:10px;font-weight:300">(auto-generated)</span></label>
+                        <input type="text" id="c-team-code" class="form-input" placeholder="TEAM-XXXXXX" maxlength="20">
+                        <small class="form-hint">RNB Team uses this to access the portal</small>
+                    </div>
+                </div>
+                <div style="margin-bottom:16px">
+                    <button type="button" class="panel-btn" onclick="fillGeneratedCodes()">&#9654; GENERATE PLANNER &amp; TEAM CODES</button>
                 </div>
                 <div class="form-row-grid">
                     <div class="form-row">

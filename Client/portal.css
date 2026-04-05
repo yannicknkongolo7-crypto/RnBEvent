@@ -1198,6 +1198,293 @@ a {
     background: none;
 }
 
+/* ===========================
+   REMEMBER ME / CACHED LOGIN
+   =========================== */
+
+.gate-remember {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    color: var(--sage-medium);
+    cursor: pointer;
+}
+
+.gate-remember input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* ===========================
+   ROLE BADGE (portal header)
+   =========================== */
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    padding: 5px 13px;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+.role-badge.role-couple  { background: #e8f0e8; color: var(--sage-medium); border: 1px solid var(--border); }
+.role-badge.role-planner { background: #e8eef8; color: #3b5ea6; border: 1px solid rgba(59,94,166,0.2); }
+.role-badge.role-rnbTeam { background: #fdf4e8; color: #8a6020; border: 1px solid rgba(138,96,32,0.2); }
+
+.role-badge::before { content: '●'; font-size: 7px; }
+
+/* ===========================
+   TRACKING NOTES — AUTHOR & TIMESTAMP
+   =========================== */
+
+.tracking-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.tracking-author-badge {
+    font-size: 8.5px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.tracking-author-badge.role-couple  { background: #e8f0e8; color: var(--sage-medium); }
+.tracking-author-badge.role-planner { background: #e8eef8; color: #3b5ea6; }
+.tracking-author-badge.role-rnbTeam { background: #fdf4e8; color: #8a6020; }
+
+.tracking-timestamp {
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--sage-light);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.tracking-section-locked {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    color: var(--sage-light);
+    margin-left: 10px;
+    font-style: italic;
+}
+
+/* ===========================
+   EVENT PLANNING AGREEMENT
+   =========================== */
+
+.agreement-wrapper {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    margin-bottom: 36px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.agreement-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #f7f9f5 0%, #fff 100%);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.agreement-status-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 2px;
+}
+
+.agreement-status-badge.status-pending         { background: #f0ede4; color: #7a6535; }
+.agreement-status-badge.status-couple-signed   { background: #e8eef8; color: #3b5ea6; }
+.agreement-status-badge.status-fully-executed  { background: #e8f4e8; color: var(--accent); }
+
+.agreement-body {
+    padding: 36px 32px;
+}
+
+.agreement-text {
+    font-size: 12.5px;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 2;
+    letter-spacing: 0.3px;
+    margin-bottom: 40px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 28px;
+}
+
+.agreement-text h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    color: var(--primary);
+    margin: 20px 0 8px;
+    font-weight: 500;
+}
+
+.agreement-text p { margin-bottom: 10px; }
+
+.agreement-text ul {
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.agreement-text ul li {
+    margin-bottom: 4px;
+}
+
+.agreement-signatures {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 32px;
+}
+
+@media (max-width: 700px) {
+    .agreement-signatures { grid-template-columns: 1fr; }
+}
+
+.sig-block {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 24px 24px 20px;
+    background: #fafcf9;
+    position: relative;
+}
+
+.sig-block-title {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sage-medium);
+    margin-bottom: 16px;
+}
+
+.sig-signed-display {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: var(--primary);
+    letter-spacing: 1px;
+    padding: 8px 0 4px;
+    border-bottom: 1.5px solid var(--primary);
+    min-height: 44px;
+    margin-bottom: 8px;
+}
+
+.sig-signed-date {
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--sage-light);
+    letter-spacing: 1px;
+}
+
+.sig-signed-check {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 14px;
+    color: var(--accent);
+}
+
+.sig-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sig-hint {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--sage-medium);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.sig-input {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    background: var(--white);
+    color: var(--primary);
+    letter-spacing: 1px;
+    outline: none;
+    transition: border-color 0.25s;
+    width: 100%;
+}
+
+.sig-input:focus { border-color: var(--accent); }
+
+.sig-input::placeholder { color: var(--sage-light); font-style: italic; font-size: 1rem; }
+
+.sig-submit-btn {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    padding: 11px 24px;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.25s;
+    align-self: flex-start;
+}
+
+.sig-submit-btn:hover { background: var(--sage-medium); }
+.sig-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.sig-awaiting {
+    font-size: 11px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--sage-light);
+    padding: 10px 0;
+    letter-spacing: 0.5px;
+}
+
+.sig-status-msg {
+    font-size: 11px;
+    min-height: 16px;
+    margin-top: 4px;
+}
+.sig-status-msg.save-ok  { color: var(--accent); }
+.sig-status-msg.save-err { color: #c44; }
+
 /* ── Gallery / moodboard editable ───────────────── */
 
 .gallery-item-edit {

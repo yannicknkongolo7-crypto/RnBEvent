@@ -89,6 +89,38 @@
         return arr.map(function (c) { return String.fromCharCode(c); }).join('');
     }
 
+    /* ── Random access code generator ───────────────── */
+    function generateRandomCode(prefix) {
+        var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        var code = prefix + '-';
+        for (var i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    }
+
+    /* Generate unique planner and team codes for a client */
+    function generateClientCodes(coupleCode) {
+        var plannerCode, teamCode;
+        do { plannerCode = generateRandomCode('PLAN'); }
+        while (state.clients.some(function (c) { return c.plannerCode === plannerCode || c.accessCode === plannerCode; }));
+        do { teamCode = generateRandomCode('TEAM'); }
+        while (state.clients.some(function (c) { return c.teamCode === teamCode || c.accessCode === teamCode; }));
+        return { plannerCode: plannerCode, teamCode: teamCode };
+    }
+
+    function fillGeneratedCodes() {
+        var coupleInput = document.getElementById('c-code');
+        var plannerInput = document.getElementById('c-planner-code');
+        var teamInput = document.getElementById('c-team-code');
+        if (!plannerInput || !teamInput) return;
+        var couple = (coupleInput ? coupleInput.value || '' : '').trim().toUpperCase() || 'CODE';
+        var codes = generateClientCodes(couple);
+        plannerInput.value = codes.plannerCode;
+        teamInput.value    = codes.teamCode;
+    }
+    window.fillGeneratedCodes = fillGeneratedCodes;
+
     var pendingAuth = false; // step 1 passed, waiting for TOTP
 
     /* ── Auth Lockout ────────────────────────────────── */
@@ -1163,12 +1195,17 @@
             el.innerHTML = '<p style="padding:24px 28px;font-size:12px;color:#527141;font-weight:300;letter-spacing:0.5px">No clients yet. Prospects marked <strong>Booked</strong> will appear here automatically.</p>';
             return;
         }
-        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Code</span><span>Status</span><span>Actions</span></div>';
+        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Codes</span><span>Status</span><span>Actions</span></div>';
         state.clients.forEach(function (c) {
             var isActive = c.active !== false;
-            var codeDisplay = c.accessCode
-                ? '<code class="client-code-badge">' + esc(c.accessCode) + '</code>'
-                : '<button class="crm-act-btn" style="color:#b89a5e;font-weight:500" onclick="editClient(\'' + escJS(c.id) + '\')">SET CODE</button>';
+            var codeDisplay;
+            if (c.accessCode) {
+                codeDisplay = '<code class="client-code-badge" title="Couple">&#128149; ' + esc(c.accessCode) + '</code>';
+                if (c.plannerCode) codeDisplay += '<br><code class="client-code-badge" title="Planner" style="background:#527141">&#128203; ' + esc(c.plannerCode) + '</code>';
+                if (c.teamCode)    codeDisplay += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">&#9733; ' + esc(c.teamCode) + '</code>';
+            } else {
+                codeDisplay = '<button class="crm-act-btn" style="color:#b89a5e;font-weight:500" onclick="editClient(\'' + escJS(c.id) + '\')">SET CODE</button>';
+            }
             var statusBtn = isActive
                 ? '<button class="client-status-btn active" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">ACTIVE</button>'
                 : '<button class="client-status-btn disabled" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">DISABLED</button>';
@@ -1201,34 +1238,41 @@
             suggestedCode = base + counter;
             counter++;
         }
-        sha256Hex(suggestedCode).then(function (hash) {
+        var codes = generateClientCodes(suggestedCode);
+        var plannerCode = codes.plannerCode;
+        var teamCode    = codes.teamCode;
+        Promise.all([sha256Hex(suggestedCode), sha256Hex(plannerCode), sha256Hex(teamCode)]).then(function (hashes) {
             var clientData = {
-                id:           'cl' + Date.now(),
-                prospectId:   prospect.id,
-                accessCode:   suggestedCode,
-                codeHash:     hash,
-                active:       true,
-                firstName:    nameParts[0] || '',
-                fullName:     prospect.name || '',
-                eventType:    prospect.eventType || '',
-                eventDate:    prospect.eventDate || '',
-                eventVenue:   '',
-                planner:      'RNB Events Team',
-                plannerEmail: 'hello@rnbevents716.com',
-                timeline:     [],
-                trackingNotes: { plannerTodos: [], teamTodos: [], clientTodos: [] },
-                vendors:      [],
-                moodboard:    { palette: [], images: [], description: '' },
-                documents:    [],
-                gallery:      [],
-                added:        today()
+                id:              'cl' + Date.now(),
+                prospectId:      prospect.id,
+                accessCode:      suggestedCode,
+                plannerCode:     plannerCode,
+                teamCode:        teamCode,
+                codeHash:        hashes[0],
+                plannerCodeHash: hashes[1],
+                teamCodeHash:    hashes[2],
+                active:          true,
+                firstName:       nameParts[0] || '',
+                fullName:        prospect.name || '',
+                eventType:       prospect.eventType || '',
+                eventDate:       prospect.eventDate || '',
+                eventVenue:      '',
+                planner:         'RNB Events Team',
+                plannerEmail:    'hello@rnbevents716.com',
+                timeline:        [],
+                trackingNotes:   { plannerTodos: [], teamTodos: [], clientTodos: [] },
+                vendors:         [],
+                moodboard:       { palette: [], images: [], description: '' },
+                documents:       [],
+                gallery:         [],
+                added:           today()
             };
             state.clients.unshift(clientData);
             saveClientsToStorage();
             renderDashboardClients();
             renderClientManager();
             renderStats();
-            showToast('Client created for "' + prospect.name + '" — Code: ' + suggestedCode);
+            showToast('Client created for "' + prospect.name + '" — Couple: ' + suggestedCode + ' / Planner: ' + plannerCode + ' / Team: ' + teamCode);
         });
     }
 
@@ -1241,17 +1285,20 @@
             return;
         }
 
-        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Access Code</span><span>Status</span><span>Actions</span></div>';
+        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Access Codes</span><span>Status</span><span>Actions</span></div>';
         state.clients.forEach(function (c) {
             var isActive = c.active !== false;
             var statusBtn = isActive
                 ? '<button class="client-status-btn active" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">ACTIVE</button>'
                 : '<button class="client-status-btn disabled" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">DISABLED</button>';
+            var codeHtml = '<code class="client-code-badge" title="Couple">&#128149; ' + esc(c.accessCode) + '</code>';
+            if (c.plannerCode) codeHtml += '<code class="client-code-badge" title="Planner" style="background:#527141">&#128203; ' + esc(c.plannerCode) + '</code>';
+            if (c.teamCode)    codeHtml += '<code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">&#9733; ' + esc(c.teamCode) + '</code>';
             html += '<div class="crm-row' + (isActive ? '' : ' client-row-disabled') + '">' +
                 '<span class="crm-name">' + esc(c.fullName || c.firstName || '–') + '</span>' +
                 '<span class="crm-event">' + esc(c.eventType || '–') + '</span>' +
                 '<span class="crm-date">' + esc(c.eventDate || '–') + '</span>' +
-                '<span class="client-code-cell"><code class="client-code-badge">' + esc(c.accessCode) + '</code></span>' +
+                '<span class="client-code-cell" style="display:flex;flex-direction:column;gap:3px">' + codeHtml + '</span>' +
                 '<span class="client-status-cell">' + statusBtn + '</span>' +
                 '<span class="crm-actions">' +
                     '<button class="crm-act-btn" onclick="editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
@@ -1265,18 +1312,27 @@
     function openAddClient() {
         editingClientId = null;
         document.getElementById('client-modal-title').textContent = 'New Client';
-        ['c-code','c-name','c-first','c-etype','c-venue'].forEach(function (id) {
+        ['c-name','c-first','c-etype','c-venue'].forEach(function (id) {
             document.getElementById(id).value = '';
         });
+        document.getElementById('c-code').value = '';
+        document.getElementById('c-code').readOnly = false;
         document.getElementById('c-edate').value = '';
         document.getElementById('c-planner').value = 'RNB Events Team';
         document.getElementById('c-pemail').value  = 'hello@rnbevents716.com';
-        document.getElementById('c-code').readOnly = false;
         document.getElementById('c-timeline-rows').innerHTML = '';
         addClientTimelineRow();
         populateTrackingRows('c-planner-todos', []);
         populateTrackingRows('c-team-todos', []);
         populateTrackingRows('c-client-todos', []);
+
+        /* Auto-generate planner and team codes */
+        var codes = generateClientCodes('');
+        var plannerIn = document.getElementById('c-planner-code');
+        var teamIn    = document.getElementById('c-team-code');
+        if (plannerIn) plannerIn.value = codes.plannerCode;
+        if (teamIn)    teamIn.value    = codes.teamCode;
+
         document.getElementById('modal-client').classList.remove('hidden');
     }
 
@@ -1294,6 +1350,11 @@
         document.getElementById('c-venue').value   = c.eventVenue    || '';
         document.getElementById('c-planner').value = c.planner       || 'RNB Events Team';
         document.getElementById('c-pemail').value  = c.plannerEmail  || 'hello@rnbevents716.com';
+
+        var plannerIn = document.getElementById('c-planner-code');
+        var teamIn    = document.getElementById('c-team-code');
+        if (plannerIn) { plannerIn.value = c.plannerCode || ''; plannerIn.readOnly = !!c.plannerCode; }
+        if (teamIn)    { teamIn.value    = c.teamCode    || ''; teamIn.readOnly    = !!c.teamCode; }
 
         var container = document.getElementById('c-timeline-rows');
         container.innerHTML = '';
@@ -1359,9 +1420,13 @@
     }
 
     function saveClient() {
-        var code  = (document.getElementById('c-code').value || '').trim().toUpperCase();
-        var name  = (document.getElementById('c-name').value || '').trim();
-        var first = (document.getElementById('c-first').value || '').trim();
+        var code         = (document.getElementById('c-code').value || '').trim().toUpperCase();
+        var name         = (document.getElementById('c-name').value || '').trim();
+        var first        = (document.getElementById('c-first').value || '').trim();
+        var plannerInEl  = document.getElementById('c-planner-code');
+        var teamInEl     = document.getElementById('c-team-code');
+        var plannerCode  = plannerInEl ? (plannerInEl.value || '').trim().toUpperCase() : '';
+        var teamCode     = teamInEl    ? (teamInEl.value    || '').trim().toUpperCase() : '';
 
         if (!code) { alert('Access code is required.'); return; }
         if (!name)  { alert('Client name is required.'); return; }
@@ -1385,44 +1450,67 @@
             }
         });
 
-        sha256Hex(code).then(function (hash) {
+        var hashPromises = [sha256Hex(code)];
+        if (plannerCode) hashPromises.push(sha256Hex(plannerCode));
+        if (teamCode)    hashPromises.push(sha256Hex(teamCode));
+
+        Promise.all(hashPromises).then(function (hashes) {
             var existingForActive = editingClientId ? state.clients.find(function (x) { return x.id === editingClientId; }) : null;
             var clientData = {
-                id:           editingClientId || 'cl' + Date.now(),
-                accessCode:   code,
-                codeHash:     hash,
-                active:       existingForActive ? (existingForActive.active !== false) : true,
-                firstName:    first || name.split(' ')[0],
-                fullName:     name,
-                eventType:    document.getElementById('c-etype').value.trim(),
-                eventDate:    readDateInput('c-edate'),
-                eventVenue:   document.getElementById('c-venue').value.trim(),
-                planner:      document.getElementById('c-planner').value.trim(),
-                plannerEmail: document.getElementById('c-pemail').value.trim(),
-                timeline:     timeline,
-                trackingNotes: {
+                id:              editingClientId || 'cl' + Date.now(),
+                accessCode:      code,
+                codeHash:        hashes[0],
+                active:          existingForActive ? (existingForActive.active !== false) : true,
+                firstName:       first || name.split(' ')[0],
+                fullName:        name,
+                eventType:       document.getElementById('c-etype').value.trim(),
+                eventDate:       readDateInput('c-edate'),
+                eventVenue:      document.getElementById('c-venue').value.trim(),
+                planner:         document.getElementById('c-planner').value.trim(),
+                plannerEmail:    document.getElementById('c-pemail').value.trim(),
+                timeline:        timeline,
+                trackingNotes:   {
                     plannerTodos: collectTrackingRows('c-planner-todos'),
                     teamTodos:    collectTrackingRows('c-team-todos'),
                     clientTodos:  collectTrackingRows('c-client-todos')
                 },
-                vendors:      [],
-                moodboard:    { palette: [], images: [], description: 'Your mood board is being curated by your planning team. Check back soon.' },
-                documents:    [],
-                gallery:      [],
-                added:        today()
+                vendors:         [],
+                moodboard:       { palette: [], images: [], description: 'Your mood board is being curated by your planning team. Check back soon.' },
+                documents:       [],
+                gallery:         [],
+                added:           today()
             };
+
+            /* Attach planner/team keys when provided */
+            if (plannerCode) {
+                clientData.plannerCode     = plannerCode;
+                clientData.plannerCodeHash = hashes[1];
+            }
+            if (teamCode) {
+                clientData.teamCode     = teamCode;
+                clientData.teamCodeHash = plannerCode ? hashes[2] : hashes[1];
+            }
 
             if (editingClientId) {
                 var idx = state.clients.findIndex(function (x) { return x.id === editingClientId; });
                 if (idx > -1) {
                     var existing = state.clients[idx];
-                    clientData.vendors   = existing.vendors   || [];
-                    clientData.moodboard = existing.moodboard || clientData.moodboard;
-                    clientData.documents = existing.documents || [];
-                    clientData.gallery   = existing.gallery   || [];
+                    clientData.vendors       = existing.vendors   || [];
+                    clientData.moodboard     = existing.moodboard || clientData.moodboard;
+                    clientData.documents     = existing.documents || [];
+                    clientData.gallery       = existing.gallery   || [];
                     clientData.trackingNotes = clientData.trackingNotes;
-                    clientData.added     = existing.added     || today();
-                    state.clients[idx]   = clientData;
+                    clientData.added         = existing.added     || today();
+                    /* Keep old planner/team codes if not re-entered */
+                    if (!plannerCode) {
+                        clientData.plannerCode     = existing.plannerCode     || '';
+                        clientData.plannerCodeHash = existing.plannerCodeHash || '';
+                    }
+                    if (!teamCode) {
+                        clientData.teamCode     = existing.teamCode     || '';
+                        clientData.teamCodeHash = existing.teamCodeHash || '';
+                    }
+                    state.clients[idx] = clientData;
                 }
             } else {
                 state.clients.unshift(clientData);
@@ -1431,7 +1519,7 @@
             saveClientsToStorage();
             closeModal('modal-client');
             renderClientManager();
-            showToast('Client "' + name + '" saved. Code: ' + code);
+            showToast('Client "' + name + '" saved. Codes — Couple: ' + code + (plannerCode ? ' / Planner: ' + plannerCode : '') + (teamCode ? ' / Team: ' + teamCode : ''));
         });
     }
 
@@ -1507,7 +1595,7 @@
         }
 
         var html = '<div class="ac-row ac-head">' +
-            '<span>Client</span><span>Code</span><span>Event</span>' +
+            '<span>Client</span><span>Codes</span><span>Event</span>' +
             '<span>Date</span><span>Venue</span><span>Planner</span>' +
             '<span>Status</span><span>Sections</span><span>Added</span><span>Actions</span>' +
         '</div>';
@@ -1524,9 +1612,13 @@
                 ? '<span class="ac-badge ac-badge-active">ACTIVE</span>'
                 : '<span class="ac-badge ac-badge-disabled">DISABLED</span>';
 
+            var codeHtml = '<code class="client-code-badge" title="Couple">&#128149; ' + esc(c.accessCode || '–') + '</code>';
+            if (c.plannerCode) codeHtml += '<br><code class="client-code-badge" title="Planner" style="background:#527141">&#128203; ' + esc(c.plannerCode) + '</code>';
+            if (c.teamCode)    codeHtml += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">&#9733; ' + esc(c.teamCode) + '</code>';
+
             html += '<div class="ac-row' + (isActive ? '' : ' ac-row-disabled') + '">' +
                 '<span class="ac-name">' + esc(c.fullName || c.firstName || '\u2013') + '</span>' +
-                '<span class="ac-code"><code class="client-code-badge">' + esc(c.accessCode || '\u2013') + '</code></span>' +
+                '<span class="ac-code">' + codeHtml + '</span>' +
                 '<span>' + esc(c.eventType || '\u2013') + '</span>' +
                 '<span>' + esc(c.eventDate || '\u2013') + '</span>' +
                 '<span>' + esc(c.eventVenue || '\u2013') + '</span>' +

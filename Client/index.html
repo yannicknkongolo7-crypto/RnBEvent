@@ -33,6 +33,10 @@
                     <input type="password" id="access-input" class="gate-input" placeholder="Enter Access Code" autocomplete="off" maxlength="32">
                     <button type="submit" class="gate-btn" onclick="checkAccess()">ENTER</button>
                 </div>
+                <label class="gate-remember">
+                    <input type="checkbox" id="remember-me-check">
+                    Remember me on this device for 30 days
+                </label>
                 <p id="gate-error" class="gate-error" aria-live="polite"></p>
             </form>
             <p class="gate-footer">Don't have your code? <a href="mailto:hello@rnbevents716.com">Contact us</a></p>
@@ -47,7 +51,10 @@
                 <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
             </a>
             <span class="portal-badge">CLIENT PORTAL</span>
-            <button class="portal-logout" onclick="logOut()">SIGN OUT</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="portal-role-badge" class="role-badge role-couple"></span>
+                <button class="portal-logout" onclick="logOut()">SIGN OUT</button>
+            </div>
         </header>
 
         <!-- Hero Welcome — personalized -->

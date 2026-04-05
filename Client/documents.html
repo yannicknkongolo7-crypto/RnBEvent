@@ -45,15 +45,112 @@
     <script>
         function initDocuments() {
             var client = window.currentClient;
+            var role     = window.currentRole     || 'couple';
+            var roleName = window.currentRoleName || 'Client';
             var el     = document.getElementById('documents-content');
             var items  = (client.documents || []).map(function (d) {
                 return { name: d.name || '', type: d.type || 'Document', url: d.url || '', date: d.date || '' };
             });
 
-            render();
+            /* Agreement state */
+            var agr = Object.assign({ status: 'pending', coupleSignature: '', coupleSignedAt: '', plannerSignature: '', plannerSignedAt: '' }, client.agreement || {});
 
-            function render() {
+            renderAll();
+
+            function renderAll() {
                 var html = '';
+
+                /* ─── Agreement Section ─── */
+                var statusLabel = { pending: 'PENDING SIGNATURES', 'couple-signed': 'COUPLE SIGNED — AWAITING PLANNER', 'fully-executed': 'FULLY EXECUTED' };
+                var plannerName = client.planner || 'RNB Events Team';
+                var clientName  = client.fullName || client.firstName || 'Client';
+                var eventDate   = client.eventDate   || 'TBD';
+                var eventType   = client.eventType   || 'Event';
+                var eventVenue  = client.eventVenue  || 'TBD';
+
+                html += '<div class="agreement-wrapper">';
+                html += '<div class="agreement-header">';
+                html += '<p class="doc-type" style="margin:0">EVENT PLANNING AGREEMENT</p>';
+                html += '<span class="agreement-status-badge status-' + agr.status + '">' + escHtml(statusLabel[agr.status] || agr.status) + '</span>';
+                html += '</div>';
+
+                html += '<div class="agreement-body">';
+                html += '<div class="agreement-text">';
+                html += '<h3>Event Planning Agreement</h3>';
+                html += '<p>This Event Planning Agreement (&ldquo;Agreement&rdquo;) is entered into between:</p>';
+                html += '<p><strong>' + escHtml(plannerName) + '</strong> (&ldquo;Event Planner&rdquo;) and <strong>' + escHtml(clientName) + '</strong> (&ldquo;Client&rdquo;)</p>';
+                html += '<p>for the following event:</p>';
+                html += '<p><strong>Event Type:</strong> ' + escHtml(eventType) + '<br>';
+                html += '<strong>Event Date:</strong> ' + escHtml(eventDate) + '<br>';
+                html += '<strong>Venue:</strong> ' + escHtml(eventVenue) + '</p>';
+                html += '<h3>Services</h3>';
+                html += '<p>The Event Planner agrees to provide full event planning, coordination, and management services for the above-referenced event. Services include, but are not limited to: venue coordination, vendor management, timeline creation, day-of logistics, and communication facilitation.</p>';
+                html += '<h3>Client Responsibilities</h3>';
+                html += '<ul>';
+                html += '<li>Provide timely feedback and decisions as required.</li>';
+                html += '<li>Fulfill all financial obligations per agreed payment schedule.</li>';
+                html += '<li>Communicate changes to the event scope promptly.</li>';
+                html += '</ul>';
+                html += '<h3>Fees &amp; Payment</h3>';
+                html += '<p>Fees and payment terms are as agreed upon in the separate fee schedule or proposal document. A non-refundable booking retainer is required to secure the event date.</p>';
+                html += '<h3>Cancellation Policy</h3>';
+                html += '<p>In the event of cancellation by the Client, the retainer is non-refundable. Additional fees may apply depending on how far in advance the cancellation occurs. Events cancelled within 30 days of the event date are subject to full contract fees.</p>';
+                html += '<h3>Confidentiality</h3>';
+                html += '<p>Both parties agree to keep the terms of this agreement and any proprietary information confidential.</p>';
+                html += '<h3>Agreement</h3>';
+                html += '<p>By signing below, both parties agree to the terms and conditions of this Event Planning Agreement. This agreement becomes legally binding when signed by both parties.</p>';
+                html += '</div>'; /* end .agreement-text */
+
+                /* ─── Signatures ─── */
+                html += '<div class="agreement-signatures">';
+
+                /* Couple signature block */
+                html += '<div class="sig-block">';
+                html += '<p class="sig-block-title">Client Signature — ' + escHtml(clientName) + '</p>';
+                if (agr.coupleSignature) {
+                    html += '<p class="sig-signed-display">' + escHtml(agr.coupleSignature) + '</p>';
+                    html += '<p class="sig-signed-date">Signed ' + escHtml(agr.coupleSignedAt ? formatNoteTs(agr.coupleSignedAt) : '') + '</p>';
+                    html += '<span class="sig-signed-check">&#10003; Signed</span>';
+                } else if (role === 'couple') {
+                    html += '<div class="sig-input-wrapper">';
+                    html += '<p class="sig-hint">Type your full legal name below to sign this agreement.</p>';
+                    html += '<input type="text" id="couple-sig-input" class="sig-input" placeholder="Your Full Name" maxlength="200" autocomplete="name">';
+                    html += '<button type="button" class="sig-submit-btn" id="couple-sig-btn">SIGN AGREEMENT</button>';
+                    html += '<p id="couple-sig-status" class="sig-status-msg"></p>';
+                    html += '</div>';
+                } else {
+                    html += '<p class="sig-awaiting">Awaiting client signature.</p>';
+                }
+                html += '</div>';
+
+                /* Planner signature block */
+                html += '<div class="sig-block">';
+                html += '<p class="sig-block-title">Event Planner Signature — ' + escHtml(plannerName) + '</p>';
+                if (agr.plannerSignature) {
+                    html += '<p class="sig-signed-display">' + escHtml(agr.plannerSignature) + '</p>';
+                    html += '<p class="sig-signed-date">Signed ' + escHtml(agr.plannerSignedAt ? formatNoteTs(agr.plannerSignedAt) : '') + '</p>';
+                    html += '<span class="sig-signed-check">&#10003; Signed</span>';
+                } else if (role === 'planner' || role === 'rnbTeam') {
+                    if (!agr.coupleSignature) {
+                        html += '<p class="sig-awaiting">Available after client signs.</p>';
+                    } else {
+                        html += '<div class="sig-input-wrapper">';
+                        html += '<p class="sig-hint">Type your full name to countersign this agreement.</p>';
+                        html += '<input type="text" id="planner-sig-input" class="sig-input" placeholder="Your Full Name" maxlength="200" autocomplete="name">';
+                        html += '<button type="button" class="sig-submit-btn" id="planner-sig-btn">COUNTERSIGN</button>';
+                        html += '<p id="planner-sig-status" class="sig-status-msg"></p>';
+                        html += '</div>';
+                    }
+                } else {
+                    html += '<p class="sig-awaiting">Awaiting planner countersignature.</p>';
+                }
+                html += '</div>';
+
+                html += '</div>'; /* end .agreement-signatures */
+                html += '</div>'; /* end .agreement-body */
+                html += '</div>'; /* end .agreement-wrapper */
+
+                /* ─── Existing documents list ─── */
                 if (items.length) {
                     html += '<div class="documents-list">';
                     items.forEach(function (doc, i) {
@@ -71,35 +168,126 @@
                     });
                     html += '</div>';
                 }
-                html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
-                html += '<h3 class="tracking-section-title" style="font-size:16px">Add Document</h3>';
-                html += '<div class="edit-add-row">';
-                html += '<input type="text" id="d-name" class="tracking-input" placeholder="Document name" maxlength="200">';
-                html += '<input type="text" id="d-type" class="tracking-input" placeholder="Type (e.g. Contract)" maxlength="100">';
-                html += '</div>';
-                html += '<div class="edit-add-row">';
-                html += '<input type="url" id="d-url" class="tracking-input" placeholder="URL (https://...)" maxlength="2000">';
-                html += '<input type="date" id="d-date" class="tracking-input" maxlength="50">';
-                html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
-                html += '</div>';
-                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
-                html += '<p id="save-status" class="tracking-save-status"></p>';
-                html += '</div>';
+
+                /* Add document form (planner/team only) */
+                if (role === 'planner' || role === 'rnbTeam') {
+                    html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                    html += '<h3 class="tracking-section-title" style="font-size:16px">Add Document</h3>';
+                    html += '<div class="edit-add-row">';
+                    html += '<input type="text" id="d-name" class="tracking-input" placeholder="Document name" maxlength="200">';
+                    html += '<input type="text" id="d-type" class="tracking-input" placeholder="Type (e.g. Contract)" maxlength="100">';
+                    html += '</div>';
+                    html += '<div class="edit-add-row">';
+                    html += '<input type="url" id="d-url" class="tracking-input" placeholder="URL (https://...)" maxlength="2000">';
+                    html += '<input type="date" id="d-date" class="tracking-input" maxlength="50">';
+                    html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
+                    html += '</div>';
+                    html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE DOCUMENTS</button>';
+                    html += '<p id="save-status" class="tracking-save-status"></p>';
+                    html += '</div>';
+                }
+
                 el.innerHTML = html;
 
-                el.querySelectorAll('.tracking-remove-btn').forEach(function (btn) {
-                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                /* Wire remove buttons on document list */
+                el.querySelectorAll('.doc-row .tracking-remove-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        items.splice(parseInt(this.dataset.index), 1);
+                        renderAll();
+                    });
                 });
-                document.getElementById('add-btn').addEventListener('click', function () {
-                    var n = document.getElementById('d-name').value.trim();
-                    var u = document.getElementById('d-url').value.trim();
-                    if (!n || !u) return;
-                    items.push({ name: n, type: document.getElementById('d-type').value.trim() || 'Document', url: u, date: window.toDDMMYYYY(document.getElementById('d-date').value.trim()) });
-                    render();
+
+                /* Wire add document form */
+                var addBtn = document.getElementById('add-btn');
+                if (addBtn) {
+                    addBtn.addEventListener('click', function () {
+                        var n = document.getElementById('d-name').value.trim();
+                        var u = document.getElementById('d-url').value.trim();
+                        if (!n || !u) return;
+                        items.push({ name: n, type: document.getElementById('d-type').value.trim() || 'Document', url: u, date: window.toDDMMYYYY(document.getElementById('d-date').value.trim()) });
+                        renderAll();
+                    });
+                }
+                var saveDocsBtn = document.getElementById('save-btn');
+                if (saveDocsBtn) {
+                    saveDocsBtn.addEventListener('click', function () {
+                        savePortalSection('documents', items, document.getElementById('save-status'), saveDocsBtn, 'Updated documents');
+                    });
+                }
+
+                /* Wire couple signature */
+                var coupleSigBtn = document.getElementById('couple-sig-btn');
+                if (coupleSigBtn) {
+                    coupleSigBtn.addEventListener('click', function () {
+                        var sigText = (document.getElementById('couple-sig-input').value || '').trim();
+                        var statusEl = document.getElementById('couple-sig-status');
+                        if (!sigText) { statusEl.textContent = 'Please enter your full name.'; statusEl.className = 'sig-status-msg save-err'; return; }
+                        agr.coupleSignature = sigText;
+                        agr.coupleSignedAt  = new Date().toISOString();
+                        agr.status = agr.plannerSignature ? 'fully-executed' : 'couple-signed';
+                        coupleSigBtn.disabled = true;
+                        coupleSigBtn.textContent = 'SAVING...';
+                        saveAgreement(statusEl, coupleSigBtn);
+                    });
+                }
+
+                /* Wire planner signature */
+                var plannerSigBtn = document.getElementById('planner-sig-btn');
+                if (plannerSigBtn) {
+                    plannerSigBtn.addEventListener('click', function () {
+                        var sigText = (document.getElementById('planner-sig-input').value || '').trim();
+                        var statusEl = document.getElementById('planner-sig-status');
+                        if (!sigText) { statusEl.textContent = 'Please enter your full name.'; statusEl.className = 'sig-status-msg save-err'; return; }
+                        agr.plannerSignature = sigText;
+                        agr.plannerSignedAt  = new Date().toISOString();
+                        agr.status = agr.coupleSignature ? 'fully-executed' : 'couple-signed';
+                        plannerSigBtn.disabled = true;
+                        plannerSigBtn.textContent = 'SAVING...';
+                        saveAgreement(statusEl, plannerSigBtn);
+                    });
+                }
+            }
+
+            function saveAgreement(statusEl, btn) {
+                fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        codeHash: window.currentCode,
+                        section:  'agreement',
+                        data:     agr,
+                        editLogEntry: {
+                            ts:       new Date().toISOString(),
+                            role:     window.currentRole     || 'couple',
+                            roleName: window.currentRoleName || 'Client',
+                            action:   'Signed agreement'
+                        }
+                    })
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    if (res && res.ok) {
+                        renderAll();
+                    } else {
+                        statusEl.textContent = 'Save failed: ' + (res.error || 'Unknown');
+                        statusEl.className = 'sig-status-msg save-err';
+                        if (btn) { btn.disabled = false; btn.textContent = btn.id === 'couple-sig-btn' ? 'SIGN AGREEMENT' : 'COUNTERSIGN'; }
+                    }
+                })
+                .catch(function (e) {
+                    statusEl.textContent = 'Save failed: ' + e;
+                    statusEl.className = 'sig-status-msg save-err';
+                    if (btn) { btn.disabled = false; btn.textContent = btn.id === 'couple-sig-btn' ? 'SIGN AGREEMENT' : 'COUNTERSIGN'; }
                 });
-                document.getElementById('save-btn').addEventListener('click', function () {
-                    savePortalSection('documents', items, document.getElementById('save-status'), document.getElementById('save-btn'));
-                });
+            }
+
+            function formatNoteTs(isoTs) {
+                if (!isoTs) return '';
+                if (window.formatNoteTs) return window.formatNoteTs(isoTs);
+                try {
+                    var d = new Date(isoTs);
+                    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+                } catch (e) { return isoTs; }
             }
         }
         if (window._portalReady) { initDocuments(); } else { window.onPortalReady = initDocuments; }

@@ -151,7 +151,6 @@
                     <h2 class="panel-title">Published Clients</h2>
                     <div style="display:flex;gap:8px;">
                         <button class="panel-btn" onclick="switchTool('clients');openAddClient()">+ NEW</button>
-                        <button class="panel-btn publish-btn" onclick="publishClientsConfig()">&#9650; PUBLISH</button>
                     </div>
                 </div>
                 <div id="dashboard-clients"><!-- Populated by JS --></div>
@@ -203,10 +202,9 @@
 
             <!-- Client Manager -->
             <div id="tool-clients" class="tool-panel hidden">
-                <p class="tool-desc">Create and manage client portal access codes. Each client gets a unique code that unlocks their personalized view at <strong>/Client</strong>. Click <strong>PUBLISH</strong> to push all client data live — the portal fetches credentials directly from the cloud.</p>
+                <p class="tool-desc">Create and manage client portal access codes. Each client gets a unique code that unlocks their personalized view at <strong>/Client</strong>. Changes are published to the cloud automatically when you save.</p>
                 <div style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="panel-btn" onclick="openAddClient()">+ NEW CLIENT</button>
-                    <button class="panel-btn publish-btn" onclick="publishClientsConfig()">&#9650; PUBLISH CLIENTS</button>
                 </div>
                 <div id="clients-list"><!-- Populated by JS --></div>
             </div>

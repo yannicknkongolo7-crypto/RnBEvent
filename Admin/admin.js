@@ -332,16 +332,52 @@
        DASHBOARD
     ══════════════════════════════════════════════════ */
 
+    var S3_CLIENTS_URL = 'https://rnbevents716.s3.us-east-2.amazonaws.com/clients.json';
+
+    function fetchS3Clients() {
+        return fetch(S3_CLIENTS_URL + '?t=' + Date.now())
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (arr) {
+                if (!Array.isArray(arr) || !arr.length) return;
+                /* Build lookup of local clients by id */
+                var localById = {};
+                state.clients.forEach(function (c) { localById[c.id] = true; });
+                var merged = false;
+                arr.forEach(function (sc) {
+                    if (sc && sc.id && !localById[sc.id]) {
+                        state.clients.push(sc);
+                        merged = true;
+                    } else if (sc && sc.id && localById[sc.id]) {
+                        /* If local has the id, update from S3 (S3 is source of truth) */
+                        var idx = state.clients.findIndex(function (c) { return c.id === sc.id; });
+                        if (idx > -1) state.clients[idx] = sc;
+                        merged = true;
+                    }
+                });
+                /* Also add S3-only clients not in local at all (match by codeHash) */
+                var localByHash = {};
+                state.clients.forEach(function (c) { if (c.codeHash) localByHash[c.codeHash] = true; });
+                arr.forEach(function (sc) {
+                    if (sc && sc.codeHash && !localByHash[sc.codeHash]) {
+                        state.clients.push(sc);
+                        merged = true;
+                    }
+                });
+                if (merged) {
+                    safeSave(STORAGE_CLIENTS, state.clients);
+                    renderAll();
+                }
+            })
+            .catch(function (e) { console.warn('S3 client fetch:', e); });
+    }
+
     function showDashboard() {
         gate.style.display = 'none';
         content.classList.remove('hidden');
         loadState();
         renderAll();
         syncFromCloud();
-        // Ensure localStorage clients are pushed to cloud (covers first-deploy gap)
-        if (state.clients.length) {
-            cloudPush({ clients: state.clients });
-        }
+        fetchS3Clients();
     }
 
     /* ── State load/save ─────────────────────────────── */
@@ -388,6 +424,30 @@
     function saveClientsToStorage() {
         safeSave(STORAGE_CLIENTS, state.clients);
         cloudPush({ clients: state.clients });
+        autoPublishClients();
+    }
+
+    function autoPublishClients() {
+        var api = window.RNB_UPLOAD_API;
+        if (!api || !state.clients.length) return;
+        fetch(api, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clients: state.clients })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data && data.ok) {
+                updateSyncStatus('synced');
+            } else {
+                console.warn('Auto-publish failed:', data && data.error);
+                updateSyncStatus('error');
+            }
+        })
+        .catch(function (e) {
+            console.warn('Auto-publish error:', e);
+            updateSyncStatus('error');
+        });
     }
 
     /* ══════════════════════════════════════════════════

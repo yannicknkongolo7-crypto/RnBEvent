@@ -359,6 +359,20 @@
                 <h4 class="form-section-title">TIMELINE MILESTONES</h4>
                 <div id="c-timeline-rows"><!-- Populated by JS --></div>
                 <button type="button" class="panel-btn" onclick="addClientTimelineRow()">+ MILESTONE</button>
+
+                <hr class="form-divider">
+                <h4 class="form-section-title">TRACKING NOTES</h4>
+                <p class="form-hint" style="margin-bottom:10px">To-do items visible to the client in their portal.</p>
+                <h5 class="form-sub-title">Event Planner To-Dos</h5>
+                <div id="c-planner-todos"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addTrackingRow('c-planner-todos')">+ PLANNER ITEM</button>
+                <h5 class="form-sub-title" style="margin-top:14px">RNB Team To-Dos</h5>
+                <div id="c-team-todos"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addTrackingRow('c-team-todos')">+ TEAM ITEM</button>
+                <h5 class="form-sub-title" style="margin-top:14px">Client To-Dos (if Applicable)</h5>
+                <div id="c-client-todos"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addTrackingRow('c-client-todos')">+ CLIENT ITEM</button>
+
                 <div class="modal-actions">
                     <button type="button" class="modal-cancel" onclick="closeModal('modal-client')">CANCEL</button>
                     <button type="submit" class="modal-save" onclick="saveClient()">SAVE CLIENT</button>

@@ -1118,6 +1118,9 @@
         document.getElementById('c-code').readOnly = false;
         document.getElementById('c-timeline-rows').innerHTML = '';
         addClientTimelineRow();
+        populateTrackingRows('c-planner-todos', []);
+        populateTrackingRows('c-team-todos', []);
+        populateTrackingRows('c-client-todos', []);
         document.getElementById('modal-client').classList.remove('hidden');
     }
 
@@ -1143,6 +1146,10 @@
         } else {
             addClientTimelineRow();
         }
+        var tn = c.trackingNotes || {};
+        populateTrackingRows('c-planner-todos', tn.plannerTodos || []);
+        populateTrackingRows('c-team-todos', tn.teamTodos || []);
+        populateTrackingRows('c-client-todos', tn.clientTodos || []);
         document.getElementById('modal-client').classList.remove('hidden');
     }
 
@@ -1156,6 +1163,43 @@
             '<input type="text" class="form-input tl-notes" placeholder="Notes (optional)" value="' + esc((data && data.notes) || '') + '">' +
             '<button type="button" class="crm-act-btn del-btn" onclick="this.parentElement.remove()">&times;</button>';
         container.appendChild(row);
+    }
+
+    function addTrackingRow(containerId, data) {
+        var container = document.getElementById(containerId);
+        if (!container) return;
+        var row = document.createElement('div');
+        row.className = 'tracking-edit-row';
+        row.innerHTML =
+            '<input type="text" class="form-input tr-text" placeholder="To-do item" value="' + esc((data && data.text) || '') + '">' +
+            '<select class="form-input tr-status">' +
+                '<option value="pending"' + (data && data.status === 'pending' ? ' selected' : '') + '>Pending</option>' +
+                '<option value="in-progress"' + (data && data.status === 'in-progress' ? ' selected' : '') + '>In Progress</option>' +
+                '<option value="done"' + (data && data.status === 'done' ? ' selected' : '') + '>Done</option>' +
+                '<option value="not-applicable"' + (data && data.status === 'not-applicable' ? ' selected' : '') + '>N/A</option>' +
+            '</select>' +
+            '<button type="button" class="crm-act-btn del-btn" onclick="this.parentElement.remove()">&times;</button>';
+        container.appendChild(row);
+    }
+    window.addTrackingRow = addTrackingRow;
+
+    function collectTrackingRows(containerId) {
+        var items = [];
+        document.querySelectorAll('#' + containerId + ' .tracking-edit-row').forEach(function (row) {
+            var text = row.querySelector('.tr-text').value.trim();
+            if (text) {
+                items.push({ text: text, status: row.querySelector('.tr-status').value });
+            }
+        });
+        return items;
+    }
+
+    function populateTrackingRows(containerId, items) {
+        var container = document.getElementById(containerId);
+        if (container) container.innerHTML = '';
+        if (items && items.length) {
+            items.forEach(function (item) { addTrackingRow(containerId, item); });
+        }
     }
 
     function saveClient() {
@@ -1198,6 +1242,11 @@
                 planner:      document.getElementById('c-planner').value.trim(),
                 plannerEmail: document.getElementById('c-pemail').value.trim(),
                 timeline:     timeline,
+                trackingNotes: {
+                    plannerTodos: collectTrackingRows('c-planner-todos'),
+                    teamTodos:    collectTrackingRows('c-team-todos'),
+                    clientTodos:  collectTrackingRows('c-client-todos')
+                },
                 vendors:      [],
                 moodboard:    { palette: [], images: [], description: 'Your mood board is being curated by your planning team. Check back soon.' },
                 documents:    [],
@@ -1213,6 +1262,7 @@
                     clientData.moodboard = existing.moodboard || clientData.moodboard;
                     clientData.documents = existing.documents || [];
                     clientData.gallery   = existing.gallery   || [];
+                    clientData.trackingNotes = clientData.trackingNotes;
                     clientData.added     = existing.added     || today();
                     state.clients[idx]   = clientData;
                 }

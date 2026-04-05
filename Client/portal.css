@@ -904,3 +904,103 @@ a {
         align-items: flex-start;
     }
 }
+
+/* ───────────────────────────────────
+   TRACKING NOTES
+   ─────────────────────────────────── */
+
+.tracking-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+}
+
+.tracking-section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 1.55rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.02em;
+}
+
+.tracking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tracking-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(82, 113, 65, 0.08);
+}
+
+.tracking-item:last-child {
+    border-bottom: none;
+}
+
+.tracking-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sage-medium);
+    flex-shrink: 0;
+}
+
+.tracking-item.status-done .tracking-bullet         { background: var(--accent); }
+.tracking-item.status-in-progress .tracking-bullet   { background: #c7a636; }
+.tracking-item.status-pending .tracking-bullet        { background: #b0b0b0; }
+.tracking-item.status-not-applicable .tracking-bullet { background: #d0d0d0; }
+
+.tracking-text {
+    flex: 1;
+    font-size: 0.92rem;
+    color: var(--text);
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+}
+
+.tracking-status {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tracking-status.status-done           { background: #e8f4e8; color: var(--accent); }
+.tracking-status.status-in-progress    { background: #fdf8ee; color: #a07c30; }
+.tracking-status.status-pending        { background: #f0f0f0; color: #777; }
+.tracking-status.status-not-applicable { background: #f5f5f5; color: #aaa; }
+
+.tracking-empty {
+    font-size: 0.88rem;
+    color: var(--text-mid);
+    font-style: italic;
+    padding: 8px 0;
+}
+
+@media (max-width: 600px) {
+    .tracking-section {
+        padding: 20px 18px;
+    }
+    .tracking-item {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .tracking-status {
+        margin-left: 22px;
+    }
+}

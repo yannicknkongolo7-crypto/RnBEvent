@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Notes | RNB Events Client Portal</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script>if (!sessionStorage.getItem('rnb_portal_access')) { location.replace('/Client'); }</script>
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="portal-header">
+        <a href="/" class="portal-home-link">
+            <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+        </a>
+        <span class="portal-badge">CLIENT PORTAL</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Client" class="portal-back">&larr; DASHBOARD</a>
+            <button class="portal-logout" onclick="portalSignOut()">SIGN OUT</button>
+        </div>
+    </header>
+
+    <div class="subpage-hero">
+        <div class="subpage-hero-inner">
+            <p class="portal-hero-label">CLIENT PORTAL</p>
+            <h1 class="subpage-hero-title">Tracking Notes</h1>
+        </div>
+    </div>
+
+    <main class="container subpage-content" id="tracking-content">
+        <!-- Rendered by JS -->
+    </main>
+
+    <footer class="portal-footer">
+        <p>&copy; 2026 RNB Events &mdash; <a href="/">rnbevents716.com</a></p>
+        <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+    </footer>
+
+    <script src="clients-config.js"></script>
+    <script src="portal-page.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var client = window.currentClient;
+            var el = document.getElementById('tracking-content');
+            var notes = client.trackingNotes || {};
+
+            var sections = [
+                { key: 'plannerTodos', title: 'Event Planner To-Dos' },
+                { key: 'teamTodos',    title: 'RNB Team To-Dos' },
+                { key: 'clientTodos',  title: 'Client To-Dos (if Applicable)' }
+            ];
+
+            var hasAny = sections.some(function (s) {
+                var items = notes[s.key];
+                return items && items.length > 0;
+            });
+
+            if (!hasAny) {
+                renderComingSoon('tracking-content', 'Your tracking notes will appear here once your planning team adds action items.');
+                return;
+            }
+
+            var html = '';
+            sections.forEach(function (section) {
+                var items = notes[section.key] || [];
+                html += '<div class="tracking-section">';
+                html += '<h2 class="tracking-section-title">' + section.title + '</h2>';
+                if (!items.length) {
+                    html += '<p class="tracking-empty">No items yet.</p>';
+                } else {
+                    html += '<ul class="tracking-list">';
+                    items.forEach(function (item) {
+                        var statusClass = 'status-' + (item.status || 'pending').toLowerCase().replace(/\s+/g, '-');
+                        html += '<li class="tracking-item ' + statusClass + '">';
+                        html += '<span class="tracking-bullet"></span>';
+                        html += '<span class="tracking-text">' + escHtml(item.text || '') + '</span>';
+                        html += '<span class="tracking-status ' + statusClass + '">' + escHtml(capitalize(item.status || 'Pending')) + '</span>';
+                        html += '</li>';
+                    });
+                    html += '</ul>';
+                }
+                html += '</div>';
+            });
+
+            el.innerHTML = html;
+        });
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
+</body>
+</html>

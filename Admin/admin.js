@@ -340,46 +340,39 @@
             .then(function (arr) {
                 if (!Array.isArray(arr)) arr = [];
 
-                /* Build lookups */
-                var localById   = {};
-                var localByHash = {};
-                state.clients.forEach(function (c) {
-                    if (c.id)       localById[c.id] = true;
-                    if (c.codeHash) localByHash[c.codeHash] = true;
-                });
+                /* If local has clients that S3 doesn't, push them up first.
+                   Lambda will merge so nothing in S3 gets lost. */
+                if (state.clients.length) {
+                    var s3Ids = {};
+                    arr.forEach(function (c) { if (c && c.id) s3Ids[c.id] = true; });
+                    var localHasExtra = state.clients.some(function (c) { return c.id && !s3Ids[c.id]; });
+                    if (localHasExtra || !arr.length) {
+                        autoPublishClients();
+                    }
+                }
 
-                var s3ById   = {};
-                var s3ByHash = {};
-                arr.forEach(function (c) {
-                    if (c && c.id)       s3ById[c.id] = true;
-                    if (c && c.codeHash) s3ByHash[c.codeHash] = true;
-                });
-
-                var changed = false;
-
-                /* S3 → local: update existing by id, add new ones */
+                /* S3 → local: adopt any clients from S3 that we don't have locally */
+                var localIds = {};
+                state.clients.forEach(function (c) { if (c.id) localIds[c.id] = true; });
+                var added = false;
                 arr.forEach(function (sc) {
-                    if (!sc || !sc.id) return;
-                    if (localById[sc.id]) {
-                        var idx = state.clients.findIndex(function (c) { return c.id === sc.id; });
-                        if (idx > -1) { state.clients[idx] = sc; changed = true; }
-                    } else if (!sc.codeHash || !localByHash[sc.codeHash]) {
+                    if (sc && sc.id && !localIds[sc.id]) {
                         state.clients.push(sc);
-                        changed = true;
+                        added = true;
                     }
                 });
 
-                if (changed) {
+                /* Also update fields of existing local clients from S3 (S3 has fresher data from other machines) */
+                arr.forEach(function (sc) {
+                    if (sc && sc.id && localIds[sc.id]) {
+                        var idx = state.clients.findIndex(function (c) { return c.id === sc.id; });
+                        if (idx > -1) { state.clients[idx] = sc; added = true; }
+                    }
+                });
+
+                if (added) {
                     safeSave(STORAGE_CLIENTS, state.clients);
                     renderAll();
-                }
-
-                /* local → S3: if local has clients S3 doesn't know about, push */
-                var localHasExtra = state.clients.some(function (c) {
-                    return c.id && !s3ById[c.id];
-                });
-                if (localHasExtra || (state.clients.length && !arr.length)) {
-                    autoPublishClients();
                 }
             })
             .catch(function (e) { console.warn('S3 client fetch:', e); });

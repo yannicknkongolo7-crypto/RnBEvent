@@ -49,7 +49,10 @@
     function init() {
         fetchCloudClients().then(function () {
             var saved = sessionStorage.getItem(SESSION_KEY);
-            if (saved && findClient(saved)) {
+            var client = saved && findClient(saved);
+            if (client && client.active === false) {
+                sessionStorage.removeItem(SESSION_KEY);
+            } else if (client) {
                 showPortal(saved);
             }
         });
@@ -61,7 +64,11 @@
 
         sha256(entered).then(function (hash) {
             var client = findClient(hash);
-            if (client) {
+            if (client && client.active === false) {
+                showError('Your portal access has been disabled. Please contact your planner.');
+                input.value = '';
+                input.focus();
+            } else if (client) {
                 sessionStorage.setItem(SESSION_KEY, hash);
                 errorEl.textContent = '';
                 showPortal(hash);
@@ -69,7 +76,11 @@
                 /* Cloud not loaded yet — try fetching once more */
                 fetchCloudClients().then(function () {
                     var c2 = findClient(hash);
-                    if (c2) {
+                    if (c2 && c2.active === false) {
+                        showError('Your portal access has been disabled. Please contact your planner.');
+                        input.value = '';
+                        input.focus();
+                    } else if (c2) {
                         sessionStorage.setItem(SESSION_KEY, hash);
                         errorEl.textContent = '';
                         showPortal(hash);

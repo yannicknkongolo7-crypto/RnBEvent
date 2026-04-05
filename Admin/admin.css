@@ -502,7 +502,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 
 .crm-row {
     display: grid;
-    grid-template-columns: 1.4fr 1fr 1fr 1fr 120px 100px;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr 80px 100px;
     align-items: center;
     gap: 12px;
     padding: 16px 28px;
@@ -1054,6 +1054,31 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     letter-spacing: 1.5px; padding: 4px 10px;
     background: rgba(164,193,149,0.12); color: var(--primary);
     border: 1px solid rgba(164,193,149,0.35); border-radius: 2px;
+}
+
+.client-status-btn {
+    font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600;
+    letter-spacing: 1.2px; padding: 4px 12px; border-radius: 2px;
+    cursor: pointer; transition: var(--transition); border: 1px solid;
+    text-transform: uppercase;
+}
+.client-status-btn.active {
+    background: #e8f4e8; color: var(--accent); border-color: rgba(164,193,149,0.45);
+}
+.client-status-btn.active:hover {
+    background: #fef2f2; color: #c0392b; border-color: #e6b2b2;
+}
+.client-status-btn.disabled {
+    background: #fef2f2; color: #c0392b; border-color: #e6b2b2;
+}
+.client-status-btn.disabled:hover {
+    background: #e8f4e8; color: var(--accent); border-color: rgba(164,193,149,0.45);
+}
+.crm-row.client-row-disabled {
+    opacity: 0.55;
+}
+.crm-row.client-row-disabled .crm-name {
+    text-decoration: line-through;
 }
 
 .modal-card-wide { max-width: 660px; }

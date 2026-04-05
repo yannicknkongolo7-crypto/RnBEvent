@@ -16,7 +16,8 @@
     }
 
     function bootPortal() {
-        if (!window.RNB_CLIENTS_RAW || !window.RNB_CLIENTS_RAW[code]) {
+        var client = window.RNB_CLIENTS_RAW && window.RNB_CLIENTS_RAW[code];
+        if (!client || client.active === false) {
             sessionStorage.removeItem(SESSION_KEY);
             window.location.replace('/Client');
             return;

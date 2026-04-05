@@ -522,7 +522,7 @@
         var booked   = ps.filter(function (p) { return p.status === 'Booked'; }).length;
         var inTalks  = ps.filter(function (p) { return p.status === 'In Conversation' || p.status === 'Proposal Sent'; }).length;
         var newLeads = ps.filter(function (p) { return p.status === 'New Lead'; }).length;
-        var clients  = state.clients.length;
+        var clients  = state.clients.filter(function (c) { return c.active !== false; }).length;
 
         var el = document.getElementById('stats-row');
         el.innerHTML =
@@ -1096,16 +1096,21 @@
             el.innerHTML = '<p style="padding:24px 28px;font-size:12px;color:#527141;font-weight:300;letter-spacing:0.5px">No clients yet. Prospects marked <strong>Booked</strong> will appear here automatically.</p>';
             return;
         }
-        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Code</span><span>Actions</span></div>';
+        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Code</span><span>Status</span><span>Actions</span></div>';
         state.clients.forEach(function (c) {
+            var isActive = c.active !== false;
             var codeDisplay = c.accessCode
                 ? '<code class="client-code-badge">' + esc(c.accessCode) + '</code>'
                 : '<button class="crm-act-btn" style="color:#b89a5e;font-weight:500" onclick="editClient(\'' + escJS(c.id) + '\')">SET CODE</button>';
-            html += '<div class="crm-row">' +
+            var statusBtn = isActive
+                ? '<button class="client-status-btn active" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">ACTIVE</button>'
+                : '<button class="client-status-btn disabled" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">DISABLED</button>';
+            html += '<div class="crm-row' + (isActive ? '' : ' client-row-disabled') + '">' +
                 '<span class="crm-name">' + esc(c.fullName || c.firstName || '–') + '</span>' +
                 '<span class="crm-event">' + esc(c.eventType || '–') + '</span>' +
                 '<span class="crm-date">' + esc(c.eventDate || '–') + '</span>' +
                 '<span class="client-code-cell">' + codeDisplay + '</span>' +
+                '<span class="client-status-cell">' + statusBtn + '</span>' +
                 '<span class="crm-actions">' +
                     '<button class="crm-act-btn" onclick="editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
                     '<button class="crm-act-btn del-btn" onclick="deleteClient(\'' + escJS(c.id) + '\')">DEL</button>' +
@@ -1135,6 +1140,7 @@
                 prospectId:   prospect.id,
                 accessCode:   suggestedCode,
                 codeHash:     hash,
+                active:       true,
                 firstName:    nameParts[0] || '',
                 fullName:     prospect.name || '',
                 eventType:    prospect.eventType || '',
@@ -1168,13 +1174,18 @@
             return;
         }
 
-        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Access Code</span><span>Actions</span></div>';
+        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Access Code</span><span>Status</span><span>Actions</span></div>';
         state.clients.forEach(function (c) {
-            html += '<div class="crm-row">' +
+            var isActive = c.active !== false;
+            var statusBtn = isActive
+                ? '<button class="client-status-btn active" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">ACTIVE</button>'
+                : '<button class="client-status-btn disabled" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">DISABLED</button>';
+            html += '<div class="crm-row' + (isActive ? '' : ' client-row-disabled') + '">' +
                 '<span class="crm-name">' + esc(c.fullName || c.firstName || '–') + '</span>' +
                 '<span class="crm-event">' + esc(c.eventType || '–') + '</span>' +
                 '<span class="crm-date">' + esc(c.eventDate || '–') + '</span>' +
                 '<span class="client-code-cell"><code class="client-code-badge">' + esc(c.accessCode) + '</code></span>' +
+                '<span class="client-status-cell">' + statusBtn + '</span>' +
                 '<span class="crm-actions">' +
                     '<button class="crm-act-btn" onclick="editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
                     '<button class="crm-act-btn del-btn" onclick="deleteClient(\'' + escJS(c.id) + '\')">DEL</button>' +
@@ -1307,10 +1318,12 @@
         });
 
         sha256Hex(code).then(function (hash) {
+            var existingForActive = editingClientId ? state.clients.find(function (x) { return x.id === editingClientId; }) : null;
             var clientData = {
                 id:           editingClientId || 'cl' + Date.now(),
                 accessCode:   code,
                 codeHash:     hash,
+                active:       existingForActive ? (existingForActive.active !== false) : true,
                 firstName:    first || name.split(' ')[0],
                 fullName:     name,
                 eventType:    document.getElementById('c-etype').value.trim(),
@@ -1352,6 +1365,17 @@
             renderClientManager();
             showToast('Client "' + name + '" saved. Code: ' + code);
         });
+    }
+
+    function toggleClientAccess(id) {
+        var c = state.clients.find(function (x) { return x.id === id; });
+        if (!c) return;
+        c.active = (c.active === false) ? true : false;
+        saveClientsToStorage();
+        renderDashboardClients();
+        renderClientManager();
+        renderStats();
+        showToast(c.fullName + ' access ' + (c.active ? 'enabled' : 'disabled') + '.');
     }
 
     function deleteClient(id) {
@@ -1494,6 +1518,7 @@
     window.addClientTimelineRow   = addClientTimelineRow;
     window.publishClientsConfig   = publishClientsConfig;
     window.copyPublishedConfig    = copyPublishedConfig;
+    window.toggleClientAccess     = toggleClientAccess;
     window.renderDashboardClients = renderDashboardClients;
 
 })()

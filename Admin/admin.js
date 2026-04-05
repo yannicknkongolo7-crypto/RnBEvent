@@ -511,7 +511,7 @@
     function renderAll() {
         try { renderStats(); } catch (e) { console.error('renderStats', e); }
         try { renderCRM(state.activeFilter); } catch (e) { console.error('renderCRM', e); }
-        try { renderTasks(); } catch (e) { console.error('renderTasks', e); }
+        try { renderDashboardClients(); } catch (e) { console.error('renderDashboardClients', e); }
         try { renderKanban(); } catch (e) { console.error('renderKanban', e); }
     }
 
@@ -522,7 +522,7 @@
         var booked   = ps.filter(function (p) { return p.status === 'Booked'; }).length;
         var inTalks  = ps.filter(function (p) { return p.status === 'In Conversation' || p.status === 'Proposal Sent'; }).length;
         var newLeads = ps.filter(function (p) { return p.status === 'New Lead'; }).length;
-        var tasks    = state.tasks.filter(function (t) { return t.status !== 'Done'; }).length;
+        var clients  = state.clients.length;
 
         var el = document.getElementById('stats-row');
         el.innerHTML =
@@ -530,7 +530,7 @@
             stat(newLeads, 'New Leads') +
             stat(inTalks,  'In Progress') +
             stat(booked,   'Booked') +
-            stat(tasks,    'Open Tasks');
+            stat(clients,  'Active Clients');
     }
 
     function stat(num, label) {
@@ -666,6 +666,7 @@
         closeModal('modal-prospect');
         renderStats();
         renderCRM(state.activeFilter);
+        if (data.status === 'Booked') autoCreateClientFromProspect(data);
     }
 
     function deleteProspect(id) {
@@ -817,13 +818,19 @@
     function kanbanSubmit() {
         var count = Object.keys(kanbanPendingMap).length;
         if (!count) return;
+        var newlyBooked = [];
         Object.keys(kanbanPendingMap).forEach(function (id) {
             var p = state.prospects.find(function (x) { return x.id === id; });
-            if (p) p.status = kanbanPendingMap[p.id];
+            if (p) {
+                var wasBooked = p.status === 'Booked';
+                p.status = kanbanPendingMap[p.id];
+                if (!wasBooked && p.status === 'Booked') newlyBooked.push(p);
+            }
         });
         kanbanPendingMap = {};
         saveProspectsToStorage();
         renderAll();
+        newlyBooked.forEach(function (p) { autoCreateClientFromProspect(p); });
         showToast(count + ' status change' + (count > 1 ? 's' : '') + ' submitted.');
     }
 
@@ -1081,6 +1088,76 @@
     ══════════════════════════════════════════════════ */
 
     var editingClientId = null;
+
+    function renderDashboardClients() {
+        var el = document.getElementById('dashboard-clients');
+        if (!el) return;
+        if (!state.clients.length) {
+            el.innerHTML = '<p style="padding:24px 28px;font-size:12px;color:#527141;font-weight:300;letter-spacing:0.5px">No clients yet. Prospects marked <strong>Booked</strong> will appear here automatically.</p>';
+            return;
+        }
+        var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Code</span><span>Actions</span></div>';
+        state.clients.forEach(function (c) {
+            var codeDisplay = c.accessCode
+                ? '<code class="client-code-badge">' + esc(c.accessCode) + '</code>'
+                : '<button class="crm-act-btn" style="color:#b89a5e;font-weight:500" onclick="editClient(\'' + escJS(c.id) + '\')">SET CODE</button>';
+            html += '<div class="crm-row">' +
+                '<span class="crm-name">' + esc(c.fullName || c.firstName || '–') + '</span>' +
+                '<span class="crm-event">' + esc(c.eventType || '–') + '</span>' +
+                '<span class="crm-date">' + esc(c.eventDate || '–') + '</span>' +
+                '<span class="client-code-cell">' + codeDisplay + '</span>' +
+                '<span class="crm-actions">' +
+                    '<button class="crm-act-btn" onclick="editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
+                    '<button class="crm-act-btn del-btn" onclick="deleteClient(\'' + escJS(c.id) + '\')">DEL</button>' +
+                '</span>' +
+            '</div>';
+        });
+        el.innerHTML = html;
+    }
+
+    /* ── Auto-create client from Booked prospect ─── */
+    function autoCreateClientFromProspect(prospect) {
+        var existing = state.clients.find(function (c) { return c.prospectId === prospect.id; });
+        if (existing) return;
+        var nameParts = (prospect.name || 'CLIENT').split(' ');
+        var lastName = (nameParts[nameParts.length - 1] || 'CLIENT').toUpperCase();
+        var year = new Date().getFullYear();
+        var suggestedCode = lastName + year;
+        var base = suggestedCode;
+        var counter = 1;
+        while (state.clients.find(function (c) { return c.accessCode === suggestedCode; })) {
+            suggestedCode = base + counter;
+            counter++;
+        }
+        sha256Hex(suggestedCode).then(function (hash) {
+            var clientData = {
+                id:           'cl' + Date.now(),
+                prospectId:   prospect.id,
+                accessCode:   suggestedCode,
+                codeHash:     hash,
+                firstName:    nameParts[0] || '',
+                fullName:     prospect.name || '',
+                eventType:    prospect.eventType || '',
+                eventDate:    prospect.eventDate || '',
+                eventVenue:   '',
+                planner:      'RNB Events Team',
+                plannerEmail: 'hello@rnbevents716.com',
+                timeline:     [],
+                trackingNotes: { plannerTodos: [], teamTodos: [], clientTodos: [] },
+                vendors:      [],
+                moodboard:    { palette: [], images: [], description: '' },
+                documents:    [],
+                gallery:      [],
+                added:        today()
+            };
+            state.clients.unshift(clientData);
+            saveClientsToStorage();
+            renderDashboardClients();
+            renderClientManager();
+            renderStats();
+            showToast('Client created for "' + prospect.name + '" — Code: ' + suggestedCode);
+        });
+    }
 
     function renderClientManager() {
         var el = document.getElementById('clients-list');
@@ -1417,5 +1494,6 @@
     window.addClientTimelineRow   = addClientTimelineRow;
     window.publishClientsConfig   = publishClientsConfig;
     window.copyPublishedConfig    = copyPublishedConfig;
+    window.renderDashboardClients = renderDashboardClients;
 
 })()

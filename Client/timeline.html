@@ -46,26 +46,70 @@
         function initTimeline() {
             var client = window.currentClient;
             var el = document.getElementById('timeline-content');
+            var items = (client.timeline || []).map(function (item) {
+                return { date: item.date || '', milestone: item.milestone || '', notes: item.notes || '', status: item.status || 'upcoming' };
+            });
 
-            if (!client.timeline || client.timeline.length === 0) {
-                renderComingSoon('timeline-content', 'Your personalized timeline will appear here after your kickoff meeting.');
-                return;
+            render();
+
+            function render() {
+                var html = '';
+                if (items.length) {
+                    html += '<div class="timeline">';
+                    items.forEach(function (item, i) {
+                        html += '<div class="timeline-item ' + item.status + '">' +
+                            '<div class="timeline-marker"></div>' +
+                            '<div class="timeline-body">' +
+                                '<span class="timeline-date">' + escHtml(item.date) + '</span>' +
+                                '<h3 class="timeline-milestone">' + escHtml(item.milestone) + '</h3>' +
+                                '<p class="timeline-notes">' + escHtml(item.notes) + '</p>' +
+                                '<div class="edit-controls">' +
+                                    '<select class="tracking-status-select status-' + item.status + '" data-index="' + i + '">' +
+                                        sOpt('upcoming', item.status) + sOpt('in-progress', item.status) + sOpt('done', item.status) +
+                                    '</select>' +
+                                    '<button type="button" class="tracking-remove-btn" data-index="' + i + '" title="Remove">&times;</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                html += '<h3 class="tracking-section-title" style="font-size:16px">Add Milestone</h3>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="text" id="new-date" class="tracking-input" placeholder="Date (e.g. May 1, 2026)" maxlength="100">';
+                html += '<input type="text" id="new-milestone" class="tracking-input" placeholder="Milestone name" maxlength="200">';
+                html += '<input type="text" id="new-notes" class="tracking-input" placeholder="Notes (optional)" maxlength="500">';
+                html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
+                html += '</div>';
+                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
+                html += '<p id="save-status" class="tracking-save-status"></p>';
+                html += '</div>';
+                el.innerHTML = html;
+
+                el.querySelectorAll('.tracking-status-select').forEach(function (sel) {
+                    sel.addEventListener('change', function () { items[parseInt(this.dataset.index)].status = this.value; render(); });
+                });
+                el.querySelectorAll('.tracking-remove-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                });
+                document.getElementById('add-btn').addEventListener('click', addItem);
+                document.getElementById('save-btn').addEventListener('click', save);
             }
 
-            var html = '<div class="timeline">';
-            client.timeline.forEach(function (item) {
-                html += '<div class="timeline-item ' + item.status + '">' +
-                    '<div class="timeline-marker"></div>' +
-                    '<div class="timeline-body">' +
-                        '<span class="timeline-date">' + item.date + '</span>' +
-                        '<h3 class="timeline-milestone">' + item.milestone + '</h3>' +
-                        '<p class="timeline-notes">' + item.notes + '</p>' +
-                        '<span class="timeline-status-badge ' + item.status + '">' + capitalize(item.status) + '</span>' +
-                    '</div>' +
-                '</div>';
-            });
-            html += '</div>';
-            el.innerHTML = html;
+            function addItem() {
+                var m = document.getElementById('new-milestone').value.trim();
+                if (!m) return;
+                items.push({ date: document.getElementById('new-date').value.trim(), milestone: m, notes: document.getElementById('new-notes').value.trim(), status: 'upcoming' });
+                render();
+            }
+
+            function save() { savePortalSection('timeline', items, document.getElementById('save-status'), document.getElementById('save-btn')); }
+
+            function sOpt(v, cur) {
+                var l = { upcoming: 'Upcoming', 'in-progress': 'In Progress', done: 'Done' };
+                return '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + (l[v] || v) + '</option>';
+            }
         }
         if (window._portalReady) { initTimeline(); } else { window.onPortalReady = initTimeline; }
     </script>

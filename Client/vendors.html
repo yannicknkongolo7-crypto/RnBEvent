@@ -44,30 +44,69 @@
     <script src="portal-page.js"></script>
     <script>
         function initVendors() {
-            var client  = window.currentClient;
-            var vendors = client.vendors || [];
-            var el      = document.getElementById('vendors-content');
-
-            if (vendors.length === 0) {
-                renderComingSoon('vendors-content', 'Vendor details will be added as your event team is confirmed.');
-                return;
-            }
-
-            var html = '<div class="vendor-grid">';
-            vendors.forEach(function (v) {
-                var statusClass = (v.status || 'TBD').replace(/\s+/g, '');
-                html += '<div class="vendor-card">' +
-                    '<p class="vendor-role">' + (v.role || '') + '</p>' +
-                    '<h3 class="vendor-name">' + v.name + '</h3>' +
-                    '<div class="vendor-contact">';
-                if (v.phone) html += '<div>&#9742; <a href="tel:' + v.phone + '">' + v.phone + '</a></div>';
-                if (v.email) html += '<div>&#9993; <a href="mailto:' + v.email + '">' + v.email + '</a></div>';
-                html += '</div>' +
-                    '<span class="vendor-status-badge ' + statusClass + '">' + (v.status || 'TBD') + '</span>' +
-                    '</div>';
+            var client = window.currentClient;
+            var el     = document.getElementById('vendors-content');
+            var items  = (client.vendors || []).map(function (v) {
+                return { name: v.name || '', role: v.role || '', phone: v.phone || '', email: v.email || '', status: v.status || 'TBD' };
             });
-            html += '</div>';
-            el.innerHTML = html;
+
+            render();
+
+            function render() {
+                var html = '';
+                if (items.length) {
+                    html += '<div class="vendor-grid">';
+                    items.forEach(function (v, i) {
+                        var sc = (v.status || 'TBD').replace(/\s+/g, '');
+                        html += '<div class="vendor-card">' +
+                            '<p class="vendor-role">' + escHtml(v.role || '') + '</p>' +
+                            '<h3 class="vendor-name">' + escHtml(v.name) + '</h3>' +
+                            '<div class="vendor-contact">';
+                        if (v.phone) html += '<div>&#9742; ' + escHtml(v.phone) + '</div>';
+                        if (v.email) html += '<div>&#9993; ' + escHtml(v.email) + '</div>';
+                        html += '</div>' +
+                            '<span class="vendor-status-badge ' + sc + '">' + escHtml(v.status || 'TBD') + '</span>' +
+                            '<button type="button" class="tracking-remove-btn vendor-remove" data-index="' + i + '" title="Remove">&times;</button>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                html += '<h3 class="tracking-section-title" style="font-size:16px">Add Vendor</h3>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="text" id="v-name" class="tracking-input" placeholder="Vendor name" maxlength="200">';
+                html += '<input type="text" id="v-role" class="tracking-input" placeholder="Role (e.g. Florist)" maxlength="100">';
+                html += '</div>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="text" id="v-phone" class="tracking-input" placeholder="Phone" maxlength="30">';
+                html += '<input type="email" id="v-email" class="tracking-input" placeholder="Email" maxlength="200">';
+                html += '<input type="text" id="v-status" class="tracking-input" placeholder="Status (e.g. Confirmed)" maxlength="50">';
+                html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
+                html += '</div>';
+                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
+                html += '<p id="save-status" class="tracking-save-status"></p>';
+                html += '</div>';
+                el.innerHTML = html;
+
+                el.querySelectorAll('.vendor-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                });
+                document.getElementById('add-btn').addEventListener('click', function () {
+                    var n = document.getElementById('v-name').value.trim();
+                    if (!n) return;
+                    items.push({
+                        name: n,
+                        role: document.getElementById('v-role').value.trim(),
+                        phone: document.getElementById('v-phone').value.trim(),
+                        email: document.getElementById('v-email').value.trim(),
+                        status: document.getElementById('v-status').value.trim() || 'TBD'
+                    });
+                    render();
+                });
+                document.getElementById('save-btn').addEventListener('click', function () {
+                    savePortalSection('vendors', items, document.getElementById('save-status'), document.getElementById('save-btn'));
+                });
+            }
         }
         if (window._portalReady) { initVendors(); } else { window.onPortalReady = initVendors; }
     </script>

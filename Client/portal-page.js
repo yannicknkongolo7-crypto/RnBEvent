@@ -88,4 +88,39 @@
             el.innerHTML = '<p class="section-coming">' + (msg || 'This section is being prepared by your planning team. Check back soon.') + '</p>';
         }
     };
+
+    window.escHtml = function (s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    };
+
+    window.RNB_SECTION_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section';
+
+    window.savePortalSection = function (section, data, statusEl, btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = 'SAVING...';
+        statusEl.textContent = '';
+        return fetch(window.RNB_SECTION_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codeHash: window.currentCode, section: section, data: data })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (res && res.ok) {
+                statusEl.textContent = 'Saved!';
+                statusEl.className = 'tracking-save-status save-ok';
+            } else {
+                statusEl.textContent = 'Save failed: ' + (res.error || 'Unknown');
+                statusEl.className = 'tracking-save-status save-err';
+            }
+        })
+        .catch(function (e) {
+            statusEl.textContent = 'Save failed: ' + e;
+            statusEl.className = 'tracking-save-status save-err';
+        })
+        .then(function () {
+            btnEl.disabled = false;
+            btnEl.textContent = 'SAVE CHANGES';
+        });
+    };
 })();

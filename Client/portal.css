@@ -1134,7 +1134,8 @@ a {
 .save-err { color: #c44; }
 
 @media (max-width: 600px) {
-    .tracking-add-row {
+    .tracking-add-row,
+    .edit-add-row {
         flex-direction: column;
         align-items: stretch;
     }
@@ -1144,4 +1145,99 @@ a {
     .tracking-status-select {
         margin-left: 22px;
     }
+}
+
+/* ── Shared edit controls ────────────────────────── */
+
+.edit-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.edit-add-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.edit-add-row .tracking-input {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* ── Palette editable ────────────────────────────── */
+
+.palette-swatch-edit {
+    position: relative;
+    display: inline-block;
+}
+
+.palette-swatch-edit .palette-remove {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 18px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.color-picker {
+    width: 44px;
+    height: 38px;
+    border: 1px solid var(--sage-light);
+    border-radius: 6px;
+    padding: 2px;
+    cursor: pointer;
+    background: none;
+}
+
+/* ── Gallery / moodboard editable ───────────────── */
+
+.gallery-item-edit {
+    position: relative;
+}
+
+.gallery-item-edit .gallery-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    line-height: 26px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* ── Vendor card editable ───────────────────────── */
+
+.vendor-card {
+    position: relative;
+}
+
+.vendor-card .vendor-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* ── Documents editable ─────────────────────────── */
+
+.doc-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.doc-row .tracking-remove-btn {
+    flex-shrink: 0;
 }

@@ -44,26 +44,53 @@
     <script src="portal-page.js"></script>
     <script>
         function initGallery() {
-            var client  = window.currentClient;
-            var gallery = client.gallery || [];
-            var el      = document.getElementById('gallery-content');
-
-            if (gallery.length === 0) {
-                renderComingSoon('gallery-content', 'Your private inspiration gallery will be curated and shared here.');
-                return;
-            }
-
-            var html = '<div class="gallery-grid">';
-            gallery.forEach(function (img) {
-                var src     = typeof img === 'string' ? img : img.url;
-                var caption = typeof img === 'object' && img.caption ? img.caption : '';
-                html += '<div class="gallery-item">' +
-                    '<img src="' + src + '" alt="' + caption + '" class="gallery-img" loading="lazy">' +
-                    (caption ? '<p class="gallery-caption">' + caption + '</p>' : '') +
-                    '</div>';
+            var client = window.currentClient;
+            var el     = document.getElementById('gallery-content');
+            var items  = (client.gallery || []).map(function (img) {
+                if (typeof img === 'string') return { url: img, caption: '' };
+                return { url: img.url || '', caption: img.caption || '' };
             });
-            html += '</div>';
-            el.innerHTML = html;
+
+            render();
+
+            function render() {
+                var html = '';
+                if (items.length) {
+                    html += '<div class="gallery-grid">';
+                    items.forEach(function (img, i) {
+                        html += '<div class="gallery-item-edit">' +
+                            '<img src="' + escHtml(img.url) + '" alt="' + escHtml(img.caption) + '" class="gallery-img" loading="lazy">' +
+                            (img.caption ? '<p class="gallery-caption">' + escHtml(img.caption) + '</p>' : '') +
+                            '<button type="button" class="tracking-remove-btn gallery-remove" data-index="' + i + '" title="Remove">&times;</button>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                html += '<h3 class="tracking-section-title" style="font-size:16px">Add Image</h3>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="url" id="g-url" class="tracking-input" placeholder="Image URL (https://...)" maxlength="2000">';
+                html += '<input type="text" id="g-cap" class="tracking-input" placeholder="Caption (optional)" maxlength="300">';
+                html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
+                html += '</div>';
+                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
+                html += '<p id="save-status" class="tracking-save-status"></p>';
+                html += '</div>';
+                el.innerHTML = html;
+
+                el.querySelectorAll('.gallery-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                });
+                document.getElementById('add-btn').addEventListener('click', function () {
+                    var url = document.getElementById('g-url').value.trim();
+                    if (!url) return;
+                    items.push({ url: url, caption: document.getElementById('g-cap').value.trim() });
+                    render();
+                });
+                document.getElementById('save-btn').addEventListener('click', function () {
+                    savePortalSection('gallery', items, document.getElementById('save-status'), document.getElementById('save-btn'));
+                });
+            }
         }
         if (window._portalReady) { initGallery(); } else { window.onPortalReady = initGallery; }
     </script>

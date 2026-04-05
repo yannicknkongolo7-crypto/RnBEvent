@@ -145,13 +145,16 @@
                 <div id="crm-table"><!-- Populated by JS --></div>
             </section>
 
-            <!-- ── Website Tasks ── -->
-            <section class="admin-panel" id="panel-tasks">
+            <!-- ── Published Clients ── -->
+            <section class="admin-panel" id="panel-clients-dash">
                 <div class="panel-header">
-                    <h2 class="panel-title">Website Content Tasks</h2>
-                    <button class="panel-btn" onclick="openAddTask()">+ ADD</button>
+                    <h2 class="panel-title">Published Clients</h2>
+                    <div style="display:flex;gap:8px;">
+                        <button class="panel-btn" onclick="switchTool('clients');openAddClient()">+ NEW</button>
+                        <button class="panel-btn publish-btn" onclick="publishClientsConfig()">&#9650; PUBLISH</button>
+                    </div>
                 </div>
-                <div id="tasks-board"><!-- Populated by JS --></div>
+                <div id="dashboard-clients"><!-- Populated by JS --></div>
             </section>
 
         </div>

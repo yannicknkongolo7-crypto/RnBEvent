@@ -45,27 +45,62 @@
     <script>
         function initDocuments() {
             var client = window.currentClient;
-            var docs   = client.documents || [];
             var el     = document.getElementById('documents-content');
-
-            if (docs.length === 0) {
-                renderComingSoon('documents-content', 'Shared files and signed agreements will appear here once uploaded by your planning team.');
-                return;
-            }
-
-            var html = '<div class="documents-list">';
-            docs.forEach(function (doc) {
-                html += '<div class="doc-row">' +
-                    '<div class="doc-info">' +
-                        '<p class="doc-type">' + (doc.type || 'Document') + '</p>' +
-                        '<p class="doc-name">' + doc.name + '</p>' +
-                        (doc.date ? '<p class="doc-date">' + doc.date + '</p>' : '') +
-                    '</div>' +
-                    '<a href="' + doc.url + '" target="_blank" rel="noopener" class="doc-link">OPEN &rarr;</a>' +
-                    '</div>';
+            var items  = (client.documents || []).map(function (d) {
+                return { name: d.name || '', type: d.type || 'Document', url: d.url || '', date: d.date || '' };
             });
-            html += '</div>';
-            el.innerHTML = html;
+
+            render();
+
+            function render() {
+                var html = '';
+                if (items.length) {
+                    html += '<div class="documents-list">';
+                    items.forEach(function (doc, i) {
+                        html += '<div class="doc-row">' +
+                            '<div class="doc-info">' +
+                                '<p class="doc-type">' + escHtml(doc.type) + '</p>' +
+                                '<p class="doc-name">' + escHtml(doc.name) + '</p>' +
+                                (doc.date ? '<p class="doc-date">' + escHtml(doc.date) + '</p>' : '') +
+                            '</div>' +
+                            '<div class="doc-actions">' +
+                                '<a href="' + escHtml(doc.url) + '" target="_blank" rel="noopener" class="doc-link">OPEN &rarr;</a>' +
+                                '<button type="button" class="tracking-remove-btn" data-index="' + i + '" title="Remove">&times;</button>' +
+                            '</div>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                html += '<h3 class="tracking-section-title" style="font-size:16px">Add Document</h3>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="text" id="d-name" class="tracking-input" placeholder="Document name" maxlength="200">';
+                html += '<input type="text" id="d-type" class="tracking-input" placeholder="Type (e.g. Contract)" maxlength="100">';
+                html += '</div>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="url" id="d-url" class="tracking-input" placeholder="URL (https://...)" maxlength="2000">';
+                html += '<input type="text" id="d-date" class="tracking-input" placeholder="Date (optional)" maxlength="50">';
+                html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
+                html += '</div>';
+                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
+                html += '<p id="save-status" class="tracking-save-status"></p>';
+                html += '</div>';
+                el.innerHTML = html;
+
+                el.querySelectorAll('.tracking-remove-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                });
+                document.getElementById('add-btn').addEventListener('click', function () {
+                    var n = document.getElementById('d-name').value.trim();
+                    var u = document.getElementById('d-url').value.trim();
+                    if (!n || !u) return;
+                    items.push({ name: n, type: document.getElementById('d-type').value.trim() || 'Document', url: u, date: document.getElementById('d-date').value.trim() });
+                    render();
+                });
+                document.getElementById('save-btn').addEventListener('click', function () {
+                    savePortalSection('documents', items, document.getElementById('save-status'), document.getElementById('save-btn'));
+                });
+            }
         }
         if (window._portalReady) { initDocuments(); } else { window.onPortalReady = initDocuments; }
     </script>

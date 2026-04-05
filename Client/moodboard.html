@@ -44,47 +44,99 @@
     <script src="portal-page.js"></script>
     <script>
         function initMoodboard() {
-            var client  = window.currentClient;
-            var mb      = client.moodboard || {};
-            var el      = document.getElementById('moodboard-content');
-            var html    = '';
+            var client = window.currentClient;
+            var el     = document.getElementById('moodboard-content');
+            var mb     = JSON.parse(JSON.stringify(client.moodboard || { palette: [], images: [], description: '' }));
+            if (!mb.palette) mb.palette = [];
+            if (!mb.images)  mb.images  = [];
 
-            // Description
-            if (mb.description) {
-                html += '<p class="section-coming" style="margin-bottom:40px;">' + mb.description + '</p>';
-            }
+            render();
 
-            // Colour palette
-            if (mb.palette && mb.palette.length > 0) {
-                html += '<h2 class="section-title" style="margin-bottom:20px;">Colour Palette</h2>';
-                html += '<div class="palette-row">';
-                mb.palette.forEach(function (hex) {
-                    html += '<div class="palette-swatch" style="background:' + hex + ';" title="' + hex + '"></div>';
-                });
+            function render() {
+                var html = '';
+                /* Description */
+                html += '<div class="tracking-section tracking-editable">';
+                html += '<h2 class="tracking-section-title">Description</h2>';
+                html += '<textarea id="mb-desc" class="tracking-input" style="width:100%;min-height:80px">' + escHtml(mb.description || '') + '</textarea>';
                 html += '</div>';
-            }
 
-            // Images
-            if (mb.images && mb.images.length > 0) {
-                html += '<h2 class="section-title" style="margin-bottom:20px;">Visual Direction</h2>';
-                html += '<div class="moodboard-grid">';
-                mb.images.forEach(function (img) {
-                    var src     = typeof img === 'string' ? img : img.url;
-                    var caption = typeof img === 'object' && img.caption ? img.caption : '';
-                    html += '<div>';
-                    html += '<img src="' + src + '" alt="' + caption + '" class="moodboard-img" loading="lazy">';
-                    if (caption) html += '<p class="gallery-caption">' + caption + '</p>';
+                /* Colour palette */
+                html += '<div class="tracking-section tracking-editable">';
+                html += '<h2 class="tracking-section-title">Colour Palette</h2>';
+                if (mb.palette.length) {
+                    html += '<div class="palette-row" style="margin-bottom:16px">';
+                    mb.palette.forEach(function (hex, i) {
+                        html += '<div class="palette-swatch-edit">' +
+                            '<div class="palette-swatch" style="background:' + escHtml(hex) + ';" title="' + escHtml(hex) + '"></div>' +
+                            '<button type="button" class="tracking-remove-btn palette-remove" data-index="' + i + '">&times;</button>' +
+                        '</div>';
+                    });
                     html += '</div>';
-                });
+                }
+                html += '<div class="edit-add-row">';
+                html += '<input type="color" id="new-color" class="color-picker" value="#b89a5e">';
+                html += '<input type="text" id="new-hex" class="tracking-input" placeholder="#b89a5e" maxlength="10" style="max-width:140px">';
+                html += '<button type="button" id="add-color-btn" class="tracking-add-btn">+ ADD</button>';
                 html += '</div>';
-            }
+                html += '</div>';
 
-            if (!html) {
-                renderComingSoon('moodboard-content', 'Your mood board is being curated. It will be shared here once ready.');
-                return;
-            }
+                /* Images */
+                html += '<div class="tracking-section tracking-editable">';
+                html += '<h2 class="tracking-section-title">Visual Direction</h2>';
+                if (mb.images.length) {
+                    html += '<div class="moodboard-grid" style="margin-bottom:16px">';
+                    mb.images.forEach(function (img, i) {
+                        var src = typeof img === 'string' ? img : (img.url || '');
+                        var cap = typeof img === 'object' ? (img.caption || '') : '';
+                        html += '<div class="gallery-item-edit">' +
+                            '<img src="' + escHtml(src) + '" class="moodboard-img" loading="lazy">' +
+                            (cap ? '<p class="gallery-caption">' + escHtml(cap) + '</p>' : '') +
+                            '<button type="button" class="tracking-remove-btn gallery-remove" data-index="' + i + '">&times;</button>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '<div class="edit-add-row">';
+                html += '<input type="text" id="new-img-url" class="tracking-input" placeholder="Image URL (https://...)" maxlength="2000">';
+                html += '<input type="text" id="new-img-cap" class="tracking-input" placeholder="Caption (optional)" maxlength="300">';
+                html += '<button type="button" id="add-img-btn" class="tracking-add-btn">+ ADD</button>';
+                html += '</div>';
+                html += '</div>';
 
-            el.innerHTML = html;
+                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
+                html += '<p id="save-status" class="tracking-save-status"></p>';
+
+                el.innerHTML = html;
+
+                /* Sync color picker ↔ text */
+                var cp = document.getElementById('new-color');
+                var hx = document.getElementById('new-hex');
+                cp.addEventListener('input', function () { hx.value = cp.value; });
+                hx.addEventListener('input', function () { if (/^#[0-9a-f]{6}$/i.test(hx.value)) cp.value = hx.value; });
+
+                el.querySelectorAll('.palette-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () { mb.palette.splice(parseInt(this.dataset.index), 1); render(); });
+                });
+                el.querySelectorAll('.gallery-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () { mb.images.splice(parseInt(this.dataset.index), 1); render(); });
+                });
+                document.getElementById('add-color-btn').addEventListener('click', function () {
+                    var hex = (hx.value || cp.value || '').trim();
+                    if (!hex) return;
+                    mb.palette.push(hex);
+                    render();
+                });
+                document.getElementById('add-img-btn').addEventListener('click', function () {
+                    var url = document.getElementById('new-img-url').value.trim();
+                    if (!url) return;
+                    mb.images.push({ url: url, caption: document.getElementById('new-img-cap').value.trim() });
+                    render();
+                });
+                document.getElementById('save-btn').addEventListener('click', function () {
+                    mb.description = document.getElementById('mb-desc').value.trim();
+                    savePortalSection('moodboard', mb, document.getElementById('save-status'), document.getElementById('save-btn'));
+                });
+            }
         }
         if (window._portalReady) { initMoodboard(); } else { window.onPortalReady = initMoodboard; }
     </script>

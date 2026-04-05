@@ -23,11 +23,13 @@ function doGet(e) {
   var action = (e && e.parameter ? e.parameter.action : '') || 'getAll';
 
   if (action === 'getAll') {
+    var contentData = readKV(ss, 'Content');
     return respond({
       prospects: readSheet(ss, 'Prospects'),
       tasks:     readSheet(ss, 'Tasks'),
-      content:   readKV(ss, 'Content'),
-      clients:   readClientsAsArray(ss)
+      content:   contentData,
+      clients:   readClientsAsArray(ss),
+      adminCodeHash: contentData.adminCodeHash || ''
     });
   }
 
@@ -64,6 +66,12 @@ function doPost(e) {
 
   if (body.clients) {
     writeClientsSheet(ss, body.clients);
+  }
+
+  if (body.adminCodeHash && typeof body.adminCodeHash === 'string') {
+    var contentObj = readKV(ss, 'Content');
+    contentObj.adminCodeHash = body.adminCodeHash;
+    writeKV(ss, 'Content', contentObj);
   }
 
   return respond({ ok: true, ts: new Date().toISOString() });

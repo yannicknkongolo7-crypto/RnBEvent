@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
     <title>Admin Dashboard | RNB Events</title>
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' https://rnbevents716.com data:; frame-src https://rnbevents716.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com https://rnbevents716.s3.us-east-2.amazonaws.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' https://rnbevents716.com https://www.google-analytics.com data:; frame-src https://rnbevents716.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com https://rnbevents716.s3.us-east-2.amazonaws.com https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
     <link rel="stylesheet" href="admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,6 +46,9 @@
                 </div>
                 <p id="gate-error-1" class="gate-error" aria-live="polite"></p>
             </form>
+            <div class="gate-2fa-footer">
+                <button class="text-btn" onclick="showResetStep()">Forgot Password?</button>
+            </div>
         </div>
 
         <!-- STEP 2 — TOTP -->
@@ -50,7 +61,7 @@
             <p class="gate-subtitle">Enter the 6-digit code from your authenticator app.</p>
 
             <div class="step-indicator">
-                <div class="step-dot done"><span>&#10003;</span></div>
+                <div class="step-dot done"><span>1</span></div>
                 <div class="step-line done"></div>
                 <div class="step-dot active"><span>2</span></div>
             </div>
@@ -67,8 +78,63 @@
             </form>
 
             <div class="gate-2fa-footer">
-                <button class="text-btn" onclick="showSetup()">&#9881; First time? Set up authenticator</button>
+                <button class="text-btn" onclick="showSetup()">First time? Set up authenticator</button>
                 <button class="text-btn back-btn" onclick="backToStep1()">&larr; Back</button>
+            </div>
+        </div>
+
+        <!-- PASSWORD RESET — Verify via TOTP -->
+        <div id="gate-step-reset" class="gate-card hidden">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">PASSWORD RESET</p>
+            <h1 class="gate-title">Reset Admin Code</h1>
+
+            <!-- Phase 1: choose verification method -->
+            <div id="reset-choose">
+                <p class="gate-subtitle">Verify your identity to reset the admin code.</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+                    <button class="gate-btn" onclick="resetViaTOTP()" style="width:100%">VERIFY WITH AUTHENTICATOR</button>
+                    <button class="gate-btn" onclick="resetViaEmail()" style="width:100%;background:#527141">SEND CODE TO RECOVERY EMAIL</button>
+                </div>
+                <p id="reset-choose-error" class="gate-error" aria-live="polite"></p>
+            </div>
+
+            <!-- Phase 2a: TOTP verification -->
+            <div id="reset-totp" class="hidden">
+                <p class="gate-subtitle">Enter the 6-digit code from your authenticator app.</p>
+                <form class="gate-form" onsubmit="return false;">
+                    <input type="text" id="reset-totp-input" class="totp-input" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                    <button type="submit" class="gate-btn totp-btn" onclick="resetVerifyTOTP()">VERIFY</button>
+                    <p id="reset-totp-error" class="gate-error" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <!-- Phase 2b: Email code verification -->
+            <div id="reset-email" class="hidden">
+                <p class="gate-subtitle">A 6-digit code was sent to the recovery email.</p>
+                <form class="gate-form" onsubmit="return false;">
+                    <input type="text" id="reset-email-code" class="totp-input" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
+                    <button type="submit" class="gate-btn totp-btn" onclick="resetVerifyEmail()">VERIFY CODE</button>
+                    <p id="reset-email-error" class="gate-error" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <!-- Phase 3: new password -->
+            <div id="reset-newpass" class="hidden">
+                <p class="gate-subtitle">Enter your new admin code.</p>
+                <form class="gate-form" onsubmit="return false;">
+                    <input type="password" id="reset-new-password" class="gate-input" placeholder="New Admin Code" autocomplete="new-password" maxlength="64" style="margin-bottom:8px">
+                    <input type="password" id="reset-confirm-password" class="gate-input" placeholder="Confirm Admin Code" autocomplete="new-password" maxlength="64">
+                    <button type="submit" class="gate-btn" onclick="resetSavePassword()" style="margin-top:12px">SAVE NEW CODE</button>
+                    <p id="reset-save-error" class="gate-error" aria-live="polite"></p>
+                    <p id="reset-save-success" class="gate-error" style="color:#527141" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <div class="gate-2fa-footer" style="margin-top:16px">
+                <button class="text-btn back-btn" onclick="cancelReset()">&larr; Back to login</button>
             </div>
         </div>
 
@@ -356,7 +422,7 @@
                     </div>
                 </div>
                 <div style="margin-bottom:16px">
-                    <button type="button" class="panel-btn" onclick="fillGeneratedCodes()">&#9654; GENERATE PLANNER &amp; TEAM CODES</button>
+                    <button type="button" class="panel-btn" onclick="fillGeneratedCodes()">GENERATE PLANNER &amp; TEAM CODES</button>
                 </div>
                 <div class="form-row-grid">
                     <div class="form-row">

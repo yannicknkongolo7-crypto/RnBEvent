@@ -189,6 +189,20 @@
         try { localStorage.removeItem(ADMIN_REMEMBER_KEY); } catch (e) {}
     }
 
+    /* ── Cloud admin hash override ─────────────────── */
+    var cloudCodeHash = '';
+
+    function preloadCloudHash() {
+        var url = ((window.ADMIN_CONFIG || {}).cloudApiUrl || '');
+        if (!url) return;
+        fetch(url + '?action=getAll', { redirect: 'follow' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.adminCodeHash) cloudCodeHash = data.adminCodeHash;
+            })
+            .catch(function () {});
+    }
+
     /* ── Boot ────────────────────────────────────────── */
     (function init() {
         if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
@@ -196,6 +210,8 @@
         } else if (loadAdminRemembered()) {
             sessionStorage.setItem(SESSION_KEY, 'ok');
             showDashboard();
+        } else {
+            preloadCloudHash();
         }
     })();
 
@@ -217,7 +233,8 @@
         }
 
         sha256Hex(entered).then(function (hash) {
-            if (hash !== cfg.codeHash) {
+            var validHash = cloudCodeHash || cfg.codeHash;
+            if (hash !== validHash) {
                 if (!recordFailedAttempt('gate-error-1')) {
                     showErr('gate-error-1', 'Invalid admin code.');
                 }
@@ -308,9 +325,145 @@
         gate.style.display = 'flex';
         // Reset to step 1
         document.getElementById('gate-step2').classList.add('hidden');
+        document.getElementById('gate-step-reset').classList.add('hidden');
         document.getElementById('gate-step1').classList.remove('hidden');
         if (input) { input.value = ''; }
         pendingAuth = false;
+    }
+
+    /* ══════════════════════════════════════════════════
+       PASSWORD RESET FLOW
+    ══════════════════════════════════════════════════ */
+
+    var resetEmailToken = '';
+
+    function showResetStep() {
+        document.getElementById('gate-step1').classList.add('hidden');
+        document.getElementById('gate-step-reset').classList.remove('hidden');
+        document.getElementById('reset-choose').classList.remove('hidden');
+        document.getElementById('reset-totp').classList.add('hidden');
+        document.getElementById('reset-email').classList.add('hidden');
+        document.getElementById('reset-newpass').classList.add('hidden');
+    }
+
+    function cancelReset() {
+        document.getElementById('gate-step-reset').classList.add('hidden');
+        document.getElementById('gate-step1').classList.remove('hidden');
+        if (input) input.focus();
+    }
+
+    function resetViaTOTP() {
+        document.getElementById('reset-choose').classList.add('hidden');
+        document.getElementById('reset-totp').classList.remove('hidden');
+        var inp = document.getElementById('reset-totp-input');
+        if (inp) { inp.value = ''; inp.focus(); }
+    }
+
+    function resetVerifyTOTP() {
+        var token  = (document.getElementById('reset-totp-input').value || '').trim();
+        var secret = decodeTotpKey();
+        var errEl  = document.getElementById('reset-totp-error');
+
+        if (!secret) { errEl.textContent = 'No TOTP secret configured.'; return; }
+        if (token.length !== 6 || !/^\d{6}$/.test(token)) { errEl.textContent = 'Enter a 6-digit code.'; return; }
+
+        verifyTOTP(secret, token).then(function (valid) {
+            if (valid) {
+                errEl.textContent = '';
+                document.getElementById('reset-totp').classList.add('hidden');
+                document.getElementById('reset-newpass').classList.remove('hidden');
+                var newInp = document.getElementById('reset-new-password');
+                if (newInp) newInp.focus();
+            } else {
+                errEl.textContent = 'Invalid or expired code. Try again.';
+                document.getElementById('reset-totp-input').value = '';
+                document.getElementById('reset-totp-input').focus();
+            }
+        });
+    }
+
+    function resetViaEmail() {
+        var errEl = document.getElementById('reset-choose-error');
+        errEl.textContent = 'Sending code...';
+
+        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-reset-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'send' })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (res && res.ok) {
+                errEl.textContent = '';
+                document.getElementById('reset-choose').classList.add('hidden');
+                document.getElementById('reset-email').classList.remove('hidden');
+                var inp = document.getElementById('reset-email-code');
+                if (inp) { inp.value = ''; inp.focus(); }
+            } else {
+                errEl.textContent = res.error || 'Failed to send code.';
+            }
+        })
+        .catch(function (e) { errEl.textContent = 'Network error: ' + e; });
+    }
+
+    function resetVerifyEmail() {
+        var code  = (document.getElementById('reset-email-code').value || '').trim();
+        var errEl = document.getElementById('reset-email-error');
+
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) { errEl.textContent = 'Enter the 6-digit code.'; return; }
+
+        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-reset-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'verify', code: code })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (res && res.ok) {
+                errEl.textContent = '';
+                document.getElementById('reset-email').classList.add('hidden');
+                document.getElementById('reset-newpass').classList.remove('hidden');
+                var newInp = document.getElementById('reset-new-password');
+                if (newInp) newInp.focus();
+            } else {
+                errEl.textContent = res.error || 'Invalid code.';
+                document.getElementById('reset-email-code').value = '';
+                document.getElementById('reset-email-code').focus();
+            }
+        })
+        .catch(function (e) { errEl.textContent = 'Network error: ' + e; });
+    }
+
+    function resetSavePassword() {
+        var newPw    = (document.getElementById('reset-new-password').value || '').trim();
+        var confirm  = (document.getElementById('reset-confirm-password').value || '').trim();
+        var errEl    = document.getElementById('reset-save-error');
+        var successEl = document.getElementById('reset-save-success');
+
+        errEl.textContent = '';
+        successEl.textContent = '';
+
+        if (!newPw || newPw.length < 4) { errEl.textContent = 'Code must be at least 4 characters.'; return; }
+        if (newPw !== confirm) { errEl.textContent = 'Codes do not match.'; return; }
+
+        sha256Hex(newPw).then(function (hash) {
+            var CLOUD = (window.ADMIN_CONFIG || {}).cloudApiUrl || '';
+            if (!CLOUD) { errEl.textContent = 'Cloud API not configured.'; return; }
+
+            fetch(CLOUD, {
+                method:   'POST',
+                headers:  { 'Content-Type': 'text/plain' },
+                body:     JSON.stringify({ adminCodeHash: hash }),
+                redirect: 'follow'
+            })
+            .then(function () {
+                successEl.textContent = 'Admin code updated. Redirecting to login...';
+                setTimeout(function () {
+                    cancelReset();
+                }, 2000);
+            })
+            .catch(function (e) { errEl.textContent = 'Save failed: ' + e; });
+        });
     }
 
     /* ══════════════════════════════════════════════════
@@ -1234,9 +1387,9 @@
             var isActive = c.active !== false;
             var codeDisplay;
             if (c.accessCode) {
-                codeDisplay = '<code class="client-code-badge" title="Couple">&#128149; ' + esc(c.accessCode) + '</code>';
-                if (c.plannerCode) codeDisplay += '<br><code class="client-code-badge" title="Planner" style="background:#527141">&#128203; ' + esc(c.plannerCode) + '</code>';
-                if (c.teamCode)    codeDisplay += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">&#9733; ' + esc(c.teamCode) + '</code>';
+                codeDisplay = '<code class="client-code-badge" title="Couple">' + esc(c.accessCode) + '</code>';
+                if (c.plannerCode) codeDisplay += '<br><code class="client-code-badge" title="Planner" style="background:#527141">' + esc(c.plannerCode) + '</code>';
+                if (c.teamCode)    codeDisplay += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">' + esc(c.teamCode) + '</code>';
             } else {
                 codeDisplay = '<button class="crm-act-btn" style="color:#b89a5e;font-weight:500" onclick="editClient(\'' + escJS(c.id) + '\')">SET CODE</button>';
             }
@@ -1288,6 +1441,7 @@
                 active:          true,
                 firstName:       nameParts[0] || '',
                 fullName:        prospect.name || '',
+                email:           prospect.email || '',
                 eventType:       prospect.eventType || '',
                 eventDate:       prospect.eventDate || '',
                 eventVenue:      '',
@@ -1307,7 +1461,38 @@
             renderClientManager();
             renderStats();
             showToast('Client created for "' + prospect.name + '" — Couple: ' + suggestedCode + ' / Planner: ' + plannerCode + ' / Team: ' + teamCode);
+
+            /* Send branded booking email if the prospect has an email */
+            if (prospect.email) {
+                sendBookingEmail(clientData);
+            }
         });
+    }
+
+    function sendBookingEmail(client) {
+        if (!client.email) { showToast('No email address for this client.'); return; }
+        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-booking-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email:      client.email,
+                fullName:   client.fullName || client.firstName || 'Valued Client',
+                eventType:  client.eventType || '',
+                eventDate:  client.eventDate || '',
+                accessCode: client.accessCode || '',
+                plannerCode: client.plannerCode || '',
+                teamCode:   client.teamCode || ''
+            })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (res && res.ok) {
+                showToast('Booking email sent to ' + client.email);
+            } else {
+                showToast('Email failed: ' + (res.error || 'Unknown'));
+            }
+        })
+        .catch(function (e) { showToast('Email send error: ' + e); });
     }
 
     function renderClientManager() {
@@ -1325,9 +1510,9 @@
             var statusBtn = isActive
                 ? '<button class="client-status-btn active" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">ACTIVE</button>'
                 : '<button class="client-status-btn disabled" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">DISABLED</button>';
-            var codeHtml = '<code class="client-code-badge" title="Couple">&#128149; ' + esc(c.accessCode) + '</code>';
-            if (c.plannerCode) codeHtml += '<code class="client-code-badge" title="Planner" style="background:#527141">&#128203; ' + esc(c.plannerCode) + '</code>';
-            if (c.teamCode)    codeHtml += '<code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">&#9733; ' + esc(c.teamCode) + '</code>';
+            var codeHtml = '<code class="client-code-badge" title="Couple">' + esc(c.accessCode) + '</code>';
+            if (c.plannerCode) codeHtml += '<code class="client-code-badge" title="Planner" style="background:#527141">' + esc(c.plannerCode) + '</code>';
+            if (c.teamCode)    codeHtml += '<code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">' + esc(c.teamCode) + '</code>';
             html += '<div class="crm-row' + (isActive ? '' : ' client-row-disabled') + '">' +
                 '<span class="crm-name">' + esc(c.fullName || c.firstName || '–') + '</span>' +
                 '<span class="crm-event">' + esc(c.eventType || '–') + '</span>' +
@@ -1646,9 +1831,9 @@
                 ? '<span class="ac-badge ac-badge-active">ACTIVE</span>'
                 : '<span class="ac-badge ac-badge-disabled">DISABLED</span>';
 
-            var codeHtml = '<code class="client-code-badge" title="Couple">&#128149; ' + esc(c.accessCode || '–') + '</code>';
-            if (c.plannerCode) codeHtml += '<br><code class="client-code-badge" title="Planner" style="background:#527141">&#128203; ' + esc(c.plannerCode) + '</code>';
-            if (c.teamCode)    codeHtml += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">&#9733; ' + esc(c.teamCode) + '</code>';
+            var codeHtml = '<code class="client-code-badge" title="Couple">' + esc(c.accessCode || '–') + '</code>';
+            if (c.plannerCode) codeHtml += '<br><code class="client-code-badge" title="Planner" style="background:#527141">' + esc(c.plannerCode) + '</code>';
+            if (c.teamCode)    codeHtml += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">' + esc(c.teamCode) + '</code>';
 
             html += '<div class="ac-row' + (isActive ? '' : ' ac-row-disabled') + '">' +
                 '<span class="ac-name">' + esc(c.fullName || c.firstName || '\u2013') + '</span>' +
@@ -1805,6 +1990,14 @@
     window.adminLogout      = adminLogout;
     window.showSetup        = showSetup;
     window.copySecret       = copySecret;
+    // Password reset
+    window.showResetStep    = showResetStep;
+    window.cancelReset      = cancelReset;
+    window.resetViaTOTP     = resetViaTOTP;
+    window.resetVerifyTOTP  = resetVerifyTOTP;
+    window.resetViaEmail    = resetViaEmail;
+    window.resetVerifyEmail = resetVerifyEmail;
+    window.resetSavePassword = resetSavePassword;
     window.filterProspects  = filterProspects;
     window.openAddProspect  = openAddProspect;
     window.editProspect     = editProspect;
@@ -1842,6 +2035,7 @@
     window.publishClientsConfig   = publishClientsConfig;
     window.copyPublishedConfig    = copyPublishedConfig;
     window.toggleClientAccess     = toggleClientAccess;
+    window.sendBookingEmail       = sendBookingEmail;
     window.viewAllClients          = viewAllClients;
     window.filterAllClients        = filterAllClients;
     window.renderDashboardClients = renderDashboardClients;

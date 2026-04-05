@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
     <title>Documents | RNB Events Client Portal</title>
     <meta name="robots" content="noindex, nofollow">
     <script>if (!sessionStorage.getItem('rnb_portal_access')) { location.replace('/Client'); }</script>
@@ -110,7 +118,7 @@
                 if (agr.coupleSignature) {
                     html += '<p class="sig-signed-display">' + escHtml(agr.coupleSignature) + '</p>';
                     html += '<p class="sig-signed-date">Signed ' + escHtml(agr.coupleSignedAt ? formatNoteTs(agr.coupleSignedAt) : '') + '</p>';
-                    html += '<span class="sig-signed-check">&#10003; Signed</span>';
+                    html += '<span class="sig-signed-check">Signed</span>';
                 } else if (role === 'couple') {
                     html += '<div class="sig-input-wrapper">';
                     html += '<p class="sig-hint">Type your full legal name below to sign this agreement.</p>';
@@ -129,7 +137,7 @@
                 if (agr.plannerSignature) {
                     html += '<p class="sig-signed-display">' + escHtml(agr.plannerSignature) + '</p>';
                     html += '<p class="sig-signed-date">Signed ' + escHtml(agr.plannerSignedAt ? formatNoteTs(agr.plannerSignedAt) : '') + '</p>';
-                    html += '<span class="sig-signed-check">&#10003; Signed</span>';
+                    html += '<span class="sig-signed-check">Signed</span>';
                 } else if (role === 'planner' || role === 'rnbTeam') {
                     if (!agr.coupleSignature) {
                         html += '<p class="sig-awaiting">Available after client signs.</p>';
@@ -148,6 +156,15 @@
 
                 html += '</div>'; /* end .agreement-signatures */
                 html += '</div>'; /* end .agreement-body */
+
+                /* Admin-only: Reset agreement for a new contract */
+                if (role === 'rnbTeam' && agr.status !== 'pending') {
+                    html += '<div class="agreement-reset-section">';
+                    html += '<button type="button" class="agreement-reset-btn" id="reset-agreement-btn">RESET AGREEMENT FOR NEW CONTRACT</button>';
+                    html += '<p id="reset-agreement-status" class="sig-status-msg"></p>';
+                    html += '</div>';
+                }
+
                 html += '</div>'; /* end .agreement-wrapper */
 
                 /* ─── Existing documents list ─── */
@@ -244,6 +261,54 @@
                         plannerSigBtn.disabled = true;
                         plannerSigBtn.textContent = 'SAVING...';
                         saveAgreement(statusEl, plannerSigBtn);
+                    });
+                }
+
+                /* Wire admin reset agreement */
+                var resetAgrBtn = document.getElementById('reset-agreement-btn');
+                if (resetAgrBtn) {
+                    resetAgrBtn.addEventListener('click', function () {
+                        var statusEl = document.getElementById('reset-agreement-status');
+                        if (!confirm('This will clear all signatures and reset the agreement to pending. Continue?')) return;
+                        agr.status = 'pending';
+                        agr.coupleSignature = '';
+                        agr.coupleSignedAt  = '';
+                        agr.plannerSignature = '';
+                        agr.plannerSignedAt  = '';
+                        resetAgrBtn.disabled = true;
+                        resetAgrBtn.textContent = 'RESETTING...';
+                        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                codeHash: window.currentCode,
+                                section:  'agreement',
+                                data:     agr,
+                                editLogEntry: {
+                                    ts:       new Date().toISOString(),
+                                    role:     window.currentRole     || 'rnbTeam',
+                                    roleName: window.currentRoleName || 'RNB Team',
+                                    action:   'Reset agreement for new contract'
+                                }
+                            })
+                        })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (res && res.ok) {
+                                renderAll();
+                            } else {
+                                statusEl.textContent = 'Reset failed: ' + (res.error || 'Unknown');
+                                statusEl.className = 'sig-status-msg save-err';
+                                resetAgrBtn.disabled = false;
+                                resetAgrBtn.textContent = 'RESET AGREEMENT FOR NEW CONTRACT';
+                            }
+                        })
+                        .catch(function (e) {
+                            statusEl.textContent = 'Reset failed: ' + e;
+                            statusEl.className = 'sig-status-msg save-err';
+                            resetAgrBtn.disabled = false;
+                            resetAgrBtn.textContent = 'RESET AGREEMENT FOR NEW CONTRACT';
+                        });
                     });
                 }
             }

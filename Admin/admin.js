@@ -397,12 +397,17 @@
     var CLOUD_URL = (window.ADMIN_CONFIG || {}).cloudApiUrl || '';
 
     function cloudGet() {
-        if (!CLOUD_URL) return Promise.resolve(null);
+        if (!CLOUD_URL) { updateSyncStatus('local'); return Promise.resolve(null); }
         updateSyncStatus('syncing');
         return fetch(CLOUD_URL + '?action=getAll', { redirect: 'follow' })
-            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                var ct = r.headers.get('content-type') || '';
+                if (ct.indexOf('application/json') === -1 && ct.indexOf('text/json') === -1) throw new Error('Not JSON');
+                return r.json();
+            })
             .then(function (data) { updateSyncStatus('synced'); return data; })
-            .catch(function (e) { console.error('Cloud fetch:', e); updateSyncStatus('error'); return null; });
+            .catch(function (e) { console.error('Cloud fetch:', e); updateSyncStatus('local'); return null; });
     }
 
     function cloudPush(payload) {
@@ -468,6 +473,7 @@
         el.className = 'sync-indicator sync-' + status;
         if (status === 'syncing') el.textContent = '\u21BB Syncing\u2026';
         else if (status === 'synced')  el.textContent = '\u2713 Synced';
+        else if (status === 'local')   el.textContent = '\u2713 Local';
         else if (status === 'error')   el.textContent = '\u2715 Offline';
         else el.textContent = '';
     }
@@ -1269,12 +1275,15 @@
         .then(function (data) {
             if (data && data.ok) {
                 showToast('Clients published to S3 via Lambda!');
+                updateSyncStatus('synced');
             } else {
                 showToast('Publish failed: ' + (data && data.error ? data.error : 'Unknown error'));
+                updateSyncStatus('error');
             }
         })
         .catch(function (e) {
             showToast('Publish failed: ' + e);
+            updateSyncStatus('error');
         });
     }
 

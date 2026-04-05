@@ -80,6 +80,9 @@
                 html += '<div class="agreement-header">';
                 html += '<p class="doc-type" style="margin:0">EVENT PLANNING AGREEMENT</p>';
                 html += '<span class="agreement-status-badge status-' + agr.status + '">' + escHtml(statusLabel[agr.status] || agr.status) + '</span>';
+                if (agr.status === 'fully-executed') {
+                    html += '<span class="agreement-signed-badge">SIGNED</span>';
+                }
                 html += '</div>';
 
                 html += '<div class="agreement-body">';

@@ -1448,7 +1448,15 @@
                 planner:         'RNB Events Team',
                 plannerEmail:    'hello@rnbevents716.com',
                 timeline:        [],
-                trackingNotes:   { plannerTodos: [], teamTodos: [], clientTodos: [] },
+                trackingNotes:   {
+                    plannerTodos: [
+                        { text: 'Sign the Event Planning Agreement before proceeding with any planning tasks', status: 'pending', addedAt: new Date().toISOString(), addedBy: 'rnbTeam' }
+                    ],
+                    teamTodos: [],
+                    clientTodos: [
+                        { text: 'Review and sign the Event Planning Agreement in the Documents section', status: 'pending', addedAt: new Date().toISOString(), addedBy: 'rnbTeam' }
+                    ]
+                },
                 vendors:         [],
                 moodboard:       { palette: [], images: [], description: '' },
                 documents:       [],
@@ -1757,10 +1765,10 @@
         showToast(c.fullName + ' access ' + (c.active ? 'enabled' : 'disabled') + '.');
     }
 
-    var allClientsFilter = 'all';
+    var allClientsFilter = 'active';
 
     function viewAllClients() {
-        allClientsFilter = 'all';
+        allClientsFilter = 'active';
         renderAllClientsView();
         document.getElementById('modal-all-clients').classList.remove('hidden');
         /* Always fetch latest from S3 before showing */

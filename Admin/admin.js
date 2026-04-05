@@ -338,34 +338,48 @@
         return fetch(S3_CLIENTS_URL + '?t=' + Date.now())
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (arr) {
-                if (!Array.isArray(arr) || !arr.length) return;
-                /* Build lookup of local clients by id */
-                var localById = {};
-                state.clients.forEach(function (c) { localById[c.id] = true; });
-                var merged = false;
-                arr.forEach(function (sc) {
-                    if (sc && sc.id && !localById[sc.id]) {
-                        state.clients.push(sc);
-                        merged = true;
-                    } else if (sc && sc.id && localById[sc.id]) {
-                        /* If local has the id, update from S3 (S3 is source of truth) */
-                        var idx = state.clients.findIndex(function (c) { return c.id === sc.id; });
-                        if (idx > -1) state.clients[idx] = sc;
-                        merged = true;
-                    }
-                });
-                /* Also add S3-only clients not in local at all (match by codeHash) */
+                if (!Array.isArray(arr)) arr = [];
+
+                /* Build lookups */
+                var localById   = {};
                 var localByHash = {};
-                state.clients.forEach(function (c) { if (c.codeHash) localByHash[c.codeHash] = true; });
+                state.clients.forEach(function (c) {
+                    if (c.id)       localById[c.id] = true;
+                    if (c.codeHash) localByHash[c.codeHash] = true;
+                });
+
+                var s3ById   = {};
+                var s3ByHash = {};
+                arr.forEach(function (c) {
+                    if (c && c.id)       s3ById[c.id] = true;
+                    if (c && c.codeHash) s3ByHash[c.codeHash] = true;
+                });
+
+                var changed = false;
+
+                /* S3 → local: update existing by id, add new ones */
                 arr.forEach(function (sc) {
-                    if (sc && sc.codeHash && !localByHash[sc.codeHash]) {
+                    if (!sc || !sc.id) return;
+                    if (localById[sc.id]) {
+                        var idx = state.clients.findIndex(function (c) { return c.id === sc.id; });
+                        if (idx > -1) { state.clients[idx] = sc; changed = true; }
+                    } else if (!sc.codeHash || !localByHash[sc.codeHash]) {
                         state.clients.push(sc);
-                        merged = true;
+                        changed = true;
                     }
                 });
-                if (merged) {
+
+                if (changed) {
                     safeSave(STORAGE_CLIENTS, state.clients);
                     renderAll();
+                }
+
+                /* local → S3: if local has clients S3 doesn't know about, push */
+                var localHasExtra = state.clients.some(function (c) {
+                    return c.id && !s3ById[c.id];
+                });
+                if (localHasExtra || (state.clients.length && !arr.length)) {
+                    autoPublishClients();
                 }
             })
             .catch(function (e) { console.warn('S3 client fetch:', e); });
@@ -1448,6 +1462,10 @@
         allClientsFilter = 'all';
         renderAllClientsView();
         document.getElementById('modal-all-clients').classList.remove('hidden');
+        /* Always fetch latest from S3 before showing */
+        fetchS3Clients().then(function () {
+            renderAllClientsView();
+        });
     }
 
     function filterAllClients(filter, btn) {

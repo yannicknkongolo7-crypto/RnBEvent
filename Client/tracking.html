@@ -297,14 +297,6 @@
                 return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
             } catch (e) { return isoTs; }
         }
-    </script>
-
-        /* Run when portal data is available */
-        if (window._portalReady) {
-            initTracking();
-        } else {
-            window.onPortalReady = initTracking;
-        }
 
         function escHtml(s) {
             return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -313,6 +305,13 @@
         function formatStatus(s) {
             var map = { 'pending': 'Pending', 'in-progress': 'In Progress', 'done': 'Done', 'not-applicable': 'N/A' };
             return map[s] || s;
+        }
+
+        /* Run when portal data is available */
+        if (window._portalReady) {
+            initTracking();
+        } else {
+            window.onPortalReady = initTracking;
         }
     </script>
 </body>

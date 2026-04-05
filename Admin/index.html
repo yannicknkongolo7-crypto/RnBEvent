@@ -59,6 +59,9 @@
                 <input type="text" id="totp-input" class="totp-input"
                     placeholder="000000" inputmode="numeric"
                     pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                <label class="gate-remember" style="margin:10px 0 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:#527141;cursor:pointer;letter-spacing:0.5px">
+                    <input type="checkbox" id="admin-remember-check"> Remember me on this device for 30 days
+                </label>
                 <button id="totp-verify-btn" type="submit" class="gate-btn totp-btn" onclick="adminStep2()">VERIFY</button>
                 <p id="gate-error-2" class="gate-error" aria-live="polite"></p>
             </form>

@@ -163,9 +163,38 @@
         });
     }
 
+    var ADMIN_REMEMBER_KEY = 'rnb_admin_remember';
+    var ADMIN_REMEMBER_DAYS = 30;
+
+    function saveAdminRemembered() {
+        try {
+            localStorage.setItem(ADMIN_REMEMBER_KEY, JSON.stringify({
+                expiry: Date.now() + ADMIN_REMEMBER_DAYS * 864e5
+            }));
+        } catch (e) {}
+    }
+
+    function loadAdminRemembered() {
+        try {
+            var raw = localStorage.getItem(ADMIN_REMEMBER_KEY);
+            if (!raw) return false;
+            var obj = JSON.parse(raw);
+            if (obj && obj.expiry && Date.now() < obj.expiry) return true;
+            localStorage.removeItem(ADMIN_REMEMBER_KEY);
+        } catch (e) {}
+        return false;
+    }
+
+    function clearAdminRemembered() {
+        try { localStorage.removeItem(ADMIN_REMEMBER_KEY); } catch (e) {}
+    }
+
     /* ── Boot ────────────────────────────────────────── */
     (function init() {
         if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
+            showDashboard();
+        } else if (loadAdminRemembered()) {
+            sessionStorage.setItem(SESSION_KEY, 'ok');
             showDashboard();
         }
     })();
@@ -224,6 +253,8 @@
         // If no secret is configured, skip TOTP (backwards compat)
         if (!secret) {
             sessionStorage.setItem(SESSION_KEY, 'ok');
+            var rememberEl = document.getElementById('admin-remember-check');
+            if (rememberEl && rememberEl.checked) saveAdminRemembered();
             pendingAuth = false;
             showDashboard();
             return;
@@ -246,6 +277,8 @@
                 pendingAuth = false;
                 clearErr('gate-error-2');
                 sessionStorage.setItem(SESSION_KEY, 'ok');
+                var rememberEl = document.getElementById('admin-remember-check');
+                if (rememberEl && rememberEl.checked) saveAdminRemembered();
                 showDashboard();
             } else {
                 if (!recordFailedAttempt('gate-error-2')) {
@@ -270,6 +303,7 @@
     /** Sign out */
     function adminLogout() {
         sessionStorage.removeItem(SESSION_KEY);
+        clearAdminRemembered();
         content.classList.add('hidden');
         gate.style.display = 'flex';
         // Reset to step 1

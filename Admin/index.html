@@ -150,6 +150,7 @@
                 <div class="panel-header">
                     <h2 class="panel-title">Published Clients</h2>
                     <div style="display:flex;gap:8px;">
+                        <button class="panel-btn" onclick="viewAllClients()">VIEW ALL</button>
                         <button class="panel-btn" onclick="switchTool('clients');openAddClient()">+ NEW</button>
                     </div>
                 </div>
@@ -379,6 +380,21 @@
                     <button type="submit" class="modal-save" onclick="saveClient()">SAVE CLIENT</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- All Clients View Modal -->
+    <div id="modal-all-clients" class="modal-overlay hidden">
+        <div class="modal-card modal-card-full">
+            <div class="all-clients-header">
+                <h3 class="modal-title">All Clients</h3>
+                <div class="all-clients-summary" id="all-clients-summary"></div>
+            </div>
+            <div class="all-clients-filters" id="all-clients-filters"></div>
+            <div class="all-clients-table" id="all-clients-table"><!-- Populated by JS --></div>
+            <div class="modal-actions">
+                <button class="modal-save" onclick="closeModal('modal-all-clients')">CLOSE</button>
+            </div>
         </div>
     </div>
 

@@ -1081,6 +1081,64 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     text-decoration: line-through;
 }
 
+/* ── All Clients View ─────────────────────────── */
+.modal-card-full {
+    max-width: 1100px; width: 95vw; max-height: 90vh;
+    display: flex; flex-direction: column;
+}
+.all-clients-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
+}
+.all-clients-summary { display: flex; gap: 14px; }
+.ac-stat {
+    font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500;
+    letter-spacing: 1px; color: var(--text-mid);
+}
+.ac-stat.ac-active  { color: var(--accent); }
+.ac-stat.ac-disabled { color: #c0392b; }
+.all-clients-filters {
+    display: flex; gap: 8px; margin-bottom: 16px;
+}
+.all-clients-table {
+    flex: 1; overflow-y: auto; overflow-x: auto;
+    border: 1px solid var(--panel-border); border-radius: 2px;
+}
+.ac-row {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 0.8fr 0.8fr 1fr 1fr 80px 1.1fr 0.9fr 110px;
+    align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--panel-border);
+    font-size: 11px; color: var(--text-mid);
+}
+.ac-row:hover { background: #f6f9f4; }
+.ac-row.ac-head {
+    background: #f0f5ee; font-size: 9px; font-weight: 500;
+    letter-spacing: 2px; color: var(--sage-medium); text-transform: uppercase;
+    position: sticky; top: 0; z-index: 1;
+}
+.ac-name {
+    font-family: 'Cormorant Garamond', serif; font-size: 0.95rem;
+    letter-spacing: 1px; color: var(--primary); font-weight: 600;
+}
+.ac-code code { font-size: 10px; }
+.ac-sections { font-size: 10px; color: var(--sage-medium); white-space: nowrap; }
+.ac-badge {
+    display: inline-block; font-size: 8px; font-weight: 600;
+    letter-spacing: 1.5px; padding: 3px 8px; border-radius: 2px;
+    text-transform: uppercase;
+}
+.ac-badge-active   { background: #e8f4e8; color: var(--accent); }
+.ac-badge-disabled { background: #fef2f2; color: #c0392b; }
+.ac-row.ac-row-disabled { opacity: 0.5; }
+.ac-row.ac-row-disabled .ac-name { text-decoration: line-through; }
+
+@media (max-width: 900px) {
+    .ac-row { grid-template-columns: 1fr 1fr; font-size: 10px; }
+    .ac-row.ac-head { display: none; }
+    .modal-card-full { width: 98vw; }
+}
+
 .modal-card-wide { max-width: 660px; }
 
 .form-row-grid {

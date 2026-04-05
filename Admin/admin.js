@@ -1435,7 +1435,101 @@
         renderDashboardClients();
         renderClientManager();
         renderStats();
+        /* Refresh the all-clients modal if open */
+        if (!document.getElementById('modal-all-clients').classList.contains('hidden')) {
+            renderAllClientsView();
+        }
         showToast(c.fullName + ' access ' + (c.active ? 'enabled' : 'disabled') + '.');
+    }
+
+    var allClientsFilter = 'all';
+
+    function viewAllClients() {
+        allClientsFilter = 'all';
+        renderAllClientsView();
+        document.getElementById('modal-all-clients').classList.remove('hidden');
+    }
+
+    function filterAllClients(filter, btn) {
+        allClientsFilter = filter;
+        document.querySelectorAll('#all-clients-filters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        renderAllClientsView();
+    }
+
+    function renderAllClientsView() {
+        var total   = state.clients.length;
+        var active  = state.clients.filter(function (c) { return c.active !== false; }).length;
+        var disabled = total - active;
+
+        /* Summary */
+        var sumEl = document.getElementById('all-clients-summary');
+        if (sumEl) {
+            sumEl.innerHTML =
+                '<span class="ac-stat">' + total + ' Total</span>' +
+                '<span class="ac-stat ac-active">' + active + ' Active</span>' +
+                '<span class="ac-stat ac-disabled">' + disabled + ' Disabled</span>';
+        }
+
+        /* Filters */
+        var filEl = document.getElementById('all-clients-filters');
+        if (filEl) {
+            filEl.innerHTML =
+                '<button class="filter-btn' + (allClientsFilter === 'all' ? ' active' : '') + '" onclick="filterAllClients(\'all\', this)">All (' + total + ')</button>' +
+                '<button class="filter-btn' + (allClientsFilter === 'active' ? ' active' : '') + '" onclick="filterAllClients(\'active\', this)">Active (' + active + ')</button>' +
+                '<button class="filter-btn' + (allClientsFilter === 'disabled' ? ' active' : '') + '" onclick="filterAllClients(\'disabled\', this)">Disabled (' + disabled + ')</button>';
+        }
+
+        /* Filter clients */
+        var list = state.clients;
+        if (allClientsFilter === 'active')   list = list.filter(function (c) { return c.active !== false; });
+        if (allClientsFilter === 'disabled') list = list.filter(function (c) { return c.active === false; });
+
+        /* Table */
+        var tblEl = document.getElementById('all-clients-table');
+        if (!tblEl) return;
+
+        if (!list.length) {
+            tblEl.innerHTML = '<p style="padding:24px;font-size:12px;color:#527141;">No clients in this category.</p>';
+            return;
+        }
+
+        var html = '<div class="ac-row ac-head">' +
+            '<span>Client</span><span>Code</span><span>Event</span>' +
+            '<span>Date</span><span>Venue</span><span>Planner</span>' +
+            '<span>Status</span><span>Sections</span><span>Added</span><span>Actions</span>' +
+        '</div>';
+
+        list.forEach(function (c) {
+            var isActive = c.active !== false;
+            var tlCount  = (c.timeline && c.timeline.length) || 0;
+            var vnCount  = (c.vendors  && c.vendors.length)  || 0;
+            var docCount = (c.documents && c.documents.length) || 0;
+            var galCount = (c.gallery   && c.gallery.length)  || 0;
+            var sections = tlCount + ' tl · ' + vnCount + ' vn · ' + docCount + ' doc · ' + galCount + ' img';
+
+            var statusBadge = isActive
+                ? '<span class="ac-badge ac-badge-active">ACTIVE</span>'
+                : '<span class="ac-badge ac-badge-disabled">DISABLED</span>';
+
+            html += '<div class="ac-row' + (isActive ? '' : ' ac-row-disabled') + '">' +
+                '<span class="ac-name">' + esc(c.fullName || c.firstName || '\u2013') + '</span>' +
+                '<span class="ac-code"><code class="client-code-badge">' + esc(c.accessCode || '\u2013') + '</code></span>' +
+                '<span>' + esc(c.eventType || '\u2013') + '</span>' +
+                '<span>' + esc(c.eventDate || '\u2013') + '</span>' +
+                '<span>' + esc(c.eventVenue || '\u2013') + '</span>' +
+                '<span>' + esc(c.planner || '\u2013') + '</span>' +
+                '<span>' + statusBadge + '</span>' +
+                '<span class="ac-sections">' + sections + '</span>' +
+                '<span>' + esc(c.added || '\u2013') + '</span>' +
+                '<span class="crm-actions">' +
+                    '<button class="crm-act-btn" onclick="closeModal(\'modal-all-clients\');editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
+                    '<button class="crm-act-btn" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">' + (isActive ? 'DISABLE' : 'ENABLE') + '</button>' +
+                '</span>' +
+            '</div>';
+        });
+
+        tblEl.innerHTML = html;
     }
 
     function deleteClient(id) {
@@ -1579,6 +1673,8 @@
     window.publishClientsConfig   = publishClientsConfig;
     window.copyPublishedConfig    = copyPublishedConfig;
     window.toggleClientAccess     = toggleClientAccess;
+    window.viewAllClients          = viewAllClients;
+    window.filterAllClients        = filterAllClients;
     window.renderDashboardClients = renderDashboardClients;
 
 })()

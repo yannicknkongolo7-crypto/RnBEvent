@@ -4,7 +4,7 @@
  * Portal fetches live data from cloud; static entries below are fallback only.
  */
 
-window.RNB_CLOUD_URL = 'https://script.google.com/macros/s/AKfycbyrBsv3ydk-aUw_x7Ei0Z4zx6HryuYyBSDrs2lKnGlcom-0HrA4xiBYu7pnktmawO1gVg/exec';
+window.RNB_CLOUD_URL = 'https://rnbevents716.s3.us-east-2.amazonaws.com/clients.json';
 window.RNB_CLIENTS = {};
 window.RNB_CLIENTS_RAW = {
 

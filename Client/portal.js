@@ -19,16 +19,16 @@
         });
     }
 
-    /* Fetch clients from Google Sheets, merge into RNB_CLIENTS_RAW */
+    /* Fetch clients from S3 (JSON array), merge into RNB_CLIENTS_RAW */
     function fetchCloudClients() {
         var url = window.RNB_CLOUD_URL;
         if (!url) return Promise.resolve();
-        return fetch(url + '?action=getClients', { redirect: 'follow' })
+        return fetch(url, { redirect: 'follow' })
             .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (Array.isArray(data.clients)) {
+            .then(function (arr) {
+                if (Array.isArray(arr)) {
                     if (!window.RNB_CLIENTS_RAW) window.RNB_CLIENTS_RAW = {};
-                    data.clients.forEach(function (c) {
+                    arr.forEach(function (c) {
                         if (c && c.codeHash) {
                             window.RNB_CLIENTS_RAW[c.codeHash] = c;
                         }

@@ -1,3 +1,5 @@
+    // Set this to your API Gateway endpoint for Lambda upload
+    window.RNB_UPLOAD_API = window.RNB_UPLOAD_API || 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/upload-clients';
 (function () {
     'use strict';
 
@@ -1229,37 +1231,50 @@
         showToast('Client removed.');
     }
 
+
+    function exportClientsJson() {
+        try {
+            var blob = new Blob([JSON.stringify(state.clients, null, 2)], { type: 'application/json' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'clients.json';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            }, 100);
+            showToast('clients.json exported. Run node upload-clients.js to push to S3.');
+        } catch (e) {
+            showToast('Export failed: ' + e);
+        }
+    }
+
     function publishClientsConfig() {
         if (!state.clients.length) {
             showToast('No clients to publish.');
             return;
         }
-        if (!CLOUD_URL) {
-            showToast('Cloud URL not configured.');
+        var api = window.RNB_UPLOAD_API;
+        if (!api) {
+            showToast('Upload API not configured.');
             return;
         }
-
-        updateSyncStatus('syncing');
-        fetch(CLOUD_URL, {
-            method:   'POST',
-            headers:  { 'Content-Type': 'text/plain' },
-            body:     JSON.stringify({ clients: state.clients }),
-            redirect: 'follow'
+        fetch(api, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clients: state.clients })
         })
         .then(function (r) { return r.json(); })
         .then(function (data) {
             if (data && data.ok) {
-                updateSyncStatus('synced');
-                showToast('Published ' + state.clients.length + ' client(s) to live portal.');
+                showToast('Clients published to S3 via Lambda!');
             } else {
-                updateSyncStatus('error');
-                showToast('Publish may have failed — check cloud status.');
+                showToast('Publish failed: ' + (data && data.error ? data.error : 'Unknown error'));
             }
         })
         .catch(function (e) {
-            console.error('Publish error:', e);
-            updateSyncStatus('error');
-            showToast('Publish failed — check your connection.');
+            showToast('Publish failed: ' + e);
         });
     }
 

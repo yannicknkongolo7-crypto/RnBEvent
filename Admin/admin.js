@@ -700,7 +700,7 @@
         document.getElementById('f-email').value  = p.email     || '';
         document.getElementById('f-phone').value  = p.phone     || '';
         document.getElementById('f-etype').value  = p.eventType || '';
-        document.getElementById('f-edate').value  = p.eventDate || '';
+        setDateInput('f-edate', p.eventDate || '');
         document.getElementById('f-status').value = p.status    || 'New Lead';
         document.getElementById('f-notes').value  = p.notes     || '';
         document.getElementById('modal-prospect').classList.remove('hidden');
@@ -716,7 +716,7 @@
             email:     document.getElementById('f-email').value.trim(),
             phone:     document.getElementById('f-phone').value.trim(),
             eventType: document.getElementById('f-etype').value.trim(),
-            eventDate: document.getElementById('f-edate').value.trim(),
+            eventDate: readDateInput('f-edate'),
             status:    document.getElementById('f-status').value,
             notes:     document.getElementById('f-notes').value.trim(),
             added:     editingId ? (state.prospects.find(function(x){return x.id===editingId;})||{}).added || today() : today()
@@ -1265,9 +1265,10 @@
     function openAddClient() {
         editingClientId = null;
         document.getElementById('client-modal-title').textContent = 'New Client';
-        ['c-code','c-name','c-first','c-etype','c-edate','c-venue'].forEach(function (id) {
+        ['c-code','c-name','c-first','c-etype','c-venue'].forEach(function (id) {
             document.getElementById(id).value = '';
         });
+        document.getElementById('c-edate').value = '';
         document.getElementById('c-planner').value = 'RNB Events Team';
         document.getElementById('c-pemail').value  = 'hello@rnbevents716.com';
         document.getElementById('c-code').readOnly = false;
@@ -1289,7 +1290,7 @@
         document.getElementById('c-name').value    = c.fullName      || '';
         document.getElementById('c-first').value   = c.firstName     || '';
         document.getElementById('c-etype').value   = c.eventType     || '';
-        document.getElementById('c-edate').value   = c.eventDate     || '';
+        setDateInput('c-edate', c.eventDate || '');
         document.getElementById('c-venue').value   = c.eventVenue    || '';
         document.getElementById('c-planner').value = c.planner       || 'RNB Events Team';
         document.getElementById('c-pemail').value  = c.plannerEmail  || 'hello@rnbevents716.com';
@@ -1313,7 +1314,7 @@
         var row = document.createElement('div');
         row.className = 'timeline-edit-row';
         row.innerHTML =
-            '<input type="text" class="form-input tl-date" placeholder="Date (e.g. May 1, 2026)" value="' + esc((data && data.date) || '') + '">' +
+            '<input type="date" class="form-input tl-date" value="' + esc(toIso((data && data.date) || '')) + '">' +
             '<input type="text" class="form-input tl-milestone" placeholder="Milestone" value="' + esc((data && data.milestone) || '') + '">' +
             '<input type="text" class="form-input tl-notes" placeholder="Notes (optional)" value="' + esc((data && data.notes) || '') + '">' +
             '<button type="button" class="crm-act-btn del-btn" onclick="this.parentElement.remove()">&times;</button>';
@@ -1372,7 +1373,7 @@
 
         var timeline = [];
         document.querySelectorAll('#c-timeline-rows .timeline-edit-row').forEach(function (row) {
-            var d = row.querySelector('.tl-date').value.trim();
+            var d = toDDMMYYYY(row.querySelector('.tl-date').value.trim());
             var m = row.querySelector('.tl-milestone').value.trim();
             if (d && m) {
                 timeline.push({
@@ -1394,7 +1395,7 @@
                 firstName:    first || name.split(' ')[0],
                 fullName:     name,
                 eventType:    document.getElementById('c-etype').value.trim(),
-                eventDate:    document.getElementById('c-edate').value.trim(),
+                eventDate:    readDateInput('c-edate'),
                 eventVenue:   document.getElementById('c-venue').value.trim(),
                 planner:      document.getElementById('c-planner').value.trim(),
                 plannerEmail: document.getElementById('c-pemail').value.trim(),
@@ -1613,7 +1614,38 @@
     function escJS(s)       { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
     function sanitizeImageSrc(s) { return (typeof s === 'string' && (/^data:image\//.test(s) || /^https?:\/\//.test(s))) ? s : ''; }
     function safeJSON(s)    { try { return JSON.parse(s); } catch(e) { return null; } }
-    function today()        { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }    function showToast(msg) {
+    function today()        { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+
+    /* DD/MM/YYYY ↔ YYYY-MM-DD converters */
+    function toDDMMYYYY(iso) {
+        if (!iso) return '';
+        /* Already DD/MM/YYYY? Return as-is */
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(iso)) return iso;
+        /* YYYY-MM-DD → DD/MM/YYYY */
+        var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return m[3] + '/' + m[2] + '/' + m[1];
+        return String(iso);
+    }
+    function toIso(ddmmyyyy) {
+        if (!ddmmyyyy) return '';
+        /* Already YYYY-MM-DD? Return as-is */
+        if (/^\d{4}-\d{2}-\d{2}$/.test(ddmmyyyy)) return ddmmyyyy;
+        /* DD/MM/YYYY → YYYY-MM-DD */
+        var m = String(ddmmyyyy).match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (m) return m[3] + '-' + m[2] + '-' + m[1];
+        return '';
+    }
+    function readDateInput(id) {
+        var val = document.getElementById(id).value;
+        return toDDMMYYYY(val);
+    }
+    function setDateInput(id, storedDate) {
+        document.getElementById(id).value = toIso(storedDate);
+    }
+    window.toDDMMYYYY = toDDMMYYYY;
+    window.toIso = toIso;
+
+    function showToast(msg) {
         var t = document.getElementById('admin-toast');
         if (!t) return;
         t.textContent = msg;

@@ -94,6 +94,22 @@
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     };
 
+    window.toDDMMYYYY = function (iso) {
+        if (!iso) return '';
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(iso)) return iso;
+        var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return m[3] + '/' + m[2] + '/' + m[1];
+        return String(iso);
+    };
+
+    window.toIso = function (ddmmyyyy) {
+        if (!ddmmyyyy) return '';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(ddmmyyyy)) return ddmmyyyy;
+        var m = String(ddmmyyyy).match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (m) return m[3] + '-' + m[2] + '-' + m[1];
+        return '';
+    };
+
     window.RNB_SECTION_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section';
 
     window.savePortalSection = function (section, data, statusEl, btnEl) {

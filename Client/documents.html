@@ -79,7 +79,7 @@
                 html += '</div>';
                 html += '<div class="edit-add-row">';
                 html += '<input type="url" id="d-url" class="tracking-input" placeholder="URL (https://...)" maxlength="2000">';
-                html += '<input type="text" id="d-date" class="tracking-input" placeholder="Date (optional)" maxlength="50">';
+                html += '<input type="date" id="d-date" class="tracking-input" maxlength="50">';
                 html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
                 html += '</div>';
                 html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
@@ -94,7 +94,7 @@
                     var n = document.getElementById('d-name').value.trim();
                     var u = document.getElementById('d-url').value.trim();
                     if (!n || !u) return;
-                    items.push({ name: n, type: document.getElementById('d-type').value.trim() || 'Document', url: u, date: document.getElementById('d-date').value.trim() });
+                    items.push({ name: n, type: document.getElementById('d-type').value.trim() || 'Document', url: u, date: window.toDDMMYYYY(document.getElementById('d-date').value.trim()) });
                     render();
                 });
                 document.getElementById('save-btn').addEventListener('click', function () {

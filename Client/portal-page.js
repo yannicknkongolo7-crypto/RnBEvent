@@ -30,7 +30,8 @@
             window.location.replace('/Client');
         };
 
-        document.addEventListener('DOMContentLoaded', function () {
+        /* Fill planner-email and first-name placeholders */
+        function fillPlaceholders() {
             document.querySelectorAll('.planner-email-link').forEach(function (el) {
                 if (window.currentClient && window.currentClient.plannerEmail) {
                     el.href = 'mailto:' + window.currentClient.plannerEmail;
@@ -41,7 +42,19 @@
                     el.textContent = window.currentClient.firstName;
                 }
             });
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fillPlaceholders);
+        } else {
+            fillPlaceholders();
+        }
+
+        /* Notify sub-page scripts that portal data is ready */
+        window._portalReady = true;
+        if (typeof window.onPortalReady === 'function') {
+            window.onPortalReady();
+        }
     }
 
     /* Fetch from S3 first, then boot */

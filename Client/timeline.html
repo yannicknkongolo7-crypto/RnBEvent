@@ -43,7 +43,7 @@
     <script src="clients-config.js"></script>
     <script src="portal-page.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initTimeline() {
             var client = window.currentClient;
             var el = document.getElementById('timeline-content');
 
@@ -66,7 +66,8 @@
             });
             html += '</div>';
             el.innerHTML = html;
-        });
+        }
+        if (window._portalReady) { initTimeline(); } else { window.onPortalReady = initTimeline; }
     </script>
 </body>
 </html>

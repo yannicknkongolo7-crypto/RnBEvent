@@ -45,7 +45,7 @@
     <script>
         var NOTES_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-notes';
 
-        document.addEventListener('DOMContentLoaded', function () {
+        function initTracking() {
             var client = window.currentClient;
             var codeHash = window.currentCode;
             var el = document.getElementById('tracking-content');
@@ -192,7 +192,14 @@
                     btn.textContent = 'SAVE CHANGES';
                 });
             }
-        });
+        }
+
+        /* Run when portal data is available */
+        if (window._portalReady) {
+            initTracking();
+        } else {
+            window.onPortalReady = initTracking;
+        }
 
         function escHtml(s) {
             return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

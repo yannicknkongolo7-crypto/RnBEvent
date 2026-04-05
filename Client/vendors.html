@@ -43,7 +43,7 @@
     <script src="clients-config.js"></script>
     <script src="portal-page.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initVendors() {
             var client  = window.currentClient;
             var vendors = client.vendors || [];
             var el      = document.getElementById('vendors-content');
@@ -68,7 +68,8 @@
             });
             html += '</div>';
             el.innerHTML = html;
-        });
+        }
+        if (window._portalReady) { initVendors(); } else { window.onPortalReady = initVendors; }
     </script>
 </body>
 </html>

@@ -43,7 +43,7 @@
     <script src="clients-config.js"></script>
     <script src="portal-page.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initGallery() {
             var client  = window.currentClient;
             var gallery = client.gallery || [];
             var el      = document.getElementById('gallery-content');
@@ -64,7 +64,8 @@
             });
             html += '</div>';
             el.innerHTML = html;
-        });
+        }
+        if (window._portalReady) { initGallery(); } else { window.onPortalReady = initGallery; }
     </script>
 </body>
 </html>

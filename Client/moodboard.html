@@ -43,7 +43,7 @@
     <script src="clients-config.js"></script>
     <script src="portal-page.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initMoodboard() {
             var client  = window.currentClient;
             var mb      = client.moodboard || {};
             var el      = document.getElementById('moodboard-content');
@@ -85,7 +85,8 @@
             }
 
             el.innerHTML = html;
-        });
+        }
+        if (window._portalReady) { initMoodboard(); } else { window.onPortalReady = initMoodboard; }
     </script>
 </body>
 </html>

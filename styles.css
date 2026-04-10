@@ -1941,3 +1941,321 @@ section.visible,
         justify-content: center;
     }
 }
+
+/* ── Request Quote button (service page hero) ───────── */
+.quote-btn {
+    display: inline-block;
+    margin-top: 28px;
+    padding: 14px 40px;
+    background: transparent;
+    border: 1px solid #b89a5e;
+    color: #b89a5e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+}
+.quote-btn:hover {
+    background: #b89a5e;
+    color: #fff;
+}
+
+/* ── Quote Modal ─────────────────────────────────────── */
+.quote-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 30, 25, 0.75);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+}
+.quote-modal-overlay.open {
+    display: flex;
+}
+.quote-modal {
+    position: relative;
+    background: #fff;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 2px;
+    padding: 48px 44px 44px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.quote-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 26px;
+    line-height: 1;
+    color: #999;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+.quote-close-btn:hover { color: #333; }
+
+.quote-modal-header { margin-bottom: 28px; }
+.quote-modal-header h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: #2d3a2d;
+    margin: 0 0 6px;
+    letter-spacing: 1px;
+}
+.quote-modal-header p {
+    color: #888;
+    font-size: 13px;
+    margin: 0;
+}
+
+.quote-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.quote-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0;
+}
+.quote-field:last-child:not(.quote-form-row .quote-field) {
+    margin-bottom: 16px;
+}
+.quote-field label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #666;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+}
+.quote-field .req { color: #b89a5e; }
+.quote-field input,
+.quote-field select,
+.quote-field textarea {
+    padding: 10px 12px;
+    border: 1px solid #d8d3ca;
+    border-radius: 2px;
+    font-size: 13px;
+    font-family: 'Montserrat', sans-serif;
+    color: #333;
+    background: #faf8f5;
+    transition: border-color 0.2s;
+    outline: none;
+    -webkit-appearance: none;
+}
+.quote-field input:focus,
+.quote-field select:focus,
+.quote-field textarea:focus {
+    border-color: #b89a5e;
+    background: #fff;
+}
+.quote-field textarea { resize: vertical; min-height: 90px; }
+.quote-field select { cursor: pointer; }
+
+.quote-form-msg {
+    font-size: 13px;
+    margin-bottom: 16px;
+    min-height: 20px;
+    line-height: 1.5;
+}
+.quote-form-msg--success { color: #4a7c4a; }
+.quote-form-msg--error   { color: #b94040; }
+
+.quote-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2d3a2d;
+    color: #b89a5e;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+    border-radius: 2px;
+}
+.quote-submit-btn:hover:not(:disabled) {
+    background: #b89a5e;
+    color: #fff;
+}
+.quote-submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+@media (max-width: 560px) {
+    .quote-modal { padding: 36px 20px 28px; }
+    .quote-form-row { grid-template-columns: 1fr; }
+}
+
+/* ── Request Quote button (service page hero) ───────── */
+.quote-btn {
+    display: inline-block;
+    margin-top: 28px;
+    padding: 14px 40px;
+    background: transparent;
+    border: 1px solid #b89a5e;
+    color: #b89a5e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+}
+.quote-btn:hover {
+    background: #b89a5e;
+    color: #fff;
+}
+
+/* ── Quote Modal ─────────────────────────────────────── */
+.quote-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 30, 25, 0.75);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+}
+.quote-modal-overlay.open {
+    display: flex;
+}
+.quote-modal {
+    position: relative;
+    background: #fff;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 2px;
+    padding: 48px 44px 44px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.quote-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 26px;
+    line-height: 1;
+    color: #999;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+.quote-close-btn:hover { color: #333; }
+
+.quote-modal-header { margin-bottom: 28px; }
+.quote-modal-header h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: #2d3a2d;
+    margin: 0 0 6px;
+    letter-spacing: 1px;
+}
+.quote-modal-header p {
+    color: #888;
+    font-size: 13px;
+    margin: 0;
+}
+
+.quote-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.quote-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0;
+}
+.quote-field:last-child:not(.quote-form-row .quote-field) {
+    margin-bottom: 16px;
+}
+.quote-field label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #666;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+}
+.quote-field .req { color: #b89a5e; }
+.quote-field input,
+.quote-field select,
+.quote-field textarea {
+    padding: 10px 12px;
+    border: 1px solid #d8d3ca;
+    border-radius: 2px;
+    font-size: 13px;
+    font-family: 'Montserrat', sans-serif;
+    color: #333;
+    background: #faf8f5;
+    transition: border-color 0.2s;
+    outline: none;
+    -webkit-appearance: none;
+}
+.quote-field input:focus,
+.quote-field select:focus,
+.quote-field textarea:focus {
+    border-color: #b89a5e;
+    background: #fff;
+}
+.quote-field textarea { resize: vertical; min-height: 90px; }
+.quote-field select { cursor: pointer; }
+
+.quote-form-msg {
+    font-size: 13px;
+    margin-bottom: 16px;
+    min-height: 20px;
+    line-height: 1.5;
+}
+.quote-form-msg--success { color: #4a7c4a; }
+.quote-form-msg--error   { color: #b94040; }
+
+.quote-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2d3a2d;
+    color: #b89a5e;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+    border-radius: 2px;
+}
+.quote-submit-btn:hover:not(:disabled) {
+    background: #b89a5e;
+    color: #fff;
+}
+.quote-submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+@media (max-width: 560px) {
+    .quote-modal { padding: 36px 20px 28px; }
+    .quote-form-row { grid-template-columns: 1fr; }
+}

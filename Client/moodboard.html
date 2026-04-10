@@ -86,6 +86,7 @@
                 html += '<input type="text" id="new-hex" class="tracking-input" placeholder="#b89a5e" maxlength="10" style="max-width:140px">';
                 html += '<button type="button" id="add-color-btn" class="tracking-add-btn">+ ADD</button>';
                 html += '</div>';
+                html += '<p id="palette-status" class="tracking-save-status" style="min-height:18px"></p>';
                 html += '</div>';
 
                 /* Images */
@@ -125,7 +126,14 @@
                 hx.addEventListener('input', function () { if (/^#[0-9a-f]{6}$/i.test(hx.value)) cp.value = hx.value; });
 
                 el.querySelectorAll('.palette-remove').forEach(function (btn) {
-                    btn.addEventListener('click', function () { mb.palette.splice(parseInt(this.dataset.index), 1); render(); });
+                    btn.addEventListener('click', function () {
+                        var descEl = document.getElementById('mb-desc');
+                        if (descEl) mb.description = descEl.value.trim();
+                        mb.palette.splice(parseInt(this.dataset.index), 1);
+                        render();
+                        /* Auto-save after removing a color */
+                        savePortalSection('moodboard', mb, document.getElementById('palette-status'), document.getElementById('save-btn'));
+                    });
                 });
                 el.querySelectorAll('.gallery-remove').forEach(function (btn) {
                     btn.addEventListener('click', function () { mb.images.splice(parseInt(this.dataset.index), 1); render(); });

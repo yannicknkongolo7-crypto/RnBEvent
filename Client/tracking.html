@@ -53,6 +53,19 @@
     <script>
         var NOTES_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-notes';
 
+        var STATUS_CYCLE  = ['pending', 'in-progress', 'done', 'not-applicable'];
+        var STATUS_LABELS = { 'pending': 'Pending', 'in-progress': 'In Progress', 'done': 'Done ✓', 'not-applicable': 'N/A' };
+        var ROLE_LABELS   = { planner: 'Planner', rnbTeam: 'RNB Team', couple: 'Client' };
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        function fmtTs(isoTs) {
+            if (!isoTs) return '';
+            try { return new Date(isoTs).toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); }
+            catch (e) { return ''; }
+        }
+
         function initTracking() {
             var client   = window.currentClient;
             var codeHash = window.currentCode;
@@ -61,194 +74,43 @@
             var el       = document.getElementById('tracking-content');
             var notes    = client.trackingNotes || {};
 
-            /* ── Section builder ─────────────────────────── */
-            function buildSection(key, title, items, canEdit) {
-                var roleLabel = { planner: 'Event Planner', rnbTeam: 'RNB Team', couple: 'Client' };
-                var sectionRole = (key === 'plannerTodos') ? 'planner' : (key === 'teamTodos' ? 'rnbTeam' : 'couple');
+            /* Live todo arrays */
+            var todos = {
+                plannerTodos: (notes.plannerTodos || []).map(clone),
+                teamTodos:    (notes.teamTodos    || []).map(clone),
+                clientTodos:  (notes.clientTodos  || []).map(clone)
+            };
 
-                var html = '<div class="tracking-section' + (canEdit ? ' tracking-editable' : '') + '" id="section-' + key + '">';
-                html += '<h2 class="tracking-section-title">' + title;
-                if (!canEdit && role !== sectionRole) {
-                    html += '<span class="tracking-section-locked">view only</span>';
-                }
-                html += '</h2>';
-
-                if (!items.length) {
-                    html += '<p class="tracking-empty">No items yet.</p>';
-                } else {
-                    html += '<ul class="tracking-list' + (canEdit ? ' tracking-list-editable' : '') + '" id="list-' + key + '">';
-                    items.forEach(function (item, i) {
-                        var statusClass = 'status-' + (item.status || 'pending').toLowerCase().replace(/\s+/g, '-');
-                        html += '<li class="tracking-item ' + statusClass + '">';
-                        html += '<span class="tracking-bullet"></span>';
-                        html += '<span class="tracking-text">' + escHtml(item.text || '') + '</span>';
-
-                        /* author + timestamp meta */
-                        if (item.addedBy || item.addedAt) {
-                            html += '<span class="tracking-item-meta">';
-                            if (item.addedBy) {
-                                html += '<span class="tracking-author-badge role-' + escHtml(item.addedBy) + '">' + escHtml(roleLabel[item.addedBy] || item.addedBy) + '</span>';
-                            }
-                            if (item.addedAt) {
-                                html += '<span class="tracking-timestamp">' + escHtml(formatNoteTs(item.addedAt)) + '</span>';
-                            }
-                            html += '</span>';
-                        }
-
-                        if (canEdit) {
-                            var sc = statusClass;
-                            html += '<select class="tracking-status-select ' + sc + '" data-key="' + key + '" data-index="' + i + '">';
-                            ['pending', 'in-progress', 'done', 'not-applicable'].forEach(function (s) {
-                                html += '<option value="' + s + '"' + (item.status === s ? ' selected' : '') + '>' + formatStatus(s) + '</option>';
-                            });
-                            html += '</select>';
-                            html += '<button type="button" class="tracking-remove-btn" data-key="' + key + '" data-index="' + i + '" title="Remove">&times;</button>';
-                        } else {
-                            html += '<span class="tracking-status ' + statusClass + '">' + escHtml(formatStatus(item.status)) + '</span>';
-                        }
-                        html += '</li>';
-                    });
-                    html += '</ul>';
-                }
-
-                if (canEdit) {
-                    html += '<div class="tracking-add-row">';
-                    html += '<input type="text" id="new-' + key + '" class="tracking-input" placeholder="Add a new item..." maxlength="500">';
-                    html += '<button type="button" class="tracking-add-btn" data-key="' + key + '">+ ADD</button>';
-                    html += '</div>';
-                    html += '<button type="button" class="tracking-save-btn" id="save-' + key + '-btn">SAVE CHANGES</button>';
-                    html += '<p id="save-' + key + '-status" class="tracking-save-status"></p>';
-                }
-
-                html += '</div>';
-                return html;
+            function clone(i) {
+                return { text: String(i.text||''), status: i.status||'pending', addedAt: i.addedAt||'', addedBy: i.addedBy||'' };
             }
 
-            /* ── Build todo arrays (mutable copies) ──────── */
-            var plannerTodos = (notes.plannerTodos || []).map(function (i) {
-                return { text: i.text, status: i.status || 'pending', addedAt: i.addedAt || '', addedBy: i.addedBy || '' };
-            });
-            var teamTodos = (notes.teamTodos || []).map(function (i) {
-                return { text: i.text, status: i.status || 'pending', addedAt: i.addedAt || '', addedBy: i.addedBy || '' };
-            });
-            var clientTodos = (notes.clientTodos || []).map(function (i) {
-                return { text: i.text, status: i.status || 'pending', addedAt: i.addedAt || '', addedBy: i.addedBy || '' };
-            });
+            var canEdit = {
+                plannerTodos: (role === 'planner' || role === 'rnbTeam'),
+                teamTodos:    (role === 'rnbTeam'  || role === 'planner'),
+                clientTodos:  true
+            };
 
-            var canEditPlanner = (role === 'planner' || role === 'rnbTeam');
-            var canEditTeam    = (role === 'rnbTeam' || role === 'planner');
-            var canEditClient  = true; // all roles can edit client todos
+            var TITLES = {
+                plannerTodos: 'Event Planner To-Dos',
+                teamTodos:    'RNB Team To-Dos',
+                clientTodos:  'Your To-Dos'
+            };
 
-            var html = '';
-            html += buildSection('plannerTodos', 'Event Planner To-Dos', plannerTodos, canEditPlanner);
-            html += buildSection('teamTodos',    'RNB Team To-Dos',      teamTodos,    canEditTeam);
-            html += buildSection('clientTodos',  'Client To-Dos',        clientTodos,  canEditClient);
-
-            el.innerHTML = html;
-
-            /* ── Wire up events ──────────────────────────── */
-            function wireSection(key, todoArr) {
-                var addInput = document.getElementById('new-' + key);
-                var addBtn   = el.querySelector('.tracking-add-btn[data-key="' + key + '"]');
-                var saveBtn  = document.getElementById('save-' + key + '-btn');
-
-                if (addBtn) addBtn.addEventListener('click', function () { addItem(key, todoArr); });
-                if (addInput) addInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') { e.preventDefault(); addItem(key, todoArr); }
-                });
-                if (saveBtn) saveBtn.addEventListener('click', function () { saveSection(key, todoArr); });
+            /* ── Debounced auto-save per section ─────────── */
+            var saveTimers = {};
+            function scheduleSave(key) {
+                clearTimeout(saveTimers[key]);
+                saveTimers[key] = setTimeout(function () { doSave(key); }, 600);
             }
 
-            function attachListEvents(key, todoArr) {
-                el.querySelectorAll('.tracking-status-select[data-key="' + key + '"]').forEach(function (sel) {
-                    sel.addEventListener('change', function () {
-                        var idx = parseInt(this.dataset.index);
-                        todoArr[idx].status = this.value;
-                        this.className = 'tracking-status-select status-' + this.value;
-                    });
-                });
-                el.querySelectorAll('.tracking-remove-btn[data-key="' + key + '"]').forEach(function (btn) {
-                    btn.addEventListener('click', function () {
-                        todoArr.splice(parseInt(this.dataset.index), 1);
-                        refreshList(key, todoArr);
-                    });
-                });
-            }
+            function doSave(key) {
+                var ind = document.getElementById('ind-' + key);
+                if (ind) { ind.textContent = 'Saving…'; ind.className = 'tracking-autosave saving'; }
 
-            function refreshList(key, todoArr) {
-                var list = document.getElementById('list-' + key);
-                if (!list) {
-                    /* list doesn't exist yet because section was empty — re-render whole section */
-                    var sectionEl = document.getElementById('section-' + key);
-                    if (!sectionEl) return;
-                    var titles = { plannerTodos: 'Event Planner To-Dos', teamTodos: 'RNB Team To-Dos', clientTodos: 'Client To-Dos' };
-                    var canEdit = (key === 'plannerTodos') ? canEditPlanner : (key === 'teamTodos' ? canEditTeam : canEditClient);
-                    sectionEl.outerHTML = buildSection(key, titles[key], todoArr, canEdit);
-                    wireSection(key, todoArr);
-                    attachListEvents(key, todoArr);
-                    return;
-                }
-                if (!todoArr.length) {
-                    list.innerHTML = '<p class="tracking-empty">No items yet.</p>';
-                    return;
-                }
-                var roleLabel = { planner: 'Event Planner', rnbTeam: 'RNB Team', couple: 'Client' };
-                var h = '<ul class="tracking-list tracking-list-editable" id="list-' + key + '">';
-                todoArr.forEach(function (item, i) {
-                    var sc = 'status-' + (item.status || 'pending').replace(/\s+/g, '-');
-                    h += '<li class="tracking-item ' + sc + '">';
-                    h += '<span class="tracking-bullet"></span>';
-                    h += '<span class="tracking-text">' + escHtml(item.text) + '</span>';
-                    if (item.addedBy || item.addedAt) {
-                        h += '<span class="tracking-item-meta">';
-                        if (item.addedBy) h += '<span class="tracking-author-badge role-' + escHtml(item.addedBy) + '">' + escHtml(roleLabel[item.addedBy] || item.addedBy) + '</span>';
-                        if (item.addedAt) h += '<span class="tracking-timestamp">' + escHtml(formatNoteTs(item.addedAt)) + '</span>';
-                        h += '</span>';
-                    }
-                    h += '<select class="tracking-status-select ' + sc + '" data-key="' + key + '" data-index="' + i + '">';
-                    ['pending', 'in-progress', 'done', 'not-applicable'].forEach(function (s) {
-                        h += '<option value="' + s + '"' + (item.status === s ? ' selected' : '') + '>' + formatStatus(s) + '</option>';
-                    });
-                    h += '</select>';
-                    h += '<button type="button" class="tracking-remove-btn" data-key="' + key + '" data-index="' + i + '" title="Remove">&times;</button>';
-                    h += '</li>';
-                });
-                h += '</ul>';
-                list.outerHTML = h;
-                attachListEvents(key, todoArr);
-            }
-
-            function addItem(key, todoArr) {
-                var input = document.getElementById('new-' + key);
-                var text = (input ? input.value || '' : '').trim();
-                if (!text) return;
-                todoArr.push({
-                    text:    text,
-                    status:  'pending',
-                    addedAt: new Date().toISOString(),
-                    addedBy: role
-                });
-                if (input) input.value = '';
-                refreshList(key, todoArr);
-            }
-
-            function saveSection(key, todoArr) {
-                var btn    = document.getElementById('save-' + key + '-btn');
-                var status = document.getElementById('save-' + key + '-status');
-                btn.disabled = true;
-                btn.textContent = 'SAVING...';
-                status.textContent = '';
-
-                var payload = {
-                    codeHash:     codeHash,
-                    editLogEntry: {
-                        ts:       new Date().toISOString(),
-                        role:     role,
-                        roleName: roleName,
-                        action:   'Updated ' + key
-                    }
-                };
-                payload[key] = todoArr;
+                var payload = { codeHash: codeHash };
+                payload[key] = todos[key];
+                payload.editLogEntry = { ts: new Date().toISOString(), role: role, roleName: roleName, action: 'Updated ' + key };
 
                 fetch(NOTES_API, {
                     method: 'POST',
@@ -257,62 +119,207 @@
                 })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
+                    if (!ind) return;
                     if (data && data.ok) {
-                        status.textContent = 'Saved!';
-                        status.className = 'tracking-save-status save-ok';
+                        ind.textContent = 'Saved ✓';
+                        ind.className = 'tracking-autosave saved';
+                        setTimeout(function () { if (ind) ind.textContent = ''; }, 3000);
                     } else {
-                        status.textContent = 'Save failed: ' + (data.error || 'Unknown error');
-                        status.className = 'tracking-save-status save-err';
+                        ind.textContent = '⚠ Save failed';
+                        ind.className = 'tracking-autosave error';
                     }
                 })
-                .catch(function (e) {
-                    status.textContent = 'Save failed: ' + e;
-                    status.className = 'tracking-save-status save-err';
-                })
-                .then(function () {
-                    btn.disabled = false;
-                    btn.textContent = 'SAVE CHANGES';
+                .catch(function () {
+                    if (ind) { ind.textContent = '⚠ No connection'; ind.className = 'tracking-autosave error'; }
                 });
             }
 
-            if (canEditPlanner) { wireSection('plannerTodos', plannerTodos); attachListEvents('plannerTodos', plannerTodos); }
-            if (canEditTeam)    { wireSection('teamTodos',    teamTodos);    attachListEvents('teamTodos',    teamTodos); }
-            wireSection('clientTodos', clientTodos);
-            attachListEvents('clientTodos', clientTodos);
-        }
+            /* ── Render a single item row ─────────────────── */
+            function renderItem(key, item, i, editable) {
+                var sc  = 'status-' + (item.status || 'pending');
+                var lbl = STATUS_LABELS[item.status] || item.status;
+                var li  = document.createElement('li');
+                li.className = 'tracking-item ' + sc;
+                li.dataset.key   = key;
+                li.dataset.index = i;
 
-        /* Run when portal data is available */
-        if (window._portalReady) {
-            initTracking();
-        } else {
-            window.onPortalReady = initTracking;
-        }
+                /* bullet */
+                var bullet = document.createElement('span');
+                bullet.className = 'tracking-bullet';
+                li.appendChild(bullet);
 
-        function escHtml(s) {
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
+                /* text */
+                var txt = document.createElement('span');
+                txt.className = 'tracking-text';
+                txt.textContent = item.text;
+                li.appendChild(txt);
 
-        function formatStatus(s) {
-            var map = { 'pending': 'Pending', 'in-progress': 'In Progress', 'done': 'Done', 'not-applicable': 'N/A' };
-            return map[s] || s;
-        }
+                /* meta (author + time) */
+                if (item.addedBy || item.addedAt) {
+                    var meta = document.createElement('span');
+                    meta.className = 'tracking-item-meta';
+                    if (item.addedBy) {
+                        var badge = document.createElement('span');
+                        badge.className = 'tracking-author-badge role-' + item.addedBy;
+                        badge.textContent = ROLE_LABELS[item.addedBy] || item.addedBy;
+                        meta.appendChild(badge);
+                    }
+                    if (item.addedAt) {
+                        var ts = document.createElement('span');
+                        ts.className = 'tracking-timestamp';
+                        ts.textContent = fmtTs(item.addedAt);
+                        meta.appendChild(ts);
+                    }
+                    li.appendChild(meta);
+                }
 
-        function formatNoteTs(isoTs) {
-            if (!isoTs) return '';
-            if (window.formatNoteTs) return window.formatNoteTs(isoTs);
-            try {
-                var d = new Date(isoTs);
-                return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-            } catch (e) { return isoTs; }
-        }
+                if (editable) {
+                    /* Status pill — tap to cycle */
+                    var pill = document.createElement('button');
+                    pill.type = 'button';
+                    pill.className = 'status-pill ' + sc;
+                    pill.textContent = lbl;
+                    pill.title = 'Tap to change status';
+                    pill.addEventListener('click', function () {
+                        var cur = todos[key][i].status;
+                        var next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(cur) + 1) % STATUS_CYCLE.length];
+                        todos[key][i].status = next;
+                        li.className = 'tracking-item status-' + next;
+                        bullet.className = 'tracking-bullet';
+                        pill.className = 'status-pill status-' + next;
+                        pill.textContent = STATUS_LABELS[next];
+                        scheduleSave(key);
+                    });
+                    li.appendChild(pill);
 
-        function escHtml(s) {
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
+                    /* Remove button */
+                    var rmBtn = document.createElement('button');
+                    rmBtn.type = 'button';
+                    rmBtn.className = 'tracking-remove-btn';
+                    rmBtn.title = 'Remove';
+                    rmBtn.innerHTML = '&times;';
+                    rmBtn.addEventListener('click', function () {
+                        todos[key].splice(i, 1);
+                        renderList(key);
+                        scheduleSave(key);
+                    });
+                    li.appendChild(rmBtn);
+                } else {
+                    var statusSpan = document.createElement('span');
+                    statusSpan.className = 'tracking-status ' + sc;
+                    statusSpan.textContent = lbl;
+                    li.appendChild(statusSpan);
+                }
 
-        function formatStatus(s) {
-            var map = { 'pending': 'Pending', 'in-progress': 'In Progress', 'done': 'Done', 'not-applicable': 'N/A' };
-            return map[s] || s;
+                return li;
+            }
+
+            /* ── Render item list for a section ──────────── */
+            function renderList(key) {
+                var listEl = document.getElementById('list-' + key);
+                var emptyEl = document.getElementById('empty-' + key);
+                if (!listEl) return;
+                listEl.innerHTML = '';
+                if (!todos[key].length) {
+                    if (emptyEl) emptyEl.style.display = '';
+                } else {
+                    if (emptyEl) emptyEl.style.display = 'none';
+                    todos[key].forEach(function (item, i) {
+                        listEl.appendChild(renderItem(key, item, i, canEdit[key]));
+                    });
+                }
+            }
+
+            /* ── Build full section HTML ─────────────────── */
+            function buildSection(key) {
+                var editable = canEdit[key];
+                var section  = document.createElement('div');
+                section.className = 'tracking-section' + (editable ? ' tracking-editable' : '');
+                section.id = 'section-' + key;
+
+                /* Header row */
+                var hdr = document.createElement('div');
+                hdr.className = 'tracking-section-header';
+
+                var h2 = document.createElement('h2');
+                h2.className = 'tracking-section-title';
+                h2.textContent = TITLES[key];
+                hdr.appendChild(h2);
+
+                if (editable) {
+                    var ind = document.createElement('span');
+                    ind.id = 'ind-' + key;
+                    ind.className = 'tracking-autosave';
+                    hdr.appendChild(ind);
+                } else {
+                    var locked = document.createElement('span');
+                    locked.className = 'tracking-section-locked';
+                    locked.textContent = 'view only';
+                    hdr.appendChild(locked);
+                }
+                section.appendChild(hdr);
+
+                /* Empty state */
+                var empty = document.createElement('p');
+                empty.id = 'empty-' + key;
+                empty.className = 'tracking-empty';
+                empty.textContent = editable ? 'No items yet — add one below.' : 'No items yet.';
+                empty.style.display = todos[key].length ? 'none' : '';
+                section.appendChild(empty);
+
+                /* List */
+                var ul = document.createElement('ul');
+                ul.id = 'list-' + key;
+                ul.className = 'tracking-list' + (editable ? ' tracking-list-editable' : '');
+                section.appendChild(ul);
+
+                /* Add-item row */
+                if (editable) {
+                    var addRow = document.createElement('div');
+                    addRow.className = 'tracking-add-row';
+
+                    var inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.id = 'new-' + key;
+                    inp.className = 'tracking-input';
+                    inp.placeholder = 'Type a note and press Enter…';
+                    inp.maxLength = 500;
+                    inp.setAttribute('autocomplete', 'off');
+                    inp.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') { e.preventDefault(); addAndSave(key); }
+                    });
+                    addRow.appendChild(inp);
+
+                    var addBtn = document.createElement('button');
+                    addBtn.type = 'button';
+                    addBtn.className = 'tracking-add-btn';
+                    addBtn.textContent = '+ ADD';
+                    addBtn.addEventListener('click', function () { addAndSave(key); });
+                    addRow.appendChild(addBtn);
+
+                    section.appendChild(addRow);
+                }
+
+                return section;
+            }
+
+            function addAndSave(key) {
+                var inp  = document.getElementById('new-' + key);
+                var text = (inp ? inp.value : '').trim();
+                if (!text) { if (inp) inp.focus(); return; }
+                todos[key].push({ text: text, status: 'pending', addedAt: new Date().toISOString(), addedBy: role });
+                if (inp) inp.value = '';
+                renderList(key);
+                doSave(key); // immediate save on new item
+            }
+
+            /* ── Mount everything ────────────────────────── */
+            el.innerHTML = '';
+            ['plannerTodos', 'teamTodos', 'clientTodos'].forEach(function (key) {
+                var sec = buildSection(key);
+                el.appendChild(sec);
+                renderList(key);
+            });
         }
 
         /* Run when portal data is available */

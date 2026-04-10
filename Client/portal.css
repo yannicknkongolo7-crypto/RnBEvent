@@ -1133,6 +1133,101 @@ a {
 .save-ok  { color: var(--accent); }
 .save-err { color: #c44; }
 
+/* ── Tracking: section header with auto-save indicator ── */
+.tracking-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.tracking-section-header .tracking-section-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.tracking-autosave {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    min-width: 80px;
+    text-align: right;
+    transition: color 0.2s;
+}
+.tracking-autosave.saving { color: var(--text-mid); }
+.tracking-autosave.saved  { color: var(--accent); }
+.tracking-autosave.error  { color: #c44; }
+
+/* ── Tracking: section locked badge ──────────────── */
+.tracking-section-locked {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+/* ── Tracking: status pills (tap-to-cycle) ───────── */
+.status-pill {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+}
+.status-pill:active { opacity: 0.7; transform: scale(0.96); }
+.status-pill.status-done           { background: #e8f4e8; color: var(--accent); }
+.status-pill.status-in-progress    { background: #fdf8ee; color: #a07c30; }
+.status-pill.status-pending        { background: #f0f0f0; color: #777; }
+.status-pill.status-not-applicable { background: #f5f5f5; color: #aaa; }
+
+/* ── Tracking: meta (author + timestamp) ─────────── */
+.tracking-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+.tracking-author-badge {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--cream);
+    color: var(--text-mid);
+    border: 1px solid var(--border);
+}
+.tracking-author-badge.role-planner  { background: #edf3ff; color: #3a5a9e; border-color: #c4d3f5; }
+.tracking-author-badge.role-rnbTeam  { background: #f2efe8; color: var(--primary); border-color: var(--border); }
+.tracking-author-badge.role-couple   { background: #f5f0e8; color: #8a6a3e; border-color: #e5d8c4; }
+.tracking-timestamp {
+    color: var(--text-mid);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.68rem;
+}
+
+@media (max-width: 600px) {
+    .tracking-item-meta { display: none; }
+    .status-pill { font-size: 0.72rem; padding: 6px 14px; }
+}
+
 @media (max-width: 600px) {
     .tracking-add-row,
     .edit-add-row {

@@ -105,10 +105,16 @@
                     html += '</div>';
                 }
                 html += '<div class="edit-add-row">';
-                html += '<input type="text" id="new-img-url" class="tracking-input" placeholder="Image URL (https://...)" maxlength="2000">';
+                html += '<input type="text" id="new-img-url" class="tracking-input" placeholder="Paste image URL (https://...)" maxlength="2000">';
                 html += '<input type="text" id="new-img-cap" class="tracking-input" placeholder="Caption (optional)" maxlength="300">';
-                html += '<button type="button" id="add-img-btn" class="tracking-add-btn">+ ADD</button>';
+                html += '<button type="button" id="add-img-btn" class="tracking-add-btn">+ ADD URL</button>';
                 html += '</div>';
+                html += '<div class="edit-add-row" style="margin-top:10px;align-items:center;gap:10px">';
+                html += '<label class="tracking-upload-label" for="mb-file" style="cursor:pointer;padding:8px 16px;background:#527141;color:#fff;border-radius:3px;font-size:11px;letter-spacing:1.5px;white-space:nowrap">&#128247; UPLOAD PHOTO</label>';
+                html += '<input type="file" id="mb-file" accept="image/*" style="display:none">';
+                html += '<span style="color:#888;font-size:11px">JPG / PNG / WebP &mdash; auto-compressed to under 5 MB</span>';
+                html += '</div>';
+                html += '<p id="mb-upload-progress" class="tracking-save-status" style="min-height:18px"></p>';
                 html += '</div>';
 
                 html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
@@ -139,6 +145,27 @@
                     if (!url) return;
                     mb.images.push({ url: url, caption: document.getElementById('new-img-cap').value.trim() });
                     render();
+                });
+                document.getElementById('mb-file').addEventListener('change', function () {
+                    var file = this.files[0];
+                    if (!file) return;
+                    var prog = document.getElementById('mb-upload-progress');
+                    this.disabled = true;
+                    uploadPortalFile(file, function (msg) { prog.textContent = msg; prog.className = 'tracking-save-status'; })
+                        .then(function (url) {
+                            mb.images.push({ url: url, caption: document.getElementById('new-img-cap').value.trim() });
+                            prog.textContent = 'Photo uploaded — click SAVE CHANGES to keep it.';
+                            prog.className = 'tracking-save-status save-ok';
+                            render();
+                        })
+                        .catch(function (e) {
+                            prog.textContent = 'Upload failed: ' + e.message;
+                            prog.className = 'tracking-save-status save-err';
+                        })
+                        .then(function () {
+                            var fi = document.getElementById('mb-file');
+                            if (fi) { fi.disabled = false; fi.value = ''; }
+                        });
                 });
                 document.getElementById('save-btn').addEventListener('click', function () {
                     mb.description = document.getElementById('mb-desc').value.trim();

@@ -85,7 +85,7 @@
     /* Fetch from S3 first, then boot */
     var url = window.RNB_CLOUD_URL;
     if (url) {
-        fetch(url, { redirect: 'follow' })
+        fetch(url + '?_t=' + Date.now(), { redirect: 'follow' })
             .then(function (r) { return r.json(); })
             .then(function (arr) {
                 if (Array.isArray(arr)) {
@@ -144,6 +144,65 @@
         } catch (e) { return isoTs; }
     };
 
+    window.RNB_UPLOAD_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/upload-file';
+
+    /**
+     * Compress an image file via Canvas then upload to S3 through the Lambda.
+     * Returns a Promise that resolves to the public S3 URL.
+     * @param {File} file  - Browser File object (must be image/*)
+     * @param {Function} [onStatus] - optional callback(string) for progress messages
+     */
+    window.uploadPortalFile = function (file, onStatus) {
+        function status(msg) { if (typeof onStatus === 'function') onStatus(msg); }
+        return new Promise(function (resolve, reject) {
+            if (!file || !file.type.startsWith('image/')) {
+                return reject(new Error('Only image files are supported.'));
+            }
+
+            status('Reading file…');
+            var reader = new FileReader();
+            reader.onerror = function () { reject(new Error('Could not read file.')); };
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onerror = function () { reject(new Error('Could not load image.')); };
+                img.onload = function () {
+                    /* Resize to max 1 400 px on longest side, JPEG 82 % quality */
+                    var MAX = 1400;
+                    var w = img.width, h = img.height;
+                    if (w > MAX || h > MAX) {
+                        if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+                        else        { w = Math.round(w * MAX / h); h = MAX; }
+                    }
+                    var canvas = document.createElement('canvas');
+                    canvas.width  = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    var b64 = canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
+
+                    status('Uploading…');
+                    fetch(window.RNB_UPLOAD_API, {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            codeHash:    window.currentCode,
+                            fileName:    file.name,
+                            contentType: 'image/jpeg',
+                            data:        b64
+                        })
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        if (res && res.ok) { resolve(res.url); }
+                        else { reject(new Error(res.error || 'Upload failed.')); }
+                    })
+                    .catch(function (err) { reject(new Error('Upload failed — check your connection.')); });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
     window.RNB_SECTION_API = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section';
 
     window.savePortalSection = function (section, data, statusEl, btnEl, editAction) {
@@ -173,13 +232,15 @@
             if (res && res.ok) {
                 statusEl.textContent = 'Saved!';
                 statusEl.className = 'tracking-save-status save-ok';
+                /* Keep in-memory client in sync so current session reflects the save */
+                if (window.currentClient) window.currentClient[section] = data;
             } else {
-                statusEl.textContent = 'Save failed: ' + (res.error || 'Unknown');
+                statusEl.textContent = 'Save failed: ' + (res.error || 'Unknown error — check your connection and try again.');
                 statusEl.className = 'tracking-save-status save-err';
             }
         })
         .catch(function (e) {
-            statusEl.textContent = 'Save failed: ' + e;
+            statusEl.textContent = 'Save failed — check your internet connection and try again.';
             statusEl.className = 'tracking-save-status save-err';
         })
         .then(function () {

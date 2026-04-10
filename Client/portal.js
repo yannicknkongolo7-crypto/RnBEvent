@@ -36,7 +36,7 @@
     function fetchCloudClients() {
         var url = window.RNB_CLOUD_URL;
         if (!url) return Promise.resolve();
-        return fetch(url, { redirect: 'follow' })
+        return fetch(url + '?_t=' + Date.now(), { redirect: 'follow' })
             .then(function (r) { return r.json(); })
             .then(function (arr) {
                 if (Array.isArray(arr)) {

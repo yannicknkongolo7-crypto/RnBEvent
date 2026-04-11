@@ -551,6 +551,52 @@
     ══════════════════════════════════════════════════ */
 
     var S3_CLIENTS_URL = 'https://rnbevents716.s3.us-east-2.amazonaws.com/clients.json';
+    var LAMBDA_BASE    = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com';
+
+    /* ── Post-event automation ────────────────────────── */
+    function runPostEventTasks() {
+        fetch(LAMBDA_BASE + '/run-post-event-tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}'
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (res && res.ok && Array.isArray(res.processed) && res.processed.length) {
+                res.processed.forEach(function (p) {
+                    var idx = state.clients.findIndex(function (c) { return c.id === p.id; });
+                    if (idx > -1) {
+                        state.clients[idx].active   = false;
+                        state.clients[idx].archived = true;
+                    }
+                });
+                safeSave(STORAGE_CLIENTS, state.clients);
+                renderClientManager();
+                renderDashboardClients();
+                renderStats();
+                showToast(res.processed.length + ' client(s) archived after event — thank-you emails sent.');
+            }
+        })
+        .catch(function () { /* non-critical */ });
+    }
+
+    /* ── Admin activity logging ───────────────────────── */
+    var _activityBatch = [];
+    var _activityTimer = null;
+
+    function logAdminActivity(action, details) {
+        _activityBatch.push({ action: action, details: details || '' });
+        clearTimeout(_activityTimer);
+        _activityTimer = setTimeout(function () {
+            var batch = _activityBatch.slice();
+            _activityBatch = [];
+            fetch(LAMBDA_BASE + '/log-admin-activity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entries: batch })
+            }).catch(function () { /* non-critical */ });
+        }, 2000);
+    }
 
     function fetchS3Clients() {
         return fetch(S3_CLIENTS_URL + '?t=' + Date.now())
@@ -603,6 +649,8 @@
         renderAll();
         syncFromCloud();
         fetchS3Clients();
+        runPostEventTasks();
+        logAdminActivity('Admin login', 'Admin accessed the dashboard');
     }
 
     /* ── State load/save ─────────────────────────────── */
@@ -1768,13 +1816,14 @@
         var el = document.getElementById('clients-list');
         if (!el) return;
 
-        if (!state.clients.length) {
-            el.innerHTML = '<p style="padding:20px 0;font-size:12px;color:#527141;font-weight:300;letter-spacing:0.5px">No clients yet. Click + NEW CLIENT to create a portal access code.</p>';
+        var active = state.clients.filter(function (c) { return !c.archived; });
+        if (!active.length) {
+            el.innerHTML = '<p style="padding:20px 0;font-size:12px;color:#527141;font-weight:300;letter-spacing:0.5px">No active clients. Click + NEW CLIENT to create a portal access code.</p>';
             return;
         }
 
         var html = '<div class="crm-row crm-head"><span>Client</span><span>Event</span><span>Date</span><span>Access Codes</span><span>Status</span><span>Actions</span></div>';
-        state.clients.forEach(function (c) {
+        active.forEach(function (c) {
             var isActive = c.active !== false;
             var statusBtn = isActive
                 ? '<button class="client-status-btn active" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">ACTIVE</button>'
@@ -2016,6 +2065,7 @@
             saveClientsToStorage();
             closeModal('modal-client');
             renderClientManager();
+            logAdminActivity('Client saved', (editingClientId ? 'Updated' : 'Created') + ' client: ' + name + ' (code: ' + code + ')');
             showToast('Client "' + name + '" saved. Codes — Couple: ' + code + (plannerCode ? ' / Planner: ' + plannerCode : '') + (teamCode ? ' / Team: ' + teamCode : ''));
         });
     }
@@ -2055,9 +2105,10 @@
     }
 
     function renderAllClientsView() {
-        var total   = state.clients.length;
-        var active  = state.clients.filter(function (c) { return c.active !== false; }).length;
-        var disabled = total - active;
+        var total    = state.clients.length;
+        var active   = state.clients.filter(function (c) { return !c.archived && c.active !== false; }).length;
+        var disabled = state.clients.filter(function (c) { return !c.archived && c.active === false; }).length;
+        var archived = state.clients.filter(function (c) { return c.archived; }).length;
 
         /* Summary */
         var sumEl = document.getElementById('all-clients-summary');
@@ -2065,22 +2116,25 @@
             sumEl.innerHTML =
                 '<span class="ac-stat">' + total + ' Total</span>' +
                 '<span class="ac-stat ac-active">' + active + ' Active</span>' +
-                '<span class="ac-stat ac-disabled">' + disabled + ' Disabled</span>';
+                '<span class="ac-stat ac-disabled">' + disabled + ' Disabled</span>' +
+                '<span class="ac-stat" style="color:#b89a5e">' + archived + ' Archived</span>';
         }
 
         /* Filters */
         var filEl = document.getElementById('all-clients-filters');
         if (filEl) {
             filEl.innerHTML =
-                '<button class="filter-btn' + (allClientsFilter === 'all' ? ' active' : '') + '" onclick="filterAllClients(\'all\', this)">All (' + total + ')</button>' +
-                '<button class="filter-btn' + (allClientsFilter === 'active' ? ' active' : '') + '" onclick="filterAllClients(\'active\', this)">Active (' + active + ')</button>' +
-                '<button class="filter-btn' + (allClientsFilter === 'disabled' ? ' active' : '') + '" onclick="filterAllClients(\'disabled\', this)">Disabled (' + disabled + ')</button>';
+                '<button class="filter-btn' + (allClientsFilter === 'all'      ? ' active' : '') + '" onclick="filterAllClients(\'all\', this)">All (' + total + ')</button>' +
+                '<button class="filter-btn' + (allClientsFilter === 'active'   ? ' active' : '') + '" onclick="filterAllClients(\'active\', this)">Active (' + active + ')</button>' +
+                '<button class="filter-btn' + (allClientsFilter === 'disabled' ? ' active' : '') + '" onclick="filterAllClients(\'disabled\', this)">Disabled (' + disabled + ')</button>' +
+                '<button class="filter-btn' + (allClientsFilter === 'archived' ? ' active' : '') + '" onclick="filterAllClients(\'archived\', this)" style="color:#b89a5e">Archived (' + archived + ')</button>';
         }
 
         /* Filter clients */
         var list = state.clients;
-        if (allClientsFilter === 'active')   list = list.filter(function (c) { return c.active !== false; });
-        if (allClientsFilter === 'disabled') list = list.filter(function (c) { return c.active === false; });
+        if (allClientsFilter === 'active')   list = list.filter(function (c) { return !c.archived && c.active !== false; });
+        if (allClientsFilter === 'disabled') list = list.filter(function (c) { return !c.archived && c.active === false; });
+        if (allClientsFilter === 'archived') list = list.filter(function (c) { return c.archived; });
 
         /* Table */
         var tblEl = document.getElementById('all-clients-table');
@@ -2113,8 +2167,8 @@
             if (c.plannerCode) codeHtml += '<br><code class="client-code-badge" title="Planner" style="background:#527141">' + esc(c.plannerCode) + '</code>';
             if (c.teamCode)    codeHtml += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">' + esc(c.teamCode) + '</code>';
 
-            html += '<div class="ac-row' + (isActive ? '' : ' ac-row-disabled') + '">' +
-                '<span class="ac-name">' + esc(c.fullName || c.firstName || '\u2013') + '</span>' +
+            html += '<div class="ac-row' + (c.archived ? ' ac-row-archived' : (isActive ? '' : ' ac-row-disabled')) + '">' +
+                '<span class="ac-name">' + esc(c.fullName || c.firstName || '\u2013') + (c.archived ? ' <span class="ac-badge" style="background:#b89a5e;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;vertical-align:middle">ARCHIVED</span>' : '') + '</span>' +
                 '<span class="ac-code">' + codeHtml + '</span>' +
                 '<span>' + esc(c.eventType || '\u2013') + '</span>' +
                 '<span>' + esc(c.eventDate || '\u2013') + '</span>' +
@@ -2125,7 +2179,9 @@
                 '<span>' + esc(c.added || '\u2013') + '</span>' +
                 '<span class="crm-actions">' +
                     '<button class="crm-act-btn" onclick="closeModal(\'modal-all-clients\');editClient(\'' + escJS(c.id) + '\')">EDIT</button>' +
-                    '<button class="crm-act-btn" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">' + (isActive ? 'DISABLE' : 'ENABLE') + '</button>' +
+                    (c.archived
+                        ? '<button class="crm-act-btn" onclick="unarchiveClient(\'' + escJS(c.id) + '\')" style="color:#b89a5e">RESTORE</button>'
+                        : '<button class="crm-act-btn" onclick="toggleClientAccess(\'' + escJS(c.id) + '\')">' + (isActive ? 'DISABLE' : 'ENABLE') + '</button>') +
                 '</span>' +
             '</div>';
         });
@@ -2140,7 +2196,22 @@
         state.clients = state.clients.filter(function (x) { return x.id !== id; });
         saveClientsToStorage();
         renderClientManager();
+        logAdminActivity('Client deleted', 'Deleted client: ' + (c.fullName || c.id));
         showToast('Client removed.');
+    }
+
+    function unarchiveClient(id) {
+        var c = state.clients.find(function (x) { return x.id === id; });
+        if (!c) return;
+        if (!confirm('Restore "' + (c.fullName || c.id) + '" from archive and re-enable access?')) return;
+        c.archived   = false;
+        c.active     = true;
+        c.archivedAt = '';
+        saveClientsToStorage();
+        renderAllClientsView();
+        renderClientManager();
+        logAdminActivity('Client restored from archive', 'Restored: ' + (c.fullName || c.id));
+        showToast((c.fullName || 'Client') + ' restored from archive.');
     }
 
 
@@ -2309,6 +2380,7 @@
     window.editClient             = editClient;
     window.saveClient             = saveClient;
     window.deleteClient           = deleteClient;
+    window.unarchiveClient        = unarchiveClient;
     window.addClientTimelineRow   = addClientTimelineRow;
     window.publishClientsConfig   = publishClientsConfig;
     window.copyPublishedConfig    = copyPublishedConfig;

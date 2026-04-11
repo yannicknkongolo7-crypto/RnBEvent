@@ -452,9 +452,8 @@
 
             fetch(CLOUD, {
                 method:   'POST',
-                headers:  { 'Content-Type': 'text/plain' },
+                headers:  { 'Content-Type': 'application/json' },
                 body:     JSON.stringify({ adminCodeHash: hash }),
-                redirect: 'follow'
             })
             .then(function () {
                 successEl.textContent = 'Admin code updated. Redirecting to login...';
@@ -677,7 +676,7 @@
     }
 
     /* ══════════════════════════════════════════════════
-       CLOUD SYNC — Google Sheets via Apps Script
+       CLOUD SYNC — AWS S3 via Lambda API
     ══════════════════════════════════════════════════ */
 
     var CLOUD_URL = (window.ADMIN_CONFIG || {}).cloudApiUrl || '';
@@ -685,11 +684,9 @@
     function cloudGet() {
         if (!CLOUD_URL) { updateSyncStatus('local'); return Promise.resolve(null); }
         updateSyncStatus('syncing');
-        return fetch(CLOUD_URL + '?action=getAll', { redirect: 'follow' })
+        return fetch(CLOUD_URL, { method: 'GET' })
             .then(function (r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
-                var ct = r.headers.get('content-type') || '';
-                if (ct.indexOf('application/json') === -1 && ct.indexOf('text/json') === -1) throw new Error('Not JSON');
                 return r.json();
             })
             .then(function (data) { updateSyncStatus('synced'); return data; })
@@ -700,10 +697,9 @@
         if (!CLOUD_URL) return;
         updateSyncStatus('syncing');
         fetch(CLOUD_URL, {
-            method:   'POST',
-            headers:  { 'Content-Type': 'text/plain' },
-            body:     JSON.stringify(filterCloudPayload(payload)),
-            redirect: 'follow'
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(filterCloudPayload(payload))
         })
         .then(function () { updateSyncStatus('synced'); })
         .catch(function (e) { console.error('Cloud push:', e); updateSyncStatus('error'); });
@@ -721,9 +717,36 @@
         return payload;
     }
 
+    var GAS_MIGRATION_URL = 'https://script.google.com/macros/s/AKfycbyrBsv3ydk-aUw_x7Ei0Z4zx6HryuYyBSDrs2lKnGlcom-0HrA4xiBYu7pnktmawO1gVg/exec';
+    var MIGRATION_KEY = 'rnb_gas_migrated';
+
+    function maybeRunMigration(s3Data) {
+        // Already migrated, or S3 already has real data — skip
+        if (localStorage.getItem(MIGRATION_KEY)) return Promise.resolve();
+        var hasData = (Array.isArray(s3Data.prospects) && s3Data.prospects.length > 0) ||
+                      (Array.isArray(s3Data.tasks)     && s3Data.tasks.length     > 0);
+        if (hasData) { localStorage.setItem(MIGRATION_KEY, '1'); return Promise.resolve(); }
+        // Fetch from Google Apps Script and push to S3
+        return fetch(GAS_MIGRATION_URL + '?action=getAll', { redirect: 'follow' })
+            .then(function (r) { return r.json(); })
+            .then(function (gas) {
+                var payload = {};
+                if (Array.isArray(gas.prospects) && gas.prospects.length) payload.prospects = gas.prospects;
+                if (Array.isArray(gas.tasks)     && gas.tasks.length)     payload.tasks     = gas.tasks;
+                if (gas.content && Object.keys(gas.content).length)       payload.content   = gas.content;
+                if (gas.adminCodeHash)                                     payload.adminCodeHash = gas.adminCodeHash;
+                if (!Object.keys(payload).length) return;
+                cloudPush(payload);
+                localStorage.setItem(MIGRATION_KEY, '1');
+                console.log('Migration from Google Sheets complete.');
+            })
+            .catch(function (e) { console.warn('Migration from Google Sheets failed (non-critical):', e); });
+    }
+
     function syncFromCloud() {
         cloudGet().then(function (data) {
             if (!data) return;
+            maybeRunMigration(data);
             var changed = false;
             if (Array.isArray(data.prospects) && data.prospects.length) {
                 state.prospects = data.prospects;

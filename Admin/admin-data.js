@@ -2,7 +2,7 @@
 window.ADMIN_CONFIG = {
     codeHash: '47d538bc9bbdba86910d104f78b851d87356c7fcee36e214878a5a24f7bbedf4',
     totpKey: [82,78,66,69,86,55,83,69,67,82,51,84,65,68,77,50],
-    cloudApiUrl: 'https://script.google.com/macros/s/AKfycbyrBsv3ydk-aUw_x7Ei0Z4zx6HryuYyBSDrs2lKnGlcom-0HrA4xiBYu7pnktmawO1gVg/exec',
+    cloudApiUrl: 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/admin-data',
     prospects: [
         {
             id:        'p1',

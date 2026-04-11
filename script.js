@@ -262,31 +262,33 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 const contactForm = document.getElementById('contactForm');
 
-contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    // Get form data
-    const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        eventType: document.getElementById('eventType').value,
-        message: document.getElementById('message').value
-    };
-    
-    // Display success message (replace with actual form submission logic)
-    alert('Thank you for your inquiry! We will get back to you shortly.');
-    
-    // Reset form
-    contactForm.reset();
-    
-    // In production, you would send this data to a server:
-    // fetch('/api/contact', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(formData)
-    // });
-});
+if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            eventType: document.getElementById('eventType').value,
+            message: document.getElementById('message').value
+        };
+        
+        // Display success message (replace with actual form submission logic)
+        alert('Thank you for your inquiry! We will get back to you shortly.');
+        
+        // Reset form
+        contactForm.reset();
+        
+        // In production, you would send this data to a server:
+        // fetch('/api/contact', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(formData)
+        // });
+    });
+}
 
 // ===========================
 // NEWSLETTER FORM SUBMISSION
@@ -294,15 +296,17 @@ contactForm.addEventListener('submit', (e) => {
 
 const newsletterForm = document.querySelector('.newsletter-form');
 
-newsletterForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = e.target.querySelector('input[type="email"]').value;
-    
-    alert('Thank you for subscribing!');
-    e.target.reset();
-    
-    // In production, send to server/email service
-});
+if (newsletterForm) {
+    newsletterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = e.target.querySelector('input[type="email"]').value;
+        
+        alert('Thank you for subscribing!');
+        e.target.reset();
+        
+        // In production, send to server/email service
+    });
+}
 
 // ===========================
 // PARALLAX EFFECT FOR HERO VIDEO

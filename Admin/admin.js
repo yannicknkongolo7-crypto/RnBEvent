@@ -1259,7 +1259,10 @@
                 customFeatures:   customFeatures.length ? customFeatures : undefined
             })
         })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+            if (!r.ok) throw new Error('HTTP_' + r.status);
+            return r.json();
+        })
         .then(function (res) {
             if (btn) { btn.disabled = false; btn.textContent = 'SEND QUOTE'; }
             if (res && res.ok) {
@@ -1279,7 +1282,22 @@
         })
         .catch(function (e) {
             if (btn) { btn.disabled = false; btn.textContent = 'SEND QUOTE'; }
-            showToast('Network error sending quote: ' + e);
+            /* Build a pre-filled email as fallback (Lambda not yet deployed or route missing) */
+            var bodyLines = [
+                'Dear ' + (p.name || 'there') + ',',
+                '',
+                'Thank you for your interest in RNB Events! We\u2019re excited to share your ' + pkg + ' package details.',
+                ''
+            ];
+            if (customFeatures.length) bodyLines.push('Inclusions: ' + customFeatures.join(', '), '');
+            if (estimatedAmount)       bodyLines.push('Estimated Investment: $' + estimatedAmount, '');
+            if (customNote)            bodyLines.push(customNote, '');
+            bodyLines.push('To book a consultation or learn more, visit rnbevents716.com', '', 'Warm regards,', 'The RNB Events Team');
+            var mailtoHref = 'mailto:' + encodeURIComponent(p.email) +
+                '?subject=' + encodeURIComponent('Your ' + pkg + ' Package Quote \u2014 RNB Events') +
+                '&body=' + encodeURIComponent(bodyLines.join('\n'));
+            showToast('Email service unavailable \u2014 opening your mail app to send manually.');
+            setTimeout(function () { window.open(mailtoHref, '_blank'); }, 600);
         });
     }
     window.sendQuoteEmail      = sendQuoteEmail;

@@ -52,19 +52,40 @@
     <script src="portal-page.js"></script>
     <script>
         function initMoodboard() {
-            var client = window.currentClient;
-            var el     = document.getElementById('moodboard-content');
-            var mb     = JSON.parse(JSON.stringify(client.moodboard || { palette: [], images: [], description: '' }));
+            var client   = window.currentClient;
+            var codeHash = window.currentCode;
+            var el       = document.getElementById('moodboard-content');
+            var mb       = JSON.parse(JSON.stringify(client.moodboard || { palette: [], images: [], description: '' }));
             if (!mb.palette) mb.palette = [];
             if (!mb.images)  mb.images  = [];
+            var descTimer = null;
 
             render();
+
+            function doSave(indicatorId) {
+                var id  = indicatorId || 'mb-autosave';
+                var ind = document.getElementById(id);
+                if (ind) { ind.textContent = 'Saving…'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: codeHash, section: 'moodboard', data: mb, editLogEntry: { ts: new Date().toISOString(), role: window.currentRole || 'couple', roleName: window.currentRoleName || 'Client', action: 'Updated moodboard' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById(id);
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved ✓'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById(id); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '⚠ Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById(id); if (i) { i.textContent = '⚠ No connection'; i.className = 'tracking-autosave error'; } });
+            }
 
             function render() {
                 var html = '';
                 /* Description */
                 html += '<div class="tracking-section tracking-editable">';
-                html += '<h2 class="tracking-section-title">Description</h2>';
+                html += '<div class="tracking-section-header"><h2 class="tracking-section-title">Description</h2><span id="mb-autosave" class="tracking-autosave"></span></div>';
                 html += '<textarea id="mb-desc" class="tracking-input" style="width:100%;min-height:80px">' + escHtml(mb.description || '') + '</textarea>';
                 html += '</div>';
 
@@ -86,7 +107,7 @@
                 html += '<input type="text" id="new-hex" class="tracking-input" placeholder="#b89a5e" maxlength="10" style="max-width:140px">';
                 html += '<button type="button" id="add-color-btn" class="tracking-add-btn">+ ADD</button>';
                 html += '</div>';
-                html += '<p id="palette-status" class="tracking-save-status" style="min-height:18px"></p>';
+                html += '<p id="palette-status" class="tracking-autosave" style="min-height:18px"></p>';
                 html += '</div>';
 
                 /* Images */
@@ -114,9 +135,6 @@
                 html += '<p id="mb-upload-progress" class="tracking-save-status" style="min-height:18px"></p>';
                 html += '</div>';
 
-                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
-                html += '<p id="save-status" class="tracking-save-status"></p>';
-
                 el.innerHTML = html;
 
                 /* Sync color picker ↔ text */
@@ -125,24 +143,39 @@
                 cp.addEventListener('input', function () { hx.value = cp.value; });
                 hx.addEventListener('input', function () { if (/^#[0-9a-f]{6}$/i.test(hx.value)) cp.value = hx.value; });
 
+                /* Description debounce */
+                document.getElementById('mb-desc').addEventListener('input', function () {
+                    mb.description = this.value.trim();
+                    clearTimeout(descTimer);
+                    descTimer = setTimeout(function () { doSave('mb-autosave'); }, 800);
+                });
+
                 el.querySelectorAll('.palette-remove').forEach(function (btn) {
                     btn.addEventListener('click', function () {
                         var descEl = document.getElementById('mb-desc');
                         if (descEl) mb.description = descEl.value.trim();
                         mb.palette.splice(parseInt(this.dataset.index), 1);
                         render();
-                        /* Auto-save after removing a color */
-                        savePortalSection('moodboard', mb, document.getElementById('palette-status'), document.getElementById('save-btn'));
+                        doSave('palette-status');
                     });
                 });
                 el.querySelectorAll('.gallery-remove').forEach(function (btn) {
-                    btn.addEventListener('click', function () { mb.images.splice(parseInt(this.dataset.index), 1); render(); });
+                    btn.addEventListener('click', function () {
+                        var descEl = document.getElementById('mb-desc');
+                        if (descEl) mb.description = descEl.value.trim();
+                        mb.images.splice(parseInt(this.dataset.index), 1);
+                        render();
+                        doSave('mb-autosave');
+                    });
                 });
                 document.getElementById('add-color-btn').addEventListener('click', function () {
                     var hex = (hx.value || cp.value || '').trim();
                     if (!hex) return;
+                    var descEl = document.getElementById('mb-desc');
+                    if (descEl) mb.description = descEl.value.trim();
                     mb.palette.push(hex);
                     render();
+                    doSave('palette-status');
                 });
                 document.getElementById('mb-file').addEventListener('change', function () {
                     var file = this.files[0];
@@ -151,23 +184,21 @@
                     this.disabled = true;
                     uploadPortalFile(file, function (msg) { prog.textContent = msg; prog.className = 'tracking-save-status'; })
                         .then(function (url) {
-                            mb.images.push({ url: url, caption: document.getElementById('new-img-cap').value.trim() });
-                            prog.textContent = 'Photo uploaded — click SAVE CHANGES to keep it.';
-                            prog.className = 'tracking-save-status save-ok';
+                            var descEl = document.getElementById('mb-desc');
+                            if (descEl) mb.description = descEl.value.trim();
+                            var cap = document.getElementById('new-img-cap');
+                            mb.images.push({ url: url, caption: cap ? cap.value.trim() : '' });
                             render();
+                            doSave('mb-autosave');
                         })
                         .catch(function (e) {
-                            prog.textContent = 'Upload failed: ' + e.message;
-                            prog.className = 'tracking-save-status save-err';
+                            var p = document.getElementById('mb-upload-progress');
+                            if (p) { p.textContent = 'Upload failed: ' + e.message; p.className = 'tracking-save-status save-err'; }
                         })
                         .then(function () {
                             var fi = document.getElementById('mb-file');
                             if (fi) { fi.disabled = false; fi.value = ''; }
                         });
-                });
-                document.getElementById('save-btn').addEventListener('click', function () {
-                    mb.description = document.getElementById('mb-desc').value.trim();
-                    savePortalSection('moodboard', mb, document.getElementById('save-status'), document.getElementById('save-btn'));
                 });
             }
         }

@@ -52,16 +52,35 @@
     <script src="portal-page.js"></script>
     <script>
         function initTimeline() {
-            var client = window.currentClient;
-            var el = document.getElementById('timeline-content');
-            var items = (client.timeline || []).map(function (item) {
+            var client   = window.currentClient;
+            var codeHash = window.currentCode;
+            var el       = document.getElementById('timeline-content');
+            var items    = (client.timeline || []).map(function (item) {
                 return { date: item.date || '', milestone: item.milestone || '', notes: item.notes || '', status: item.status || 'upcoming' };
             });
 
             render();
 
+            function doSave() {
+                var ind = document.getElementById('timeline-autosave');
+                if (ind) { ind.textContent = 'Saving\u2026'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: codeHash, section: 'timeline', data: items, editLogEntry: { ts: new Date().toISOString(), role: window.currentRole || 'couple', roleName: window.currentRoleName || 'Client', action: 'Updated timeline' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById('timeline-autosave');
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved \u2713'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById('timeline-autosave'); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '\u26a0 Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById('timeline-autosave'); if (i) { i.textContent = '\u26a0 No connection'; i.className = 'tracking-autosave error'; } });
+            }
+
             function render() {
-                var html = '';
+                var html = '<div class="tracking-section-header" style="margin-bottom:16px"><span class="tracking-section-title" style="font-size:17px">Timeline</span><span id="timeline-autosave" class="tracking-autosave"></span></div>';
                 if (items.length) {
                     html += '<div class="timeline">';
                     items.forEach(function (item, i) {
@@ -85,24 +104,24 @@
                 html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
                 html += '<h3 class="tracking-section-title" style="font-size:16px">Add Milestone</h3>';
                 html += '<div class="edit-add-row">';
-                html += '<input type="date" id="new-date" class="tracking-input" maxlength="100">';
-                html += '<input type="text" id="new-milestone" class="tracking-input" placeholder="Milestone name" maxlength="200">';
+                html += '<input type="date" id="new-date" class="tracking-input">';
+                html += '<input type="text" id="new-milestone" class="tracking-input" placeholder="Milestone name\u2026" maxlength="200">';
                 html += '<input type="text" id="new-notes" class="tracking-input" placeholder="Notes (optional)" maxlength="500">';
                 html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
                 html += '</div>';
-                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
-                html += '<p id="save-status" class="tracking-save-status"></p>';
                 html += '</div>';
                 el.innerHTML = html;
 
                 el.querySelectorAll('.tracking-status-select').forEach(function (sel) {
-                    sel.addEventListener('change', function () { items[parseInt(this.dataset.index)].status = this.value; render(); });
+                    sel.addEventListener('change', function () { items[parseInt(this.dataset.index)].status = this.value; render(); doSave(); });
                 });
                 el.querySelectorAll('.tracking-remove-btn').forEach(function (btn) {
-                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); doSave(); });
                 });
                 document.getElementById('add-btn').addEventListener('click', addItem);
-                document.getElementById('save-btn').addEventListener('click', save);
+                document.getElementById('new-milestone').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); addItem(); }
+                });
             }
 
             function addItem() {
@@ -110,9 +129,8 @@
                 if (!m) return;
                 items.push({ date: window.toDDMMYYYY(document.getElementById('new-date').value.trim()), milestone: m, notes: document.getElementById('new-notes').value.trim(), status: 'upcoming' });
                 render();
+                doSave();
             }
-
-            function save() { savePortalSection('timeline', items, document.getElementById('save-status'), document.getElementById('save-btn')); }
 
             function sOpt(v, cur) {
                 var l = { upcoming: 'Upcoming', 'in-progress': 'In Progress', done: 'Done' };

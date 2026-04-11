@@ -65,6 +65,24 @@
 
             renderAll();
 
+            function doSave() {
+                var ind = document.getElementById('docs-autosave');
+                if (ind) { ind.textContent = 'Saving…'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: window.currentCode, section: 'documents', data: items, editLogEntry: { ts: new Date().toISOString(), role: role, roleName: roleName, action: 'Updated documents' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById('docs-autosave');
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved ✓'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById('docs-autosave'); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '⚠ Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById('docs-autosave'); if (i) { i.textContent = '⚠ No connection'; i.className = 'tracking-autosave error'; } });
+            }
+
             function renderAll() {
                 var html = '';
 
@@ -192,7 +210,7 @@
                 /* Add document form (planner/team only) */
                 if (role === 'planner' || role === 'rnbTeam') {
                     html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
-                    html += '<h3 class="tracking-section-title" style="font-size:16px">Add Document</h3>';
+                    html += '<div class="tracking-section-header"><h3 class="tracking-section-title" style="font-size:16px">Add Document</h3><span id="docs-autosave" class="tracking-autosave"></span></div>';
                     html += '<div class="edit-add-row">';
                     html += '<input type="text" id="d-name" class="tracking-input" placeholder="Document name" maxlength="200">';
                     html += '<input type="text" id="d-type" class="tracking-input" placeholder="Type (e.g. Contract)" maxlength="100">';
@@ -202,8 +220,6 @@
                     html += '<input type="date" id="d-date" class="tracking-input" maxlength="50">';
                     html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
                     html += '</div>';
-                    html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE DOCUMENTS</button>';
-                    html += '<p id="save-status" class="tracking-save-status"></p>';
                     html += '</div>';
                 }
 
@@ -214,6 +230,7 @@
                     btn.addEventListener('click', function () {
                         items.splice(parseInt(this.dataset.index), 1);
                         renderAll();
+                        doSave();
                     });
                 });
 
@@ -226,12 +243,10 @@
                         if (!n || !u) return;
                         items.push({ name: n, type: document.getElementById('d-type').value.trim() || 'Document', url: u, date: window.toDDMMYYYY(document.getElementById('d-date').value.trim()) });
                         renderAll();
+                        doSave();
                     });
-                }
-                var saveDocsBtn = document.getElementById('save-btn');
-                if (saveDocsBtn) {
-                    saveDocsBtn.addEventListener('click', function () {
-                        savePortalSection('documents', items, document.getElementById('save-status'), saveDocsBtn, 'Updated documents');
+                    document.getElementById('d-name').addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); }
                     });
                 }
 

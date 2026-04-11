@@ -52,14 +52,33 @@
     <script src="portal-page.js"></script>
     <script>
         function initGallery() {
-            var client = window.currentClient;
-            var el     = document.getElementById('gallery-content');
-            var items  = (client.gallery || []).map(function (img) {
+            var client   = window.currentClient;
+            var codeHash = window.currentCode;
+            var el       = document.getElementById('gallery-content');
+            var items    = (client.gallery || []).map(function (img) {
                 if (typeof img === 'string') return { url: img, caption: '' };
                 return { url: img.url || '', caption: img.caption || '' };
             });
 
             render();
+
+            function doSave() {
+                var ind = document.getElementById('gallery-autosave');
+                if (ind) { ind.textContent = 'Saving…'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: codeHash, section: 'gallery', data: items, editLogEntry: { ts: new Date().toISOString(), role: window.currentRole || 'couple', roleName: window.currentRoleName || 'Client', action: 'Updated gallery' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById('gallery-autosave');
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved ✓'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById('gallery-autosave'); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '⚠ Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById('gallery-autosave'); if (i) { i.textContent = '⚠ No connection'; i.className = 'tracking-autosave error'; } });
+            }
 
             function render() {
                 var html = '';
@@ -75,7 +94,7 @@
                     html += '</div>';
                 }
                 html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
-                html += '<h3 class="tracking-section-title" style="font-size:16px">Add Image</h3>';
+                html += '<div class="tracking-section-header"><h3 class="tracking-section-title" style="font-size:16px">Add Image</h3><span id="gallery-autosave" class="tracking-autosave"></span></div>';
                 html += '<div class="edit-add-row">';
                 html += '<input type="url" id="g-url" class="tracking-input" placeholder="Paste image URL (https://...)" maxlength="2000">';
                 html += '<input type="text" id="g-cap" class="tracking-input" placeholder="Caption (optional)" maxlength="300">';
@@ -87,19 +106,15 @@
                 html += '<span style="color:#888;font-size:11px">JPG / PNG / WebP &mdash; auto-compressed to under 5 MB</span>';
                 html += '</div>';
                 html += '<p id="upload-progress" class="tracking-save-status" style="min-height:18px"></p>';
-                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
-                html += '<p id="save-status" class="tracking-save-status"></p>';
                 html += '</div>';
                 el.innerHTML = html;
 
                 el.querySelectorAll('.gallery-remove').forEach(function (btn) {
-                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); doSave(); });
                 });
-                document.getElementById('add-btn').addEventListener('click', function () {
-                    var url = document.getElementById('g-url').value.trim();
-                    if (!url) return;
-                    items.push({ url: url, caption: document.getElementById('g-cap').value.trim() });
-                    render();
+                document.getElementById('add-btn').addEventListener('click', addUrl);
+                document.getElementById('g-url').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); addUrl(); }
                 });
                 document.getElementById('g-file').addEventListener('change', function () {
                     var file = this.files[0];
@@ -108,23 +123,29 @@
                     this.disabled = true;
                     uploadPortalFile(file, function (msg) { prog.textContent = msg; prog.className = 'tracking-save-status'; })
                         .then(function (url) {
-                            items.push({ url: url, caption: document.getElementById('g-cap').value.trim() });
-                            prog.textContent = 'Photo uploaded — click SAVE CHANGES to keep it.';
-                            prog.className = 'tracking-save-status save-ok';
+                            var cap = document.getElementById('g-cap');
+                            items.push({ url: url, caption: cap ? cap.value.trim() : '' });
                             render();
+                            doSave();
                         })
                         .catch(function (e) {
-                            prog.textContent = 'Upload failed: ' + e.message;
-                            prog.className = 'tracking-save-status save-err';
+                            var p = document.getElementById('upload-progress');
+                            if (p) { p.textContent = 'Upload failed: ' + e.message; p.className = 'tracking-save-status save-err'; }
                         })
                         .then(function () {
                             var fi = document.getElementById('g-file');
                             if (fi) { fi.disabled = false; fi.value = ''; }
                         });
                 });
-                document.getElementById('save-btn').addEventListener('click', function () {
-                    savePortalSection('gallery', items, document.getElementById('save-status'), document.getElementById('save-btn'));
-                });
+            }
+
+            function addUrl() {
+                var url = document.getElementById('g-url').value.trim();
+                if (!url) return;
+                var cap = document.getElementById('g-cap');
+                items.push({ url: url, caption: cap ? cap.value.trim() : '' });
+                render();
+                doSave();
             }
         }
         if (window._portalReady) { initGallery(); } else { window.onPortalReady = initGallery; }

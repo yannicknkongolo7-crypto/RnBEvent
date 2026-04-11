@@ -52,16 +52,35 @@
     <script src="portal-page.js"></script>
     <script>
         function initVendors() {
-            var client = window.currentClient;
-            var el     = document.getElementById('vendors-content');
-            var items  = (client.vendors || []).map(function (v) {
+            var client   = window.currentClient;
+            var codeHash = window.currentCode;
+            var el       = document.getElementById('vendors-content');
+            var items    = (client.vendors || []).map(function (v) {
                 return { name: v.name || '', role: v.role || '', phone: v.phone || '', email: v.email || '', status: v.status || 'TBD' };
             });
 
             render();
 
+            function doSave() {
+                var ind = document.getElementById('vendors-autosave');
+                if (ind) { ind.textContent = 'Saving\u2026'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: codeHash, section: 'vendors', data: items, editLogEntry: { ts: new Date().toISOString(), role: window.currentRole || 'couple', roleName: window.currentRoleName || 'Client', action: 'Updated vendors' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById('vendors-autosave');
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved \u2713'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById('vendors-autosave'); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '\u26a0 Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById('vendors-autosave'); if (i) { i.textContent = '\u26a0 No connection'; i.className = 'tracking-autosave error'; } });
+            }
+
             function render() {
-                var html = '';
+                var html = '<div class="tracking-section-header" style="margin-bottom:16px"><span class="tracking-section-title" style="font-size:17px">Vendors</span><span id="vendors-autosave" class="tracking-autosave"></span></div>';
                 if (items.length) {
                     html += '<div class="vendor-grid">';
                     items.forEach(function (v, i) {
@@ -91,29 +110,24 @@
                 html += '<input type="text" id="v-status" class="tracking-input" placeholder="Status (e.g. Confirmed)" maxlength="50">';
                 html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
                 html += '</div>';
-                html += '<button type="button" id="save-btn" class="tracking-save-btn">SAVE CHANGES</button>';
-                html += '<p id="save-status" class="tracking-save-status"></p>';
                 html += '</div>';
                 el.innerHTML = html;
 
                 el.querySelectorAll('.vendor-remove').forEach(function (btn) {
-                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); });
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); doSave(); });
                 });
-                document.getElementById('add-btn').addEventListener('click', function () {
-                    var n = document.getElementById('v-name').value.trim();
-                    if (!n) return;
-                    items.push({
-                        name: n,
-                        role: document.getElementById('v-role').value.trim(),
-                        phone: document.getElementById('v-phone').value.trim(),
-                        email: document.getElementById('v-email').value.trim(),
-                        status: document.getElementById('v-status').value.trim() || 'TBD'
-                    });
-                    render();
+                document.getElementById('add-btn').addEventListener('click', addVendor);
+                document.getElementById('v-name').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); addVendor(); }
                 });
-                document.getElementById('save-btn').addEventListener('click', function () {
-                    savePortalSection('vendors', items, document.getElementById('save-status'), document.getElementById('save-btn'));
-                });
+            }
+
+            function addVendor() {
+                var n = document.getElementById('v-name').value.trim();
+                if (!n) return;
+                items.push({ name: n, role: document.getElementById('v-role').value.trim(), phone: document.getElementById('v-phone').value.trim(), email: document.getElementById('v-email').value.trim(), status: document.getElementById('v-status').value.trim() || 'TBD' });
+                render();
+                doSave();
             }
         }
         if (window._portalReady) { initVendors(); } else { window.onPortalReady = initVendors; }

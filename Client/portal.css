@@ -1511,6 +1511,71 @@ a {
     margin-top: 32px;
 }
 
+/* Contract Attachments */
+.agreement-attachments {
+    margin-top: 28px;
+    padding: 22px 24px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: #f8faf7;
+}
+.contract-attachments-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+.contract-attachment-item {
+    position: relative;
+    width: 130px;
+    text-align: center;
+}
+.contract-attachment-thumb {
+    width: 130px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    display: block;
+}
+.contract-attachment-link {
+    display: block;
+    font-family: Montserrat, sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--sage);
+    text-decoration: none;
+    padding: 6px 10px;
+    border: 1px solid var(--sage);
+    border-radius: 2px;
+    margin-bottom: 4px;
+}
+.contract-attachment-name {
+    font-family: Montserrat, sans-serif;
+    font-size: 10px;
+    color: var(--text-mid);
+    margin: 5px 0 2px;
+    word-break: break-word;
+}
+.contract-attachment-caption {
+    font-family: Montserrat, sans-serif;
+    font-size: 10px;
+    color: var(--sage-light);
+    margin: 0;
+    word-break: break-word;
+}
+.contract-attachment-item .tracking-remove-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+}
+.agreement-att-form {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 @media (max-width: 480px) {
     .input-wrapper { flex-wrap: wrap; }
     .gate-btn { flex: 1 0 100%; padding: 13px; margin-top: 1px; }

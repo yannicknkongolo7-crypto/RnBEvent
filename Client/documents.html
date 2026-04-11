@@ -173,6 +173,46 @@
                 html += '<p>By signing below, both parties agree to the terms and conditions of this Event Vendor Agreement. The Client acknowledges that: (1) this agreement secures the Vendor&rsquo;s services based on the Working Scope at time of signing; (2) the mood board and design details may be collaboratively refined until the Final Design Approval date (30 days before the event); and (3) any changes requested after the Final Design Approval date are subject to additional charges and Vendor availability. This agreement becomes legally binding when signed by both parties.</p>';
                 html += '</div>'; /* end .agreement-text */
 
+                /* ─── Contract Attachments ─── */
+                var agrAttachments = agr.attachments || [];
+                html += '<div class="agreement-attachments">';
+                html += '<p class="sig-block-title" style="margin-bottom:10px">Supporting Documents &amp; Communications</p>';
+                if (agrAttachments.length) {
+                    html += '<div class="contract-attachments-grid">';
+                    agrAttachments.forEach(function (att, i) {
+                        var isImg = /\.(png|jpg|jpeg|webp|gif)(\?|$)/i.test(att.url);
+                        html += '<div class="contract-attachment-item">';
+                        if (isImg) {
+                            html += '<a href="' + escHtml(att.url) + '" target="_blank" rel="noopener">';
+                            html += '<img src="' + escHtml(att.url) + '" alt="' + escHtml(att.name) + '" class="contract-attachment-thumb">';
+                            html += '</a>';
+                        } else {
+                            html += '<a href="' + escHtml(att.url) + '" target="_blank" rel="noopener" class="contract-attachment-link">OPEN &rarr;</a>';
+                        }
+                        html += '<p class="contract-attachment-name">' + escHtml(att.name) + '</p>';
+                        if (att.caption) html += '<p class="contract-attachment-caption">' + escHtml(att.caption) + '</p>';
+                        if (role === 'planner' || role === 'rnbTeam') {
+                            html += '<button type="button" class="tracking-remove-btn contract-att-remove" data-att-index="' + i + '" title="Remove">&times;</button>';
+                        }
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                } else {
+                    html += '<p class="sig-awaiting" style="margin-top:0">No attachments added yet.</p>';
+                }
+                if (role === 'planner' || role === 'rnbTeam') {
+                    html += '<div class="agreement-att-form">';
+                    html += '<input type="text" id="att-name" class="tracking-input" placeholder="Label (e.g. Design Conversation Screenshot)" maxlength="200">';
+                    html += '<input type="text" id="att-caption" class="tracking-input" placeholder="Caption or note (optional)" maxlength="300">';
+                    html += '<div style="display:flex;align-items:center;gap:10px;margin-top:6px">';
+                    html += '<input type="file" id="att-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="font-family:Montserrat,sans-serif;font-size:11px;flex:1;color:var(--text-mid)">';
+                    html += '<span id="att-file-status" style="font-family:Montserrat,sans-serif;font-size:11px;color:var(--sage);white-space:nowrap"></span>';
+                    html += '</div>';
+                    html += '<button type="button" id="att-add-btn" class="tracking-add-btn" style="margin-top:8px">+ ADD ATTACHMENT</button>';
+                    html += '</div>';
+                }
+                html += '</div>'; /* end .agreement-attachments */
+
                 /* ─── Signatures ─── */
                 html += '<div class="agreement-signatures">';
 
@@ -354,6 +394,77 @@
                     });
                 }
 
+                /* Wire contract attachment remove buttons */
+                el.querySelectorAll('.contract-att-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var idx = parseInt(this.dataset.attIndex);
+                        if (!isNaN(idx)) {
+                            agr.attachments = (agr.attachments || []);
+                            agr.attachments.splice(idx, 1);
+                            fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ codeHash: window.currentCode, section: 'agreement', data: agr })
+                            }).then(function (r) { return r.json(); }).then(function (res) {
+                                if (res && res.ok) renderAll();
+                            });
+                        }
+                    });
+                });
+
+                /* Wire contract attachment add form */
+                var attAddBtn = document.getElementById('att-add-btn');
+                if (attAddBtn) {
+                    attAddBtn.addEventListener('click', function () {
+                        var n          = (document.getElementById('att-name').value || '').trim();
+                        var caption    = (document.getElementById('att-caption').value || '').trim();
+                        var fileInput  = document.getElementById('att-file');
+                        var file       = fileInput && fileInput.files && fileInput.files[0];
+                        var statusEl   = document.getElementById('att-file-status');
+                        if (!n)    { alert('Please enter a label for the attachment.'); return; }
+                        if (!file) { alert('Please choose a file to upload.'); return; }
+                        statusEl.textContent = 'Uploading\u2026';
+                        attAddBtn.disabled = true;
+                        var reader = new FileReader();
+                        reader.onload = function (ev) {
+                            var base64Data  = ev.target.result.split(',')[1];
+                            var contentType = file.type || 'application/octet-stream';
+                            fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/upload-file', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ codeHash: window.currentCode, fileName: file.name, contentType: contentType, data: base64Data })
+                            })
+                            .then(function (r) { return r.json(); })
+                            .then(function (res) {
+                                attAddBtn.disabled = false;
+                                if (res && res.ok && res.url) {
+                                    agr.attachments = agr.attachments || [];
+                                    agr.attachments.push({ name: n, caption: caption, url: res.url, uploadedAt: new Date().toISOString() });
+                                    return fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ codeHash: window.currentCode, section: 'agreement', data: agr })
+                                    }).then(function (r2) { return r2.json(); }).then(function (res2) {
+                                        if (res2 && res2.ok) {
+                                            statusEl.textContent = '';
+                                            document.getElementById('att-name').value = '';
+                                            document.getElementById('att-caption').value = '';
+                                            fileInput.value = '';
+                                            renderAll();
+                                        } else {
+                                            statusEl.textContent = 'Save failed.';
+                                        }
+                                    });
+                                } else {
+                                    statusEl.textContent = 'Upload failed: ' + (res && res.error ? res.error : 'Unknown');
+                                }
+                            })
+                            .catch(function () { attAddBtn.disabled = false; statusEl.textContent = 'Upload error.'; });
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+
                 /* Wire couple signature */
                 var coupleSigBtn = document.getElementById('couple-sig-btn');
                 if (coupleSigBtn) {
@@ -361,8 +472,9 @@
                         var sigText = (document.getElementById('couple-sig-input').value || '').trim();
                         var statusEl = document.getElementById('couple-sig-status');
                         if (!sigText) { statusEl.textContent = 'Please enter your full name.'; statusEl.className = 'sig-status-msg save-err'; return; }
-                        agr.coupleSignature = sigText;
-                        agr.coupleSignedAt  = new Date().toISOString();
+                        agr.coupleSignature          = sigText;
+                        agr.coupleSignedAt           = new Date().toISOString();
+                        agr.coupleSignatureUserAgent = navigator.userAgent || '';
                         agr.status = agr.plannerSignature ? 'fully-executed' : 'couple-signed';
                         coupleSigBtn.disabled = true;
                         coupleSigBtn.textContent = 'SAVING...';

@@ -328,6 +328,7 @@
     function adminLogout() {
         sessionStorage.removeItem(SESSION_KEY);
         clearAdminRemembered();
+        if (_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
         content.classList.add('hidden');
         gate.style.display = 'flex';
         // Reset to step 1
@@ -649,6 +650,16 @@
             .catch(function (e) { console.warn('S3 client fetch:', e); });
     }
 
+    var _syncInterval = null;
+
+    function startAutoSync() {
+        if (_syncInterval) return;
+        _syncInterval = setInterval(function () {
+            syncFromCloud();
+            fetchS3Clients();
+        }, 90000); /* poll every 90 seconds */
+    }
+
     function showDashboard() {
         gate.style.display = 'none';
         content.classList.remove('hidden');
@@ -657,6 +668,7 @@
         syncFromCloud();
         fetchS3Clients();
         runPostEventTasks();
+        startAutoSync();
         logAdminActivity('Admin login', 'Admin accessed the dashboard');
     }
 

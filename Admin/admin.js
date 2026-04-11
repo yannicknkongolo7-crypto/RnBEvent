@@ -1034,7 +1034,10 @@
 
         var html = '';
         KANBAN_COLS.forEach(function (col) {
-            var cards    = state.prospects.filter(function (p) { return p.status === col; });
+            var cards    = state.prospects.filter(function (p) {
+                var effectiveStatus = kanbanPendingMap.hasOwnProperty(p.id) ? kanbanPendingMap[p.id] : p.status;
+                return effectiveStatus === col;
+            });
             var colClass = col.replace(/\s+/g, '-');
             html += '<div class="kanban-col" data-status="' + col + '" ' +
                 'ondragover="onKanbanDragOver(event)" ' +
@@ -1050,7 +1053,7 @@
                 html += '<div class="kanban-empty">Drop here</div>';
             }
             cards.forEach(function (p) {
-                html += '<div class="kanban-card" draggable="true" ' +
+            html += '<div class="kanban-card' + (kanbanPendingMap.hasOwnProperty(p.id) ? ' kanban-card-pending' : '') + '" draggable="true" ' +
                     'ondragstart="onKanbanDragStart(event, \'' + escJS(p.id) + '\')" ' +
                     'ondragend="onKanbanDragEnd(event)">' +
                     '<div class="kanban-card-name">' + esc(p.name) + '</div>' +
@@ -1065,6 +1068,7 @@
         });
 
         board.innerHTML = html;
+        renderKanbanSubmitBar();
     }
 
     function onKanbanDragStart(e, id) {

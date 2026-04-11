@@ -151,7 +151,7 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
                     </a>
                 </div>
-                <p class="powered-by">Powered By <a href="https://ynk-techusa.com" target="_blank" rel="noopener noreferrer">ynk-techusa.com</a></p>
+                <p class="powered-by">Designed and Powered By <a href="https://ynk-techusa.com" target="_blank" rel="noopener noreferrer">ynk-techusa.com</a></p>
                 <p class="copyright">Copyright RNB Events 2026 - All Rights Reserved</p>
             </div>
         </div>
@@ -185,7 +185,7 @@
                     </div>
                     <div class="quote-field">
                         <label for="qLocation">Location / City <span class="req">*</span></label>
-                        <input type="text" id="qLocation" name="location" placeholder="Buffalo, NY" required>
+                        <input type="text" id="qLocation" name="location" placeholder="Dallas, TX" required>
                     </div>
                 </div>
                 <div class="quote-form-row">
@@ -231,6 +231,11 @@
                     <label for="qMessage">Tell Us More</label>
                     <textarea id="qMessage" name="message" rows="4" placeholder="Describe your vision, theme, colors, or any special requests…"></textarea>
                 </div>
+                <div class="quote-field">
+                    <label for="qServiceScale">Service Level <span class="req">*</span> &nbsp;<span id="qServiceScaleVal" style="font-weight:600;color:var(--gold,#b89a5e)">5</span>/10</label>
+                    <input type="range" id="qServiceScale" name="serviceScale" min="1" max="10" value="5" style="width:100%;accent-color:#b89a5e;cursor:pointer" oninput="document.getElementById('qServiceScaleVal').textContent=this.value">
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;letter-spacing:0.5px;margin-top:4px"><span>1 — Simple &amp; Intimate</span><span>10 — Full-Scale Luxury</span></div>
+                </div>
                 <div id="quoteFormMsg" class="quote-form-msg" aria-live="polite"></div>
                 <button type="submit" id="quoteSubmitBtn" class="quote-submit-btn">SEND REQUEST</button>
             </form>
@@ -265,15 +270,16 @@
         msg.textContent = '';
 
         const data = {
-            name:       form.name.value.trim(),
-            email:      form.email.value.trim(),
-            phone:      form.phone.value.trim(),
-            location:   form.location.value.trim(),
-            eventType:  form.eventType.value,
-            eventDate:  form.eventDate.value,
-            guestCount: form.guestCount.value,
-            budget:     form.budget.value,
-            message:    form.message.value.trim(),
+            name:         form.name.value.trim(),
+            email:        form.email.value.trim(),
+            phone:        form.phone.value.trim(),
+            location:     form.location.value.trim(),
+            eventType:    form.eventType.value,
+            eventDate:    form.eventDate.value,
+            guestCount:   form.guestCount.value,
+            budget:       form.budget.value,
+            serviceScale: document.getElementById('qServiceScale').value,
+            message:      form.message.value.trim(),
         };
 
         if (!data.name)      { showMsg('Please enter your name.', 'error');          return form.name.focus(); }

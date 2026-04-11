@@ -4,10 +4,13 @@
     'use strict';
 
     /* ── Global error safety net ─────────────────────── */
-    window.onerror = function (msg, src, line) {
-        console.error('Admin error:', msg, src, line);
+    window.onerror = function (msg, src, line, col, err) {
+        console.error('Admin error:', msg, '\n  at', src, line + ':' + col, '\n', err && err.stack ? err.stack : '');
         var t = document.getElementById('admin-toast');
         if (t) { t.textContent = 'Something went wrong — check console.'; t.classList.add('toast-visible'); setTimeout(function () { t.classList.remove('toast-visible'); }, 4000); }
+    };
+    window.onunhandledrejection = function (e) {
+        console.error('Unhandled promise rejection:', e.reason, e.reason && e.reason.stack ? '\n' + e.reason.stack : '');
     };
 
     var SESSION_KEY     = 'rnb_admin_access';
@@ -205,13 +208,17 @@
 
     /* ── Boot ────────────────────────────────────────── */
     (function init() {
-        if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
-            showDashboard();
-        } else if (loadAdminRemembered()) {
-            sessionStorage.setItem(SESSION_KEY, 'ok');
-            showDashboard();
-        } else {
-            preloadCloudHash();
+        try {
+            if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
+                showDashboard();
+            } else if (loadAdminRemembered()) {
+                sessionStorage.setItem(SESSION_KEY, 'ok');
+                showDashboard();
+            } else {
+                preloadCloudHash();
+            }
+        } catch (e) {
+            console.error('Admin init error:', e);
         }
     })();
 
@@ -825,7 +832,7 @@
                 changed = true;
             }
             if (changed) renderAll();
-        });
+        }).catch(function (e) { console.warn('syncFromCloud error:', e); });
     }
 
     function updateSyncStatus(status) {
@@ -2067,7 +2074,7 @@
             renderClientManager();
             logAdminActivity('Client saved', (editingClientId ? 'Updated' : 'Created') + ' client: ' + name + ' (code: ' + code + ')');
             showToast('Client "' + name + '" saved. Codes — Couple: ' + code + (plannerCode ? ' / Planner: ' + plannerCode : '') + (teamCode ? ' / Team: ' + teamCode : ''));
-        });
+        }).catch(function (e) { console.error('saveClient error:', e); showToast('Error saving client — check console.'); });
     }
 
     function toggleClientAccess(id) {

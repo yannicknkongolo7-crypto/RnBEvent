@@ -1273,3 +1273,8 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     .admin-stats-row { padding: 0 16px 20px; }
     .stat-card { min-width: 100px; padding: 16px 16px; }
 }
+
+@media (max-width: 480px) {
+    .input-wrapper { flex-wrap: wrap; }
+    .gate-btn { flex: 1 0 100%; padding: 13px; margin-top: 1px; }
+}

@@ -1511,6 +1511,11 @@ a {
     margin-top: 32px;
 }
 
+@media (max-width: 480px) {
+    .input-wrapper { flex-wrap: wrap; }
+    .gate-btn { flex: 1 0 100%; padding: 13px; margin-top: 1px; }
+}
+
 @media (max-width: 700px) {
     .agreement-signatures { grid-template-columns: 1fr; }
 }

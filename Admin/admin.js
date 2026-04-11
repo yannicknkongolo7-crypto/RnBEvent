@@ -1392,8 +1392,8 @@
             var codeDisplay;
             if (c.accessCode) {
                 codeDisplay = '<code class="client-code-badge" title="Couple">' + esc(c.accessCode) + '</code>';
-                if (c.plannerCode) codeDisplay += '<br><code class="client-code-badge" title="Planner" style="background:#527141">' + esc(c.plannerCode) + '</code>';
-                if (c.teamCode)    codeDisplay += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d">' + esc(c.teamCode) + '</code>';
+                if (c.plannerCode) codeDisplay += '<br><code class="client-code-badge" title="Planner" style="background:#527141;color:#d4e8c9;border-color:rgba(212,232,201,0.4)">' + esc(c.plannerCode) + '</code>';
+                if (c.teamCode)    codeDisplay += '<br><code class="client-code-badge" title="RNB Team" style="background:#2d3a2d;color:#d4e8c9;border-color:rgba(212,232,201,0.4)">' + esc(c.teamCode) + '</code>';
             } else {
                 codeDisplay = '<button class="crm-act-btn" style="color:#b89a5e;font-weight:500" onclick="editClient(\'' + escJS(c.id) + '\')">SET CODE</button>';
             }

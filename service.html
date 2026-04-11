@@ -55,7 +55,7 @@
             <h1 class="page-hero-title">Get In Touch</h1>
             <p class="page-hero-subtitle">Let's Create Something Beautiful Together</p>
             <div class="hero-cta">
-                <button class="btn-secondary" onclick="openQuoteModal()">Request a Quote</button>
+                <button class="btn-secondary" onclick="openQuoteModal(); remusClick('request_quote')">Request a Quote</button>
             </div>
         </div>
     </section>
@@ -111,7 +111,7 @@
     <section class="quote-cta-section">
         <div class="container">
             <p>Ready to start planning?</p>
-            <button class="btn-secondary" onclick="openQuoteModal()">Request a Quote</button>
+            <button class="btn-secondary" onclick="openQuoteModal(); remusClick('request_quote')">Request a Quote</button>
         </div>
     </section>
 
@@ -311,6 +311,14 @@
     }
     </script>
     <script src="/remus-track.js"></script>
-    <script>remusTrack('public');</script>
+    <script>
+    remusTrack('public');
+    /* Track when a visitor completes a Calendly booking */
+    window.addEventListener('message', function (e) {
+        if (e.data && e.data.event === 'calendly.event_scheduled') {
+            remusClick('consultation_booked');
+        }
+    });
+    </script>
 </body>
 </html>

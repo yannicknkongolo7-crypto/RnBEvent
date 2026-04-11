@@ -81,4 +81,35 @@
             window.addEventListener('load', send, { once: true });
         }
     };
+
+    /* Track a button/CTA click event */
+    window.remusClick = function (action) {
+        if (BOT_PATTERN.test(navigator.userAgent || '')) return;
+        var utm = getUtm();
+        var payload = {
+            type:        'click',
+            action:      action || '',
+            section:     'public',
+            page:        location.pathname + location.search,
+            title:       document.title || '',
+            referrer:    document.referrer || '',
+            sessionId:   getSessionId(),
+            codeHash:    '',
+            loadMs:      null,
+            utmSource:   utm.utmSource,
+            utmMedium:   utm.utmMedium,
+            utmCampaign: utm.utmCampaign,
+            utmTerm:     utm.utmTerm
+        };
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(ENDPOINT, JSON.stringify(payload));
+        } else {
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                keepalive: true
+            }).catch(function () {});
+        }
+    };
 })();

@@ -1071,100 +1071,160 @@
 
     var QUOTE_PACKAGES = {
         Silver: {
-            features: [
-                'Initial consultation & event concept',
-                'Venue & vendor recommendations',
-                'Day-of coordination (up to 6 hours)',
-                'Timeline creation & management',
-                'Email support throughout planning'
+            lineItems: [
+                { description: 'Initial consultation & event concept', qty: 1, price: 0 },
+                { description: 'Venue & vendor recommendations',       qty: 1, price: 0 },
+                { description: 'Day-of coordination (up to 6 hours)', qty: 1, price: 0 },
+                { description: 'Timeline creation & management',       qty: 1, price: 0 },
+                { description: 'Email support throughout planning',    qty: 1, price: 0 }
             ]
         },
         Gold: {
-            features: [
-                'Everything in Silver, plus:',
-                'Full vendor sourcing & management',
-                'Budget tracking & negotiation support',
-                'Client portal access (timeline, gallery, vendors)',
-                'Day-of coordination (up to 10 hours)',
-                'Décor concept & mood board creation',
-                'Unlimited email & phone consultations'
+            lineItems: [
+                { description: 'Initial consultation & event concept', qty: 1, price: 0 },
+                { description: 'Full vendor sourcing & management',    qty: 1, price: 0 },
+                { description: 'Budget tracking & negotiation support', qty: 1, price: 0 },
+                { description: 'Client portal access',                 qty: 1, price: 0 },
+                { description: 'Day-of coordination (up to 10 hours)', qty: 1, price: 0 },
+                { description: 'Décor concept & mood board creation',  qty: 1, price: 0 },
+                { description: 'Unlimited email & phone consultations', qty: 1, price: 0 }
             ]
         },
         Platinum: {
-            features: [
-                'Everything in Gold, plus:',
-                'Full venue styling & setup oversight',
-                'Priority planner availability (calls, texts)',
-                'Rehearsal coordination',
-                'Custom signage & stationery coordination',
-                'Post-event breakdown coordination',
-                'Dedicated RNB Events team member on-site'
+            lineItems: [
+                { description: 'Full venue styling & setup oversight',      qty: 1, price: 0 },
+                { description: 'Priority planner availability',              qty: 1, price: 0 },
+                { description: 'Rehearsal coordination',                     qty: 1, price: 0 },
+                { description: 'Custom signage & stationery coordination',  qty: 1, price: 0 },
+                { description: 'Post-event breakdown coordination',          qty: 1, price: 0 },
+                { description: 'Dedicated RNB Events team member on-site',  qty: 1, price: 0 }
             ]
         },
         Presidential: {
-            features: [
-                'Everything in Platinum, plus:',
-                'Bespoke event concept & design direction',
-                'Exclusive vendor partnerships & priority booking',
-                'Dedicated lead planner + full team support',
-                'Custom floral, lighting & entertainment curation',
-                'VIP guest concierge coordination',
-                'Unlimited planning sessions',
-                'Pre-event site visit & full production management'
+            lineItems: [
+                { description: 'Bespoke event concept & design direction',       qty: 1, price: 0 },
+                { description: 'Exclusive vendor partnerships & priority booking', qty: 1, price: 0 },
+                { description: 'Dedicated lead planner + full team support',      qty: 1, price: 0 },
+                { description: 'Custom floral, lighting & entertainment curation', qty: 1, price: 0 },
+                { description: 'VIP guest concierge coordination',                qty: 1, price: 0 },
+                { description: 'Unlimited planning sessions',                     qty: 1, price: 0 },
+                { description: 'Pre-event site visit & full production management', qty: 1, price: 0 }
             ]
         }
     };
 
-    function renderQuoteFeatures(features) {
-        var container = document.getElementById('qm-features');
+    function getLineItemsFromDOM() {
+        var container = document.getElementById('qm-line-items');
+        if (!container) return [];
+        var rows = container.querySelectorAll('.qm-line-row');
+        return Array.prototype.map.call(rows, function (row) {
+            return {
+                description: (row.querySelector('.qm-item-desc')  || {}).value || '',
+                qty:   parseFloat((row.querySelector('.qm-item-qty')   || {}).value) || 1,
+                price: parseFloat((row.querySelector('.qm-item-price') || {}).value) || 0
+            };
+        });
+    }
+
+    function recalcQuoteTotal() {
+        var container  = document.getElementById('qm-line-items');
+        var totalEl    = document.getElementById('qm-total');
+        var totalBotEl = document.getElementById('qm-total-bottom');
+        if (!container) return;
+        var rows  = container.querySelectorAll('.qm-line-row');
+        var total = 0;
+        rows.forEach(function (row) {
+            var q = parseFloat((row.querySelector('.qm-item-qty')   || {}).value) || 0;
+            var p = parseFloat((row.querySelector('.qm-item-price') || {}).value) || 0;
+            var sub = q * p;
+            total += sub;
+            var subtotalEl = row.querySelector('.qm-item-subtotal');
+            if (subtotalEl) subtotalEl.textContent = '$' + sub.toFixed(2);
+        });
+        var formatted = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (totalEl)    totalEl.textContent    = formatted;
+        if (totalBotEl) totalBotEl.textContent = formatted;
+    }
+
+    function renderQuoteLineItems(lineItems) {
+        var container = document.getElementById('qm-line-items');
         if (!container) return;
         container.innerHTML = '';
-        (features || []).forEach(function (f, i) {
+        (lineItems || []).forEach(function (item, i) {
             var row = document.createElement('div');
-            row.style.cssText = 'display:flex;gap:6px;align-items:center';
-            var inp = document.createElement('input');
-            inp.type = 'text';
-            inp.className = 'form-input qm-feature-input';
-            inp.value = f;
-            inp.placeholder = 'Service item...';
-            inp.style.cssText = 'flex:1;font-size:12px;padding:6px 10px';
+            row.className = 'qm-line-row';
+            row.style.cssText = 'display:grid;grid-template-columns:1fr 52px 90px 72px 28px;gap:4px;align-items:center';
+
+            var desc = document.createElement('input');
+            desc.type = 'text';
+            desc.className = 'form-input qm-item-desc';
+            desc.value = item.description || '';
+            desc.placeholder = 'Description...';
+            desc.style.cssText = 'font-size:12px;padding:5px 8px';
+            desc.addEventListener('input', recalcQuoteTotal);
+
+            var qty = document.createElement('input');
+            qty.type = 'number';
+            qty.className = 'form-input qm-item-qty';
+            qty.value = String(item.qty != null ? item.qty : 1);
+            qty.min = '0'; qty.step = '1';
+            qty.style.cssText = 'font-size:12px;padding:5px 6px;text-align:center';
+            qty.addEventListener('input', recalcQuoteTotal);
+
+            var price = document.createElement('input');
+            price.type = 'number';
+            price.className = 'form-input qm-item-price';
+            price.value = item.price != null && item.price !== 0 ? String(item.price) : '';
+            price.min = '0'; price.step = '0.01';
+            price.placeholder = '0.00';
+            price.style.cssText = 'font-size:12px;padding:5px 8px;text-align:right';
+            price.addEventListener('input', recalcQuoteTotal);
+
+            var subtotal = document.createElement('span');
+            subtotal.className = 'qm-item-subtotal';
+            subtotal.style.cssText = 'font-family:Montserrat,sans-serif;font-size:11px;color:#2d3a2d;text-align:right;padding-right:2px;white-space:nowrap';
+            var q = parseFloat(qty.value) || 0;
+            var pr = parseFloat(price.value) || 0;
+            subtotal.textContent = '$' + (q * pr).toFixed(2);
+
             var del = document.createElement('button');
             del.type = 'button';
             del.innerHTML = '&times;';
-            del.title = 'Remove item';
+            del.title = 'Remove line';
             del.style.cssText = 'flex-shrink:0;width:28px;height:28px;border:1px solid #c0392b;background:transparent;color:#c0392b;cursor:pointer;border-radius:2px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center';
-            (function (idx) { del.onclick = function () { removeQuoteFeature(idx); }; }(i));
-            row.appendChild(inp);
-            row.appendChild(del);
+            (function (idx) { del.onclick = function () { removeQuoteLineItem(idx); }; }(i));
+
+            row.appendChild(desc); row.appendChild(qty); row.appendChild(price);
+            row.appendChild(subtotal); row.appendChild(del);
             container.appendChild(row);
         });
+        recalcQuoteTotal();
     }
 
     function onQuotePackageChange() {
         var pkg = document.getElementById('qm-package');
         if (!pkg) return;
         var pkgData = QUOTE_PACKAGES[pkg.value];
-        if (pkgData) renderQuoteFeatures(pkgData.features.slice());
+        if (pkgData) renderQuoteLineItems(pkgData.lineItems.map(function (item) { return Object.assign({}, item); }));
     }
 
-    function addQuoteFeature() {
-        var container = document.getElementById('qm-features');
+    function addQuoteLineItem() {
+        var items = getLineItemsFromDOM();
+        items.push({ description: '', qty: 1, price: 0 });
+        renderQuoteLineItems(items);
+        var container = document.getElementById('qm-line-items');
         if (!container) return;
-        var inputs = container.querySelectorAll('.qm-feature-input');
-        var features = Array.prototype.map.call(inputs, function (i) { return i.value; });
-        features.push('');
-        renderQuoteFeatures(features);
-        var newInputs = container.querySelectorAll('.qm-feature-input');
-        if (newInputs.length) newInputs[newInputs.length - 1].focus();
+        var rows = container.querySelectorAll('.qm-line-row');
+        if (rows.length) {
+            var lastDesc = rows[rows.length - 1].querySelector('.qm-item-desc');
+            if (lastDesc) lastDesc.focus();
+        }
     }
 
-    function removeQuoteFeature(idx) {
-        var container = document.getElementById('qm-features');
-        if (!container) return;
-        var inputs = container.querySelectorAll('.qm-feature-input');
-        var features = Array.prototype.map.call(inputs, function (i) { return i.value; });
-        features.splice(idx, 1);
-        renderQuoteFeatures(features);
+    function removeQuoteLineItem(idx) {
+        var items = getLineItemsFromDOM();
+        items.splice(idx, 1);
+        renderQuoteLineItems(items);
     }
 
     function openSendQuote(id) {
@@ -1181,9 +1241,7 @@
         if (pkg) pkg.value = 'Gold';
         onQuotePackageChange();
 
-        /* Clear amount + note */
-        var amtEl = document.getElementById('qm-amount');
-        if (amtEl) amtEl.value = '';
+        /* Clear note */
         var noteEl = document.getElementById('qm-note');
         if (noteEl) noteEl.value = '';
 
@@ -1234,13 +1292,13 @@
 
         var pkg = (document.getElementById('qm-package').value || 'Silver').trim();
 
-        /* Collect builder fields */
-        var featureInputs = document.querySelectorAll('#qm-features .qm-feature-input');
-        var customFeatures = Array.prototype.map.call(featureInputs, function (i) { return i.value.trim(); }).filter(Boolean);
-        var amtEl  = document.getElementById('qm-amount');
-        var noteEl = document.getElementById('qm-note');
-        var estimatedAmount = amtEl  ? amtEl.value.trim()  : '';
-        var customNote      = noteEl ? noteEl.value.trim() : '';
+        /* Collect line items + note */
+        var lineItems  = getLineItemsFromDOM().filter(function (item) { return item.description.trim(); });
+        var noteEl     = document.getElementById('qm-note');
+        var customNote = noteEl ? noteEl.value.trim() : '';
+
+        /* Calculate total for fallback display */
+        var total = lineItems.reduce(function (sum, item) { return sum + (item.qty * item.price); }, 0);
 
         var btn = document.getElementById('qm-send-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'SENDING\u2026'; }
@@ -1249,14 +1307,13 @@
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
-                name:             p.name      || '',
-                email:            p.email,
-                eventType:        p.eventType || '',
-                eventDate:        p.eventDate || '',
-                package:          pkg,
-                estimatedAmount:  estimatedAmount  || undefined,
-                customNote:       customNote       || undefined,
-                customFeatures:   customFeatures.length ? customFeatures : undefined
+                name:       p.name      || '',
+                email:      p.email,
+                eventType:  p.eventType || '',
+                eventDate:  p.eventDate || '',
+                package:    pkg,
+                lineItems:  lineItems.length ? lineItems : undefined,
+                customNote: customNote || undefined
             })
         })
         .then(function (r) {
@@ -1282,16 +1339,22 @@
         })
         .catch(function (e) {
             if (btn) { btn.disabled = false; btn.textContent = 'SEND QUOTE'; }
-            /* Build a pre-filled email as fallback (Lambda not yet deployed or route missing) */
+            /* Build a pre-filled email as fallback */
             var bodyLines = [
                 'Dear ' + (p.name || 'there') + ',',
                 '',
-                'Thank you for your interest in RNB Events! We\u2019re excited to share your ' + pkg + ' package details.',
+                'Thank you for your interest in RNB Events! Here is your ' + pkg + ' package quote.',
                 ''
             ];
-            if (customFeatures.length) bodyLines.push('Inclusions: ' + customFeatures.join(', '), '');
-            if (estimatedAmount)       bodyLines.push('Estimated Investment: $' + estimatedAmount, '');
-            if (customNote)            bodyLines.push(customNote, '');
+            if (lineItems.length) {
+                bodyLines.push('Quote Breakdown:');
+                lineItems.forEach(function (item) {
+                    bodyLines.push('  ' + item.description + (item.qty !== 1 ? ' (x' + item.qty + ')' : '') + (item.price ? ' — $' + (item.qty * item.price).toFixed(2) : ''));
+                });
+                if (total > 0) bodyLines.push('', 'Estimated Total: $' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                bodyLines.push('');
+            }
+            if (customNote) bodyLines.push(customNote, '');
             bodyLines.push('To book a consultation or learn more, visit rnbevents716.com', '', 'Warm regards,', 'The RNB Events Team');
             var mailtoHref = 'mailto:' + encodeURIComponent(p.email) +
                 '?subject=' + encodeURIComponent('Your ' + pkg + ' Package Quote \u2014 RNB Events') +
@@ -1300,10 +1363,11 @@
             setTimeout(function () { window.open(mailtoHref, '_blank'); }, 600);
         });
     }
-    window.sendQuoteEmail      = sendQuoteEmail;
+    window.sendQuoteEmail       = sendQuoteEmail;
     window.onQuotePackageChange = onQuotePackageChange;
-    window.addQuoteFeature      = addQuoteFeature;
-    window.removeQuoteFeature   = removeQuoteFeature;
+    window.addQuoteLineItem     = addQuoteLineItem;
+    window.removeQuoteLineItem  = removeQuoteLineItem;
+    window.recalcQuoteTotal     = recalcQuoteTotal;
 
     function formatShortDate(iso) {
         try {

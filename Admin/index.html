@@ -547,20 +547,32 @@
                         <option value="Presidential">Presidential — Ultra-Luxury</option>
                     </select>
                 </div>
-                <div class="form-row" style="margin:0">
-                    <label class="form-label">ESTIMATED AMOUNT ($) <span style="font-weight:300;font-size:10px">optional</span></label>
-                    <input type="number" id="qm-amount" class="form-input" placeholder="e.g. 2500" min="0" step="0.01">
-                    <small style="display:block;margin-top:4px;font-family:Montserrat,sans-serif;font-size:10px;color:#888;letter-spacing:0.3px">Shown in the email as a starting estimate.</small>
+                <div class="form-row" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end">
+                    <label class="form-label">ESTIMATED TOTAL</label>
+                    <p id="qm-total" style="margin:4px 0 0;font-family:'Cormorant Garamond',serif;font-size:26px;color:#b89a5e;font-weight:500;letter-spacing:1px">$0.00</p>
                 </div>
             </div>
 
-            <!-- Build Quote — Editable Feature List -->
+            <!-- Quote Line Items -->
             <div style="margin-bottom:18px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                    <label class="form-label" style="margin:0">INCLUDED SERVICES</label>
-                    <button type="button" onclick="addQuoteFeature()" style="font-family:Montserrat,sans-serif;font-size:10px;letter-spacing:1.5px;padding:5px 12px;border:1px solid #527141;background:transparent;color:#527141;cursor:pointer;border-radius:2px;transition:all 0.2s">+ ADD ITEM</button>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <label class="form-label" style="margin:0">QUOTE LINE ITEMS</label>
+                    <button type="button" onclick="addQuoteLineItem()" style="font-family:Montserrat,sans-serif;font-size:10px;letter-spacing:1.5px;padding:5px 12px;border:1px solid #527141;background:transparent;color:#527141;cursor:pointer;border-radius:2px;transition:all 0.2s">+ ADD LINE</button>
                 </div>
-                <div id="qm-features" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px"></div>
+                <!-- Column headers -->
+                <div style="display:grid;grid-template-columns:1fr 52px 90px 72px 28px;gap:4px;margin-bottom:4px;padding:0 2px">
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif">DESCRIPTION</span>
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif;text-align:center">QTY</span>
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif;text-align:right">UNIT PRICE ($)</span>
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif;text-align:right">SUBTOTAL</span>
+                    <span></span>
+                </div>
+                <div id="qm-line-items" style="display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto;padding-right:2px"></div>
+                <!-- Total row -->
+                <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:10px;padding-top:10px;border-top:2px solid #2d3a2d">
+                    <span style="font-family:Montserrat,sans-serif;font-size:10px;letter-spacing:1.5px;color:#2d3a2d;text-transform:uppercase">Estimated Total</span>
+                    <span id="qm-total-bottom" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#b89a5e;font-weight:500"></span>
+                </div>
             </div>
 
             <!-- Custom Note -->

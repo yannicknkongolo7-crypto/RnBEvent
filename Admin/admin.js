@@ -684,7 +684,11 @@
     function cloudGet() {
         if (!CLOUD_URL) { updateSyncStatus('local'); return Promise.resolve(null); }
         updateSyncStatus('syncing');
-        return fetch(CLOUD_URL, { method: 'GET' })
+        return fetch(CLOUD_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'get' })
+        })
             .then(function (r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();

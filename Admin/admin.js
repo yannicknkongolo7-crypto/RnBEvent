@@ -1002,6 +1002,104 @@
     var quotingProspectId = null;
     var QUOTE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+    var QUOTE_PACKAGES = {
+        Silver: {
+            features: [
+                'Initial consultation & event concept',
+                'Venue & vendor recommendations',
+                'Day-of coordination (up to 6 hours)',
+                'Timeline creation & management',
+                'Email support throughout planning'
+            ]
+        },
+        Gold: {
+            features: [
+                'Everything in Silver, plus:',
+                'Full vendor sourcing & management',
+                'Budget tracking & negotiation support',
+                'Client portal access (timeline, gallery, vendors)',
+                'Day-of coordination (up to 10 hours)',
+                'Décor concept & mood board creation',
+                'Unlimited email & phone consultations'
+            ]
+        },
+        Platinum: {
+            features: [
+                'Everything in Gold, plus:',
+                'Full venue styling & setup oversight',
+                'Priority planner availability (calls, texts)',
+                'Rehearsal coordination',
+                'Custom signage & stationery coordination',
+                'Post-event breakdown coordination',
+                'Dedicated RNB Events team member on-site'
+            ]
+        },
+        Presidential: {
+            features: [
+                'Everything in Platinum, plus:',
+                'Bespoke event concept & design direction',
+                'Exclusive vendor partnerships & priority booking',
+                'Dedicated lead planner + full team support',
+                'Custom floral, lighting & entertainment curation',
+                'VIP guest concierge coordination',
+                'Unlimited planning sessions',
+                'Pre-event site visit & full production management'
+            ]
+        }
+    };
+
+    function renderQuoteFeatures(features) {
+        var container = document.getElementById('qm-features');
+        if (!container) return;
+        container.innerHTML = '';
+        (features || []).forEach(function (f, i) {
+            var row = document.createElement('div');
+            row.style.cssText = 'display:flex;gap:6px;align-items:center';
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'form-input qm-feature-input';
+            inp.value = f;
+            inp.placeholder = 'Service item...';
+            inp.style.cssText = 'flex:1;font-size:12px;padding:6px 10px';
+            var del = document.createElement('button');
+            del.type = 'button';
+            del.innerHTML = '&times;';
+            del.title = 'Remove item';
+            del.style.cssText = 'flex-shrink:0;width:28px;height:28px;border:1px solid #c0392b;background:transparent;color:#c0392b;cursor:pointer;border-radius:2px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center';
+            (function (idx) { del.onclick = function () { removeQuoteFeature(idx); }; }(i));
+            row.appendChild(inp);
+            row.appendChild(del);
+            container.appendChild(row);
+        });
+    }
+
+    function onQuotePackageChange() {
+        var pkg = document.getElementById('qm-package');
+        if (!pkg) return;
+        var pkgData = QUOTE_PACKAGES[pkg.value];
+        if (pkgData) renderQuoteFeatures(pkgData.features.slice());
+    }
+
+    function addQuoteFeature() {
+        var container = document.getElementById('qm-features');
+        if (!container) return;
+        var inputs = container.querySelectorAll('.qm-feature-input');
+        var features = Array.prototype.map.call(inputs, function (i) { return i.value; });
+        features.push('');
+        renderQuoteFeatures(features);
+        var newInputs = container.querySelectorAll('.qm-feature-input');
+        if (newInputs.length) newInputs[newInputs.length - 1].focus();
+    }
+
+    function removeQuoteFeature(idx) {
+        var container = document.getElementById('qm-features');
+        if (!container) return;
+        var inputs = container.querySelectorAll('.qm-feature-input');
+        var features = Array.prototype.map.call(inputs, function (i) { return i.value; });
+        features.splice(idx, 1);
+        renderQuoteFeatures(features);
+    }
+
     function openSendQuote(id) {
         var p = state.prospects.find(function (x) { return x.id === id; });
         if (!p) return;
@@ -1011,9 +1109,16 @@
         document.getElementById('qm-prospect-name').textContent  = p.name  || '';
         document.getElementById('qm-prospect-email').textContent = p.email || '';
 
-        /* Default package to Gold */
+        /* Default package to Gold + populate builder */
         var pkg = document.getElementById('qm-package');
         if (pkg) pkg.value = 'Gold';
+        onQuotePackageChange();
+
+        /* Clear amount + note */
+        var amtEl = document.getElementById('qm-amount');
+        if (amtEl) amtEl.value = '';
+        var noteEl = document.getElementById('qm-note');
+        if (noteEl) noteEl.value = '';
 
         /* Safety warning */
         var warningEl = document.getElementById('qm-warning');
@@ -1061,6 +1166,15 @@
         }
 
         var pkg = (document.getElementById('qm-package').value || 'Silver').trim();
+
+        /* Collect builder fields */
+        var featureInputs = document.querySelectorAll('#qm-features .qm-feature-input');
+        var customFeatures = Array.prototype.map.call(featureInputs, function (i) { return i.value.trim(); }).filter(Boolean);
+        var amtEl  = document.getElementById('qm-amount');
+        var noteEl = document.getElementById('qm-note');
+        var estimatedAmount = amtEl  ? amtEl.value.trim()  : '';
+        var customNote      = noteEl ? noteEl.value.trim() : '';
+
         var btn = document.getElementById('qm-send-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'SENDING\u2026'; }
 
@@ -1068,11 +1182,14 @@
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
-                name:      p.name      || '',
-                email:     p.email,
-                eventType: p.eventType || '',
-                eventDate: p.eventDate || '',
-                package:   pkg
+                name:             p.name      || '',
+                email:            p.email,
+                eventType:        p.eventType || '',
+                eventDate:        p.eventDate || '',
+                package:          pkg,
+                estimatedAmount:  estimatedAmount  || undefined,
+                customNote:       customNote       || undefined,
+                customFeatures:   customFeatures.length ? customFeatures : undefined
             })
         })
         .then(function (r) { return r.json(); })
@@ -1098,7 +1215,10 @@
             showToast('Network error sending quote: ' + e);
         });
     }
-    window.sendQuoteEmail = sendQuoteEmail;
+    window.sendQuoteEmail      = sendQuoteEmail;
+    window.onQuotePackageChange = onQuotePackageChange;
+    window.addQuoteFeature      = addQuoteFeature;
+    window.removeQuoteFeature   = removeQuoteFeature;
 
     function formatShortDate(iso) {
         try {

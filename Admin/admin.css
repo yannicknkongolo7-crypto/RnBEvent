@@ -557,8 +557,10 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     cursor: pointer; transition: var(--transition);
     border: 1px solid var(--border); background: transparent; color: var(--sage-medium);
 }
-.crm-act-btn:hover         { background: var(--primary); color: var(--white); border-color: var(--primary); }
-.crm-act-btn.del-btn:hover { background: #c0392b; color: var(--white); border-color: #c0392b; }
+.crm-act-btn:hover                { background: var(--primary); color: var(--white); border-color: var(--primary); }
+.crm-act-btn.del-btn:hover        { background: #c0392b; color: var(--white); border-color: #c0392b; }
+.crm-act-btn.quote-btn            { border-color: #b89a5e; color: #b89a5e; }
+.crm-act-btn.quote-btn:hover      { background: #b89a5e; color: var(--white); border-color: #b89a5e; }
 
 /* ===========================
    TASKS BOARD

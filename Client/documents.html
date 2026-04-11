@@ -122,7 +122,21 @@
                 html += '<li>Communicate changes to the event scope promptly.</li>';
                 html += '</ul>';
                 html += '<h3>Fees &amp; Payment</h3>';
-                html += '<p>Fees and payment terms are as agreed upon in the separate fee schedule or proposal document. A non-refundable booking retainer is required to secure the event date.</p>';
+                if (client.agreedAmount && Number(client.agreedAmount) > 0) {
+                    var fmtAmt = '$' + Number(client.agreedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    html += '<p>The total agreed amount for all services rendered under this agreement is <strong>' + escHtml(fmtAmt) + '</strong>, payable per the mutually agreed payment schedule.</p>';
+                    html += '<p>A non-refundable booking retainer (deposit) is required to secure the event date. Payment of the retainer constitutes acceptance of the terms of this agreement and reserves the date exclusively for the Client.</p>';
+                    html += '<div style="margin:16px 0;padding:14px 18px;background:#fdf6ec;border-left:3px solid #b89a5e;border-radius:0 4px 4px 0;">';
+                    html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#7a5c00;text-transform:uppercase;margin-bottom:6px">Disclaimer — Deposit Included</p>';
+                    html += '<p style="margin:0;font-size:12px;color:#5a4a2a;line-height:1.7">The agreed total amount of <strong>' + escHtml(fmtAmt) + '</strong> stated in this agreement <strong>includes the non-refundable deposit</strong>. The deposit portion is due upon signing and is non-refundable under all circumstances, including cancellation or change of date. The remaining balance is due per the agreed payment schedule outlined by your event planner.</p>';
+                    html += '</div>';
+                } else {
+                    html += '<p>Fees and payment terms are as agreed upon in the separate fee schedule or proposal document. A non-refundable booking retainer is required to secure the event date.</p>';
+                    html += '<div style="margin:16px 0;padding:14px 18px;background:#fdf6ec;border-left:3px solid #b89a5e;border-radius:0 4px 4px 0;">';
+                    html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#7a5c00;text-transform:uppercase;margin-bottom:6px">Disclaimer — Deposit Included</p>';
+                    html += '<p style="margin:0;font-size:12px;color:#5a4a2a;line-height:1.7">The agreed total amount stated in this agreement <strong>includes the non-refundable deposit</strong>. The deposit portion is non-refundable under all circumstances.</p>';
+                    html += '</div>';
+                }
                 html += '<h3>Cancellation Policy</h3>';
                 html += '<p>In the event of cancellation by the Client, the retainer is non-refundable. Additional fees may apply depending on how far in advance the cancellation occurs. Events cancelled within 30 days of the event date are subject to full contract fees.</p>';
                 html += '<h3>Confidentiality</h3>';

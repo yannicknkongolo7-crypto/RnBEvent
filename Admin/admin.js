@@ -878,6 +878,7 @@
                 '<span><span class="crm-status ' + statusCls + '">' + esc(p.status) + '</span></span>' +
                 '<span class="crm-actions">' +
                     '<button class="crm-act-btn" onclick="editProspect(\'' + escJS(p.id) + '\')">EDIT</button>' +
+                    (p.email ? '<button class="crm-act-btn quote-btn" onclick="openSendQuote(\'' + escJS(p.id) + '\')" title="Send package quote by email">QUOTE</button>' : '') +
                     '<button class="crm-act-btn del-btn" onclick="deleteProspect(\'' + escJS(p.id) + '\')">DEL</button>' +
                 '</span>' +
             '</div>';
@@ -995,6 +996,115 @@
             document.getElementById(id).value = '';
         });
         document.getElementById('f-status').value = 'New Lead';
+    }
+
+    /* ── Send Quote ──────────────────────────────────── */
+    var quotingProspectId = null;
+    var QUOTE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    function openSendQuote(id) {
+        var p = state.prospects.find(function (x) { return x.id === id; });
+        if (!p) return;
+        if (!p.email) { showToast('This prospect has no email address. Add one before sending a quote.'); return; }
+        quotingProspectId = id;
+
+        document.getElementById('qm-prospect-name').textContent  = p.name  || '';
+        document.getElementById('qm-prospect-email').textContent = p.email || '';
+
+        /* Default package to Gold */
+        var pkg = document.getElementById('qm-package');
+        if (pkg) pkg.value = 'Gold';
+
+        /* Safety warning */
+        var warningEl = document.getElementById('qm-warning');
+        if (warningEl) {
+            if (p.quoteSentAt) {
+                var elapsed = Date.now() - new Date(p.quoteSentAt).getTime();
+                var inCooldown = elapsed < QUOTE_COOLDOWN_MS;
+                var sentDate = formatShortDate(p.quoteSentAt);
+                if (inCooldown) {
+                    var hoursLeft = Math.ceil((QUOTE_COOLDOWN_MS - elapsed) / 3600000);
+                    warningEl.innerHTML = '&#9888; A <strong>' + esc(p.quoteSentPackage || '') + '</strong> quote was sent on ' + sentDate + '. &nbsp;|&nbsp; <strong>24-hour cooldown active — ' + hoursLeft + ' hour(s) remaining.</strong> Sending another during this period is blocked to protect your client from inbox flooding.';
+                    warningEl.style.display = 'block';
+                    var sendBtn = document.getElementById('qm-send-btn');
+                    if (sendBtn) { sendBtn.disabled = true; sendBtn.title = 'Cooldown active — ' + hoursLeft + 'h remaining'; }
+                } else {
+                    warningEl.innerHTML = '&#9432; A <strong>' + esc(p.quoteSentPackage || '') + '</strong> quote was previously sent on ' + sentDate + '. You may send a new one, but please confirm this is intentional to avoid duplicate emails.';
+                    warningEl.style.display = 'block';
+                    var sendBtn2 = document.getElementById('qm-send-btn');
+                    if (sendBtn2) { sendBtn2.disabled = false; sendBtn2.title = ''; }
+                }
+            } else {
+                warningEl.style.display = 'none';
+                var sendBtn3 = document.getElementById('qm-send-btn');
+                if (sendBtn3) { sendBtn3.disabled = false; sendBtn3.title = ''; }
+            }
+        }
+
+        document.getElementById('modal-send-quote').classList.remove('hidden');
+    }
+    window.openSendQuote = openSendQuote;
+
+    function sendQuoteEmail() {
+        var p = state.prospects.find(function (x) { return x.id === quotingProspectId; });
+        if (!p || !p.email) return;
+
+        /* 24-hour cooldown guard */
+        if (p.quoteSentAt) {
+            var elapsed = Date.now() - new Date(p.quoteSentAt).getTime();
+            if (elapsed < QUOTE_COOLDOWN_MS) {
+                var hoursLeft = Math.ceil((QUOTE_COOLDOWN_MS - elapsed) / 3600000);
+                showToast('Cooldown active: ' + hoursLeft + 'h remaining before another quote can be sent to ' + p.email + '.');
+                return;
+            }
+            if (!confirm('A quote was already sent to ' + p.email + ' on ' + formatShortDate(p.quoteSentAt) + '.\n\nSend another quote? Only confirm if the client has requested it.')) return;
+        }
+
+        var pkg = (document.getElementById('qm-package').value || 'Silver').trim();
+        var btn = document.getElementById('qm-send-btn');
+        if (btn) { btn.disabled = true; btn.textContent = 'SENDING\u2026'; }
+
+        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-quote-email', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                name:      p.name      || '',
+                email:     p.email,
+                eventType: p.eventType || '',
+                eventDate: p.eventDate || '',
+                package:   pkg
+            })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (btn) { btn.disabled = false; btn.textContent = 'SEND QUOTE'; }
+            if (res && res.ok) {
+                /* Record quote details + auto-advance status */
+                p.quoteSentAt      = new Date().toISOString();
+                p.quoteSentPackage = pkg;
+                if (p.status === 'New Lead') p.status = 'In Conversation';
+                saveProspectsToStorage();
+                renderStats();
+                renderCRM(state.activeFilter);
+                renderKanban();
+                closeModal('modal-send-quote');
+                showToast(pkg + ' quote sent to ' + p.email + '. Status set to \u201cIn Conversation\u201d.');
+            } else {
+                showToast('Quote send failed: ' + (res && res.error ? res.error : 'Unknown error'));
+            }
+        })
+        .catch(function (e) {
+            if (btn) { btn.disabled = false; btn.textContent = 'SEND QUOTE'; }
+            showToast('Network error sending quote: ' + e);
+        });
+    }
+    window.sendQuoteEmail = sendQuoteEmail;
+
+    function formatShortDate(iso) {
+        try {
+            var d = new Date(iso);
+            return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+        } catch (e) { return iso || ''; }
     }
 
     /* ── Task CRUD ───────────────────────────────────── */
@@ -1608,6 +1718,8 @@
         document.getElementById('c-venue').value   = c.eventVenue    || '';
         document.getElementById('c-planner').value = c.planner       || 'RNB Events Team';
         document.getElementById('c-pemail').value  = c.plannerEmail  || 'hello@rnbevents716.com';
+        var amountEl = document.getElementById('c-amount');
+        if (amountEl) amountEl.value = (c.agreedAmount !== undefined && c.agreedAmount !== null && c.agreedAmount !== '') ? String(c.agreedAmount) : '';
 
         var plannerIn = document.getElementById('c-planner-code');
         var teamIn    = document.getElementById('c-team-code');
@@ -1683,8 +1795,10 @@
         var first        = (document.getElementById('c-first').value || '').trim();
         var plannerInEl  = document.getElementById('c-planner-code');
         var teamInEl     = document.getElementById('c-team-code');
+        var amountInEl   = document.getElementById('c-amount');
         var plannerCode  = plannerInEl ? (plannerInEl.value || '').trim().toUpperCase() : '';
         var teamCode     = teamInEl    ? (teamInEl.value    || '').trim().toUpperCase() : '';
+        var agreedAmount = amountInEl  ? (parseFloat(amountInEl.value) || 0) : 0;
 
         if (!code) { alert('Access code is required.'); return; }
         if (!name)  { alert('Client name is required.'); return; }
@@ -1726,6 +1840,7 @@
                 eventVenue:      document.getElementById('c-venue').value.trim(),
                 planner:         document.getElementById('c-planner').value.trim(),
                 plannerEmail:    document.getElementById('c-pemail').value.trim(),
+                agreedAmount:    agreedAmount,
                 timeline:        timeline,
                 trackingNotes:   {
                     plannerTodos: collectTrackingRows('c-planner-todos'),
@@ -1767,6 +1882,10 @@
                     if (!teamCode) {
                         clientData.teamCode     = existing.teamCode     || '';
                         clientData.teamCodeHash = existing.teamCodeHash || '';
+                    }
+                    /* Preserve agreedAmount from existing if not updated */
+                    if (!agreedAmount && existing.agreedAmount) {
+                        clientData.agreedAmount = existing.agreedAmount;
                     }
                     state.clients[idx] = clientData;
                 }

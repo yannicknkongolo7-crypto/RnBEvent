@@ -181,6 +181,20 @@ a {
     background: var(--sage-medium);
 }
 
+.eye-toggle {
+    background: transparent;
+    border: none;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--sage-medium);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+.eye-toggle:hover { color: var(--primary); }
+
 .gate-error {
     font-size: 11px;
     color: #c0392b;
@@ -1015,7 +1029,7 @@ a {
     display: flex;
     gap: 10px;
     margin-top: 16px;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .tracking-input {
@@ -1033,6 +1047,14 @@ a {
 
 .tracking-input:focus {
     border-color: var(--accent);
+}
+
+.tracking-note-textarea {
+    resize: none;
+    overflow: hidden;
+    min-height: 42px;
+    line-height: 1.6;
+    white-space: pre-wrap;
 }
 
 .tracking-add-btn {

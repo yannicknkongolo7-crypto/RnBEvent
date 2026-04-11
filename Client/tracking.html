@@ -279,15 +279,21 @@
                     var addRow = document.createElement('div');
                     addRow.className = 'tracking-add-row';
 
-                    var inp = document.createElement('input');
-                    inp.type = 'text';
+                    var inp = document.createElement('textarea');
                     inp.id = 'new-' + key;
-                    inp.className = 'tracking-input';
-                    inp.placeholder = 'Type a note and press Enter…';
+                    inp.className = 'tracking-input tracking-note-textarea';
+                    inp.placeholder = 'Type a note… (Enter for new line, click ADD to save)';
                     inp.maxLength = 500;
                     inp.setAttribute('autocomplete', 'off');
+                    inp.rows = 2;
+                    /* Auto-expand as user types */
+                    inp.addEventListener('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                    });
+                    /* Shift+Enter submits, plain Enter = newline */
                     inp.addEventListener('keydown', function (e) {
-                        if (e.key === 'Enter') { e.preventDefault(); addAndSave(key); }
+                        if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); addAndSave(key); }
                     });
                     addRow.appendChild(inp);
 

@@ -106,15 +106,23 @@
 
                 html += '<div class="agreement-body">';
                 html += '<div class="agreement-text">';
-                html += '<h3>Event Planning Agreement</h3>';
-                html += '<p>This Event Planning Agreement (&ldquo;Agreement&rdquo;) is entered into between:</p>';
-                html += '<p><strong>' + escHtml(plannerName) + '</strong> (&ldquo;Event Planner&rdquo;) and <strong>' + escHtml(clientName) + '</strong> (&ldquo;Client&rdquo;)</p>';
+                html += '<h3>Event Vendor Agreement</h3>';
+                html += '<p>This Event Vendor Agreement (&ldquo;Agreement&rdquo;) is entered into between:</p>';
+                html += '<p><strong>' + escHtml(plannerName) + '</strong> (&ldquo;Vendor&rdquo;) and <strong>' + escHtml(clientName) + '</strong> (&ldquo;Client&rdquo;)</p>';
                 html += '<p>for the following event:</p>';
                 html += '<p><strong>Event Type:</strong> ' + escHtml(eventType) + '<br>';
                 html += '<strong>Event Date:</strong> ' + escHtml(eventDate) + '<br>';
                 html += '<strong>Venue:</strong> ' + escHtml(eventVenue) + '</p>';
                 html += '<h3>Services</h3>';
-                html += '<p>The Event Planner agrees to provide full event planning, coordination, and management services for the above-referenced event. Services include, but are not limited to: venue coordination, vendor management, timeline creation, day-of logistics, and communication facilitation.</p>';
+                html += '<p>The Vendor agrees to provide professional event decoration and design services for the above-referenced event. Services include, but are not limited to:</p>';
+                html += '<ul>';
+                html += '<li>Custom décor concept, design planning, and mood board creation.</li>';
+                html += '<li>Sourcing, procurement, and delivery of all agreed decorative elements (florals, linens, lighting, centerpieces, backdrops, signage, and related items).</li>';
+                html += '<li>Full setup, styling, and installation of all décor at the designated venue prior to the event.</li>';
+                html += '<li>Coordination with venue staff and other vendors to ensure seamless décor execution.</li>';
+                html += '<li>Post-event breakdown, removal, and cleanup of all Vendor-supplied décor items.</li>';
+                html += '</ul>';
+                html += '<p>Any services outside the scope defined above require a written amendment to this agreement and may be subject to additional fees.</p>';
                 html += '<h3>Client Responsibilities</h3>';
                 html += '<ul>';
                 html += '<li>Provide timely feedback and decisions as required.</li>';
@@ -128,7 +136,7 @@
                     html += '<p>A non-refundable booking retainer (deposit) is required to secure the event date. Payment of the retainer constitutes acceptance of the terms of this agreement and reserves the date exclusively for the Client.</p>';
                     html += '<div style="margin:16px 0;padding:14px 18px;background:#fdf6ec;border-left:3px solid #b89a5e;border-radius:0 4px 4px 0;">';
                     html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#7a5c00;text-transform:uppercase;margin-bottom:6px">Disclaimer — Deposit Included</p>';
-                    html += '<p style="margin:0;font-size:12px;color:#5a4a2a;line-height:1.7">The agreed total amount of <strong>' + escHtml(fmtAmt) + '</strong> stated in this agreement <strong>includes the non-refundable deposit</strong>. The deposit portion is due upon signing and is non-refundable under all circumstances, including cancellation or change of date. The remaining balance is due per the agreed payment schedule outlined by your event planner.</p>';
+                    html += '<p style="margin:0;font-size:12px;color:#5a4a2a;line-height:1.7">The agreed total amount of <strong>' + escHtml(fmtAmt) + '</strong> stated in this agreement <strong>includes the non-refundable deposit</strong>. The deposit portion is due upon signing and is non-refundable under all circumstances, including cancellation or change of date. The remaining balance is due per the agreed payment schedule outlined by your Vendor.</p>';
                     html += '</div>';
                 } else {
                     html += '<p>Fees and payment terms are as agreed upon in the separate fee schedule or proposal document. A non-refundable booking retainer is required to secure the event date.</p>';
@@ -142,7 +150,7 @@
                 html += '<h3>Confidentiality</h3>';
                 html += '<p>Both parties agree to keep the terms of this agreement and any proprietary information confidential.</p>';
                 html += '<h3>Agreement</h3>';
-                html += '<p>By signing below, both parties agree to the terms and conditions of this Event Planning Agreement. This agreement becomes legally binding when signed by both parties.</p>';
+                html += '<p>By signing below, both parties agree to the terms and conditions of this Event Vendor Agreement. This agreement becomes legally binding when signed by both parties.</p>';
                 html += '</div>'; /* end .agreement-text */
 
                 /* ─── Signatures ─── */
@@ -169,7 +177,7 @@
 
                 /* Planner signature block */
                 html += '<div class="sig-block">';
-                html += '<p class="sig-block-title">Event Planner Signature — ' + escHtml(plannerName) + '</p>';
+                html += '<p class="sig-block-title">Vendor Signature — ' + escHtml(plannerName) + '</p>';
                 if (agr.plannerSignature) {
                     html += '<p class="sig-signed-display">' + escHtml(agr.plannerSignature) + '</p>';
                     html += '<p class="sig-signed-date">Signed ' + escHtml(agr.plannerSignedAt ? formatNoteTs(agr.plannerSignedAt) : '') + '</p>';

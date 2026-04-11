@@ -1071,44 +1071,62 @@
 
     var QUOTE_PACKAGES = {
         Silver: {
+            // Silver Package — 100–150 Guests
             lineItems: [
-                { description: 'Initial consultation & event concept', qty: 1, price: 0 },
-                { description: 'Venue & vendor recommendations',       qty: 1, price: 0 },
-                { description: 'Day-of coordination (up to 6 hours)', qty: 1, price: 0 },
-                { description: 'Timeline creation & management',       qty: 1, price: 0 },
-                { description: 'Email support throughout planning',    qty: 1, price: 0 }
+                { description: 'Candles and Vases Combo',                     qty: 65, price: 20    },
+                { description: 'Large Floral Arrangements (LG)',               qty: 12, price: 40    },
+                { description: 'Bouquet / Bridal Floral Arrangements (BG)',    qty: 10, price: 75    },
+                { description: 'Small Floral Arrangements (SM)',               qty: 18, price: 30    },
+                { description: 'Centerpieces',                                 qty: 12, price: 55    },
+                { description: 'Sweetheart Table and Chairs',                  qty:  1, price: 1000  },
+                { description: 'Backdrop Design',                              qty:  1, price: 1500  },
+                { description: 'Family & Friends Discount (35%)',              qty:  1, price: -2180.50 },
+                { description: 'Labor (transportation, setup, teardown)',      qty:  1, price: 3500  },
+                { description: 'Deposit',                                      qty:  1, price: 500   }
             ]
         },
         Gold: {
+            // Gold Package — 200–250 Guests
             lineItems: [
-                { description: 'Initial consultation & event concept', qty: 1, price: 0 },
-                { description: 'Full vendor sourcing & management',    qty: 1, price: 0 },
-                { description: 'Budget tracking & negotiation support', qty: 1, price: 0 },
-                { description: 'Client portal access',                 qty: 1, price: 0 },
-                { description: 'Day-of coordination (up to 10 hours)', qty: 1, price: 0 },
-                { description: 'Décor concept & mood board creation',  qty: 1, price: 0 },
-                { description: 'Unlimited email & phone consultations', qty: 1, price: 0 }
+                { description: 'Candles and Vases Combo',                qty: 80, price: 20    },
+                { description: 'Large Floral Arrangements',              qty: 12, price: 40    },
+                { description: 'Bouquet Floral Arrangements',            qty: 10, price: 75    },
+                { description: 'Small Floral Arrangements',              qty: 20, price: 30    },
+                { description: 'Centerpieces',                           qty: 12, price: 55    },
+                { description: 'Sweetheart Table and Chairs',            qty:  1, price: 1500  },
+                { description: 'Backdrop Design',                        qty:  1, price: 2000  },
+                { description: 'Family & Friends Discount (30%)',        qty:  1, price: -2277 },
+                { description: 'Labor',                                  qty:  1, price: 3750  },
+                { description: 'Deposit',                                qty:  1, price: 500   }
             ]
         },
         Platinum: {
+            // Platinum Package — 250–300 Guests
             lineItems: [
-                { description: 'Full venue styling & setup oversight',      qty: 1, price: 0 },
-                { description: 'Priority planner availability',              qty: 1, price: 0 },
-                { description: 'Rehearsal coordination',                     qty: 1, price: 0 },
-                { description: 'Custom signage & stationery coordination',  qty: 1, price: 0 },
-                { description: 'Post-event breakdown coordination',          qty: 1, price: 0 },
-                { description: 'Dedicated RNB Events team member on-site',  qty: 1, price: 0 }
+                { description: 'Candles and Vases Combo',           qty: 100, price: 20   },
+                { description: 'Large Floral Arrangements',          qty:  14, price: 40   },
+                { description: 'Bouquet Floral Arrangements',        qty:  12, price: 75   },
+                { description: 'Small Floral Arrangements',          qty:  22, price: 30   },
+                { description: 'Centerpieces',                       qty:  14, price: 55   },
+                { description: 'Sweetheart Table and Chairs',        qty:   1, price: 2000 },
+                { description: 'Backdrop Design',                    qty:   1, price: 2500 },
+                { description: 'Family & Friends Discount',          qty:   1, price: 0    },
+                { description: 'Labor',                              qty:   1, price: 0    },
+                { description: 'Deposit',                            qty:   1, price: 0    }
             ]
         },
         Presidential: {
             lineItems: [
-                { description: 'Bespoke event concept & design direction',       qty: 1, price: 0 },
-                { description: 'Exclusive vendor partnerships & priority booking', qty: 1, price: 0 },
-                { description: 'Dedicated lead planner + full team support',      qty: 1, price: 0 },
-                { description: 'Custom floral, lighting & entertainment curation', qty: 1, price: 0 },
-                { description: 'VIP guest concierge coordination',                qty: 1, price: 0 },
-                { description: 'Unlimited planning sessions',                     qty: 1, price: 0 },
-                { description: 'Pre-event site visit & full production management', qty: 1, price: 0 }
+                { description: 'Bespoke event concept & design direction',          qty: 1, price: 0 },
+                { description: 'Exclusive vendor partnerships & priority booking',  qty: 1, price: 0 },
+                { description: 'Dedicated lead planner + full team support',        qty: 1, price: 0 },
+                { description: 'Custom floral, lighting & entertainment curation',  qty: 1, price: 0 },
+                { description: 'VIP guest concierge coordination',                  qty: 1, price: 0 },
+                { description: 'Unlimited planning sessions',                       qty: 1, price: 0 },
+                { description: 'Pre-event site visit & full production management', qty: 1, price: 0 },
+                { description: 'Family & Friends Discount',                         qty: 1, price: 0 },
+                { description: 'Labor',                                             qty: 1, price: 0 },
+                { description: 'Deposit',                                           qty: 1, price: 0 }
             ]
         }
     };

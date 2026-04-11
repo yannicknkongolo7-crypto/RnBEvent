@@ -47,6 +47,11 @@
         window.currentRole     = roleVal;
         window.currentRoleName = roleName;
 
+        /* Analytics beacon — fire once per portal page load */
+        if (typeof window.remusTrack === 'function') {
+            window.remusTrack('client', code);
+        }
+
         window.portalSignOut = function () {
             sessionStorage.removeItem(SESSION_KEY);
             sessionStorage.removeItem(ROLE_KEY);

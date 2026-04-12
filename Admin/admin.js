@@ -1079,55 +1079,56 @@
                 { description: 'Small Floral Arrangements (SM)',               qty: 18, price: 30    },
                 { description: 'Centerpieces',                                 qty: 12, price: 55    },
                 { description: 'Sweetheart Table and Chairs',                  qty:  1, price: 1000  },
-                { description: 'Backdrop Design',                              qty:  1, price: 1500  },
-                { description: 'Family & Friends Discount (35%)',              qty:  1, price: -2180.50 },
-                { description: 'Labor (transportation, setup, teardown)',      qty:  1, price: 3500  },
-                { description: 'Deposit',                                      qty:  1, price: 500   }
-            ]
+                { description: 'Backdrop Design',                              qty:  1, price: 1500  }
+            ],
+            discountPct: 35,
+            laborProduction: 3500,
+            deposit: 500
         },
         Gold: {
             // Gold Package — 200–250 Guests
             lineItems: [
                 { description: 'Candles and Vases Combo',                qty: 80, price: 20    },
-                { description: 'Large Floral Arrangements',              qty: 12, price: 40    },
-                { description: 'Bouquet Floral Arrangements',            qty: 10, price: 75    },
-                { description: 'Small Floral Arrangements',              qty: 20, price: 30    },
+                { description: 'Large Floral Arrangements (LG)',         qty: 12, price: 40    },
+                { description: 'Bouquet / Bridal Floral Arrangements (BG)', qty: 10, price: 75 },
+                { description: 'Small Floral Arrangements (SM)',         qty: 20, price: 30    },
                 { description: 'Centerpieces',                           qty: 12, price: 55    },
                 { description: 'Sweetheart Table and Chairs',            qty:  1, price: 1500  },
-                { description: 'Backdrop Design',                        qty:  1, price: 2000  },
-                { description: 'Family & Friends Discount (30%)',        qty:  1, price: -2277 },
-                { description: 'Labor',                                  qty:  1, price: 3750  },
-                { description: 'Deposit',                                qty:  1, price: 500   }
-            ]
+                { description: 'Backdrop Design',                        qty:  1, price: 2000  }
+            ],
+            discountPct: 30,
+            laborProduction: 3750,
+            deposit: 500
         },
         Platinum: {
             // Platinum Package — 250–300 Guests
             lineItems: [
-                { description: 'Candles and Vases Combo',           qty: 100, price: 20   },
-                { description: 'Large Floral Arrangements',          qty:  14, price: 40   },
-                { description: 'Bouquet Floral Arrangements',        qty:  12, price: 75   },
-                { description: 'Small Floral Arrangements',          qty:  22, price: 30   },
-                { description: 'Centerpieces',                       qty:  14, price: 55   },
-                { description: 'Sweetheart Table and Chairs',        qty:   1, price: 2000 },
-                { description: 'Backdrop Design',                    qty:   1, price: 2500 },
-                { description: 'Family & Friends Discount',          qty:   1, price: 0    },
-                { description: 'Labor',                              qty:   1, price: 0    },
-                { description: 'Deposit',                            qty:   1, price: 0    }
-            ]
+                { description: 'Candles and Vases Combo',                      qty: 100, price: 20   },
+                { description: 'Large Floral Arrangements (LG)',               qty:  14, price: 40   },
+                { description: 'Bouquet / Bridal Floral Arrangements (BG)',    qty:  12, price: 75   },
+                { description: 'Small Floral Arrangements (SM)',               qty:  22, price: 30   },
+                { description: 'Centerpieces',                                 qty:  14, price: 55   },
+                { description: 'Sweetheart Table and Chairs',                  qty:   1, price: 2000 },
+                { description: 'Backdrop Design',                              qty:   1, price: 2500 }
+            ],
+            discountPct: 20,
+            laborProduction: 4000,
+            deposit: 750
         },
         Presidential: {
+            // Presidential Package — 300+ Guests  |  Target: $20,000
             lineItems: [
-                { description: 'Bespoke event concept & design direction',          qty: 1, price: 0 },
-                { description: 'Exclusive vendor partnerships & priority booking',  qty: 1, price: 0 },
-                { description: 'Dedicated lead planner + full team support',        qty: 1, price: 0 },
-                { description: 'Custom floral, lighting & entertainment curation',  qty: 1, price: 0 },
-                { description: 'VIP guest concierge coordination',                  qty: 1, price: 0 },
-                { description: 'Unlimited planning sessions',                       qty: 1, price: 0 },
-                { description: 'Pre-event site visit & full production management', qty: 1, price: 0 },
-                { description: 'Family & Friends Discount',                         qty: 1, price: 0 },
-                { description: 'Labor',                                             qty: 1, price: 0 },
-                { description: 'Deposit',                                           qty: 1, price: 0 }
-            ]
+                { description: 'Candles and Vases Combo',                      qty: 120, price: 20   },
+                { description: 'Large Floral Arrangements (LG)',               qty:  16, price: 55   },
+                { description: 'Bouquet / Bridal Floral Arrangements (BG)',    qty:  14, price: 90   },
+                { description: 'Small Floral Arrangements (SM)',               qty:  24, price: 35   },
+                { description: 'Luxury Centerpieces',                          qty:  16, price: 130  },
+                { description: 'Sweetheart Table and Chairs',                  qty:   1, price: 2500 },
+                { description: 'Statement Backdrop Design',                    qty:   1, price: 2040 }
+            ],
+            discountPct: 0,
+            laborProduction: 5510,
+            deposit: 1500
         }
     };
 
@@ -1148,20 +1149,55 @@
         var container  = document.getElementById('qm-line-items');
         var totalEl    = document.getElementById('qm-total');
         var totalBotEl = document.getElementById('qm-total-bottom');
-        if (!container) return;
-        var rows  = container.querySelectorAll('.qm-line-row');
-        var total = 0;
+        if (!container) return { itemsSubtotal: 0, discountPct: 0, discountAmt: 0, discountedSubtotal: 0, taxAmt: 0, laborProduction: 0, deposit: 0, grandTotal: 0 };
+
+        /* Items subtotal */
+        var rows = container.querySelectorAll('.qm-line-row');
+        var itemsSubtotal = 0;
         rows.forEach(function (row) {
             var q = parseFloat((row.querySelector('.qm-item-qty')   || {}).value) || 0;
             var p = parseFloat((row.querySelector('.qm-item-price') || {}).value) || 0;
             var sub = q * p;
-            total += sub;
+            itemsSubtotal += sub;
             var subtotalEl = row.querySelector('.qm-item-subtotal');
             if (subtotalEl) subtotalEl.textContent = '$' + sub.toFixed(2);
         });
-        var formatted = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        /* Discount */
+        var discountPctEl = document.getElementById('qm-discount-pct');
+        var discountPct = parseFloat((discountPctEl || {}).value) || 0;
+        var discountAmt = itemsSubtotal * (discountPct / 100);
+        var discountedSubtotal = itemsSubtotal - discountAmt;
+
+        /* TX Tax — 8.25%, locked */
+        var taxAmt = discountedSubtotal * 0.0825;
+
+        /* Labor Production */
+        var laborEl = document.getElementById('qm-labor');
+        var laborProduction = parseFloat((laborEl || {}).value) || 0;
+
+        /* Deposit */
+        var depositEl = document.getElementById('qm-deposit');
+        var deposit = parseFloat((depositEl || {}).value) || 0;
+
+        /* Grand Total */
+        var grandTotal = discountedSubtotal + taxAmt + laborProduction + deposit;
+
+        /* Update display */
+        var itemsSubEl = document.getElementById('qm-items-subtotal');
+        if (itemsSubEl) itemsSubEl.textContent = '$' + itemsSubtotal.toFixed(2);
+
+        var discountAmtEl = document.getElementById('qm-discount-amt');
+        if (discountAmtEl) discountAmtEl.textContent = discountAmt > 0 ? '-$' + discountAmt.toFixed(2) : '$0.00';
+
+        var taxAmtEl = document.getElementById('qm-tax-amt');
+        if (taxAmtEl) taxAmtEl.textContent = '$' + taxAmt.toFixed(2);
+
+        var formatted = '$' + grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         if (totalEl)    totalEl.textContent    = formatted;
         if (totalBotEl) totalBotEl.textContent = formatted;
+
+        return { itemsSubtotal: itemsSubtotal, discountPct: discountPct, discountAmt: discountAmt, discountedSubtotal: discountedSubtotal, taxAmt: taxAmt, laborProduction: laborProduction, deposit: deposit, grandTotal: grandTotal };
     }
 
     function renderQuoteLineItems(lineItems) {
@@ -1223,7 +1259,19 @@
         var pkg = document.getElementById('qm-package');
         if (!pkg) return;
         var pkgData = QUOTE_PACKAGES[pkg.value];
-        if (pkgData) renderQuoteLineItems(pkgData.lineItems.map(function (item) { return Object.assign({}, item); }));
+        if (!pkgData) return;
+        renderQuoteLineItems(pkgData.lineItems.map(function (item) { return Object.assign({}, item); }));
+
+        var discountEl = document.getElementById('qm-discount-pct');
+        if (discountEl) discountEl.value = pkgData.discountPct != null ? pkgData.discountPct : 0;
+
+        var laborEl = document.getElementById('qm-labor');
+        if (laborEl) laborEl.value = pkgData.laborProduction != null ? pkgData.laborProduction : 0;
+
+        var depositEl = document.getElementById('qm-deposit');
+        if (depositEl) depositEl.value = pkgData.deposit != null ? pkgData.deposit : 0;
+
+        recalcQuoteTotal();
     }
 
     function addQuoteLineItem() {
@@ -1315,8 +1363,14 @@
         var noteEl     = document.getElementById('qm-note');
         var customNote = noteEl ? noteEl.value.trim() : '';
 
-        /* Calculate total for fallback display */
-        var total = lineItems.reduce(function (sum, item) { return sum + (item.qty * item.price); }, 0);
+        /* Collect breakdown fields */
+        var totals = recalcQuoteTotal();
+        var discountPct      = totals.discountPct;
+        var discountAmt      = totals.discountAmt;
+        var laborProduction  = totals.laborProduction;
+        var taxAmt           = totals.taxAmt;
+        var deposit          = totals.deposit;
+        var grandTotal       = totals.grandTotal;
 
         var btn = document.getElementById('qm-send-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'SENDING\u2026'; }
@@ -1325,13 +1379,19 @@
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
-                name:       p.name      || '',
-                email:      p.email,
-                eventType:  p.eventType || '',
-                eventDate:  p.eventDate || '',
-                package:    pkg,
-                lineItems:  lineItems.length ? lineItems : undefined,
-                customNote: customNote || undefined
+                name:            p.name      || '',
+                email:           p.email,
+                eventType:       p.eventType || '',
+                eventDate:       p.eventDate || '',
+                package:         pkg,
+                lineItems:       lineItems.length ? lineItems : undefined,
+                discountPct:     discountPct,
+                discountAmt:     discountAmt,
+                laborProduction: laborProduction,
+                taxAmt:          taxAmt,
+                deposit:         deposit,
+                grandTotal:      grandTotal,
+                customNote:      customNote || undefined
             })
         })
         .then(function (r) {
@@ -1878,11 +1938,11 @@
                 timeline:        [],
                 trackingNotes:   {
                     plannerTodos: [
-                        { text: 'Sign the Event Planning Agreement before proceeding with any planning tasks', status: 'pending', addedAt: new Date().toISOString(), addedBy: 'rnbTeam' }
+                        { text: 'Sign the Events Production & Coordination Agreement before proceeding with any planning tasks', status: 'pending', addedAt: new Date().toISOString(), addedBy: 'rnbTeam' }
                     ],
                     teamTodos: [],
                     clientTodos: [
-                        { text: 'Review and sign the Event Planning Agreement in the Documents section', status: 'pending', addedAt: new Date().toISOString(), addedBy: 'rnbTeam' }
+                        { text: 'Review and sign the Events Production & Coordination Agreement in the Documents section', status: 'pending', addedAt: new Date().toISOString(), addedBy: 'rnbTeam' }
                     ]
                 },
                 vendors:         [],

@@ -267,7 +267,7 @@
         msg.textContent = '';
 
         const data = {
-            name:         form.name.value.trim(),
+            name:         form.elements['name'].value.trim(),
             email:        form.email.value.trim(),
             phone:        form.phone.value.trim(),
             location:     form.location.value.trim(),
@@ -279,7 +279,7 @@
             message:      form.message.value.trim(),
         };
 
-        if (!data.name)      { showMsg('Please enter your name.', 'error');          return form.name.focus(); }
+        if (!data.name)      { showMsg('Please enter your name.', 'error');          return form.elements['name'].focus(); }
         if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
             showMsg('Please enter a valid email address.', 'error');
             return form.email.focus();

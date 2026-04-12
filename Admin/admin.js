@@ -1404,6 +1404,8 @@
                 /* Record quote details + auto-advance status */
                 p.quoteSentAt      = new Date().toISOString();
                 p.quoteSentPackage = pkg;
+                p.quotedAmount     = grandTotal;
+                p.quotedDeposit    = deposit;
                 if (p.status === 'New Lead') p.status = 'In Conversation';
                 saveProspectsToStorage();
                 renderStats();
@@ -1933,6 +1935,10 @@
                 eventType:       prospect.eventType || '',
                 eventDate:       prospect.eventDate || '',
                 eventVenue:      '',
+                quotedAmount:    prospect.quotedAmount  || 0,
+                quotedDeposit:   prospect.quotedDeposit || 0,
+                quotedPackage:   prospect.quoteSentPackage || '',
+                lastQuoteSentAt: prospect.quoteSentAt  || '',
                 planner:         'RNB Events Team',
                 plannerEmail:    'hello@rnbevents716.com',
                 timeline:        [],

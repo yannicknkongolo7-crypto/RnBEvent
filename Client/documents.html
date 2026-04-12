@@ -133,6 +133,30 @@
                 html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#2d3a2d;text-transform:uppercase;margin-bottom:6px">Add-Ons &amp; Changes After Lock Date</p>';
                 html += '<p style="margin:0;font-size:12px;color:#3d3a35;line-height:1.8">Any decorative elements, services, or requests <strong>not included in the Final Approved Scope</strong> are considered add-ons and are subject to <strong>additional charges</strong>. All add-ons must be requested in writing, approved by the Vendor, and confirmed with a revised quote or written amendment prior to execution. The Vendor is under no obligation to accommodate add-on requests that cannot be fulfilled within the original event timeline, sourcing lead times, or budget.</p>';
                 html += '</div>';
+                html += '<h3>Financial Commitment &amp; Payment Obligation</h3>';
+                if (client.quotedAmount && Number(client.quotedAmount) > 0) {
+                    var qAmt = '$' + Number(client.quotedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    var qDep = client.quotedDeposit && Number(client.quotedDeposit) > 0
+                        ? '$' + Number(client.quotedDeposit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : null;
+                    html += '<p>By signing this agreement, the Client acknowledges and confirms the quoted total amount presented in the official RNB Events proposal and commits to fulfilling the full payment obligation prior to the event date.</p>';
+                    html += '<div style="margin:16px 0;padding:16px 20px;background:#f5f2ec;border:1.5px solid #2d3a2d;border-radius:4px;">';
+                    html += '<p style="margin:0 0 4px;font-family:Montserrat,sans-serif;font-size:10px;font-weight:600;letter-spacing:1.5px;color:#527141;text-transform:uppercase">Agreed Quoted Total</p>';
+                    html += '<p style="margin:0 0 8px;font-family:Cormorant Garamond,serif;font-size:26px;font-weight:600;color:#2d3a2d">' + escHtml(qAmt) + '</p>';
+                    if (client.quotedPackage) {
+                        html += '<p style="margin:0 0 4px;font-size:12px;color:#3d3a35"><strong>Package:</strong> ' + escHtml(client.quotedPackage) + '</p>';
+                    }
+                    if (qDep) {
+                        html += '<p style="margin:0 0 4px;font-size:12px;color:#3d3a35"><strong>Non-refundable deposit:</strong> ' + escHtml(qDep) + '</p>';
+                    }
+                    if (client.lastQuoteSentAt) {
+                        html += '<p style="margin:0;font-size:11px;color:#7a7a6a">Quote issued: ' + escHtml(formatNoteTs(client.lastQuoteSentAt)) + '</p>';
+                    }
+                    html += '<p style="margin:12px 0 0;font-size:12px;color:#3d3a35;line-height:1.75;border-top:1px solid #ddd;padding-top:10px">The Client confirms they have reviewed and agree to the quoted total of <strong>' + escHtml(qAmt) + '</strong> as stated in the official proposal and commits to fulfilling all payment obligations in full prior to the event date, per the agreed payment schedule.</p>';
+                    html += '</div>';
+                } else {
+                    html += '<p>By signing this agreement, the Client confirms and agrees to the quoted amount presented in the official RNB Events proposal and commits to fulfilling the full payment obligation in full prior to the event date.</p>';
+                }
                 html += '<h3>Client Responsibilities</h3>';
                 html += '<ul>';
                 html += '<li>Participate actively in the mood board and design review process and provide timely written feedback on all design proposals.</li>';
@@ -172,7 +196,7 @@
                 html += '<h3>Confidentiality</h3>';
                 html += '<p>Both parties agree to keep the terms of this agreement and any proprietary information confidential.</p>';
                 html += '<h3>Agreement</h3>';
-                html += '<p>By signing below, both parties agree to the terms and conditions of this Event Vendor Agreement. The Client acknowledges that: (1) this agreement secures the Vendor&rsquo;s services based on the Working Scope at time of signing; (2) the mood board and design details may be collaboratively refined until the Final Design Approval date (30 days before the event); and (3) any changes requested after the Final Design Approval date are subject to additional charges and Vendor availability. This agreement becomes legally binding when signed by both parties.</p>';
+                html += '<p>By signing below, both parties agree to the terms and conditions of this Event Vendor Agreement. The Client acknowledges that: (1) this agreement secures the Vendor&rsquo;s services based on the Working Scope at time of signing; (2) the mood board and design details may be collaboratively refined until the Final Design Approval date (30 days before the event); (3) any changes requested after the Final Design Approval date are subject to additional charges and Vendor availability; and (4) the Client confirms the quoted total amount stated in the official proposal and commits to fulfilling the full payment obligation prior to the event date. This agreement becomes legally binding when signed by both parties.</p>';
                 html += '</div>'; /* end .agreement-text */
 
                 /* ─── Contract Attachments ─── */

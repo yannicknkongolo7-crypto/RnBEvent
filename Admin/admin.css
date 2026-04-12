@@ -1280,3 +1280,18 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     .input-wrapper { flex-wrap: wrap; }
     .gate-btn { flex: 1 0 100%; padding: 13px; margin-top: 1px; }
 }
+
+@media (max-width: 540px) {
+    /* Quote builder — stack description on its own full-width row on mobile */
+    .qm-col-header { display: none !important; }
+    .qm-line-row {
+        grid-template-columns: 52px 90px 72px 28px !important;
+        row-gap: 4px !important;
+    }
+    .qm-item-desc {
+        grid-column: 1 / -1;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

@@ -212,16 +212,16 @@
                     </div>
                     <div class="quote-field">
                         <label for="qBudget">Budget Range</label>
-                        <select id="qBudget" name="budget">
+                        <select id="qBudget" name="budget" onchange="handleBudgetChange(this)">
                             <option value="">Select a range…</option>
-                            <option>Under $1,000</option>
-                            <option>$1,000 – $2,500</option>
-                            <option>$2,500 – $5,000</option>
+                            <option>$3,000 – $5,000</option>
                             <option>$5,000 – $10,000</option>
                             <option>$10,000 – $20,000</option>
                             <option>$20,000+</option>
+                            <option value="__other__">Other (specify)</option>
                             <option>Prefer not to say</option>
                         </select>
+                        <input type="text" id="qBudgetOther" placeholder="Enter your budget (e.g. $4,000)" maxlength="100" style="display:none;margin-top:8px;width:100%;padding:10px 12px;border:1px solid #e0dcd4;border-radius:3px;font-family:Montserrat,sans-serif;font-size:13px;background:#fff;color:#2d3a2d;box-sizing:border-box">
                     </div>
                 </div>
                 <div class="quote-field">
@@ -258,6 +258,12 @@
         if (e.key === 'Escape') closeQuoteModal();
     });
 
+    function handleBudgetChange(sel) {
+        var other = document.getElementById('qBudgetOther');
+        other.style.display = sel.value === '__other__' ? '' : 'none';
+        if (sel.value !== '__other__') other.value = '';
+    }
+
     async function submitQuoteForm(e) {
         e.preventDefault();
         const form = e.target;
@@ -274,7 +280,9 @@
             eventType:    form.eventType.value,
             eventDate:    form.eventDate.value,
             guestCount:   form.guestCount.value,
-            budget:       form.budget.value,
+            budget:       form.elements['budget'].value === '__other__'
+                              ? (document.getElementById('qBudgetOther').value.trim() || 'Other')
+                              : form.elements['budget'].value,
             serviceScale: document.getElementById('qServiceScale').value,
             message:      form.message.value.trim(),
         };

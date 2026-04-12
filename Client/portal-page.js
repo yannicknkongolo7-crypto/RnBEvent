@@ -190,7 +190,7 @@
         });
     };
 
-    window.RNB_SECTION_API = 'https://73ucgufya3.execute-api.us-east-2.amazonaws.com/update-client-section';
+    window.RNB_SECTION_API = 'https://1nt249f9ha.execute-api.us-east-2.amazonaws.com/update-client-section';
 
     window.savePortalSection = function (section, data, statusEl, btnEl, editAction) {
         btnEl.disabled = true;

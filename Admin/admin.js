@@ -2379,7 +2379,22 @@
         if (!c) return;
         if (!confirm('Remove client "' + c.fullName + '" and their portal access? This cannot be undone.')) return;
         state.clients = state.clients.filter(function (x) { return x.id !== id; });
-        saveClientsToStorage();
+        safeSave(STORAGE_CLIENTS, state.clients);
+        cloudPush({ clients: state.clients });
+        // Pass deletedIds so the Lambda explicitly removes this client from S3
+        var api = window.RNB_UPLOAD_API;
+        if (api) {
+            fetch(api, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clients: state.clients, deletedIds: [id] })
+            }).then(function (r) { return r.json(); })
+              .then(function (data) {
+                  if (data && data.ok) updateSyncStatus('synced');
+                  else { console.warn('Delete publish failed:', data && data.error); updateSyncStatus('error'); }
+              })
+              .catch(function (e) { console.warn('Delete publish error:', e); updateSyncStatus('error'); });
+        }
         renderClientManager();
         logAdminActivity('Client deleted', 'Deleted client: ' + (c.fullName || c.id));
         showToast('Client removed.');

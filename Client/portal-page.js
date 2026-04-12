@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RNB Events — Portal Sub-page Auth + Init
  * Included by all Client sub-pages (timeline, moodboard, etc.)
  * Fetches live data from cloud, falls back to static clients-config.js
@@ -190,7 +190,7 @@
         });
     };
 
-    window.RNB_SECTION_API = 'https://1nt249f9ha.execute-api.us-east-2.amazonaws.com/update-client-section';
+    window.RNB_SECTION_API = 'https://api.rnbevents716.com/update-client-section';
 
     window.savePortalSection = function (section, data, statusEl, btnEl, editAction) {
         btnEl.disabled = true;

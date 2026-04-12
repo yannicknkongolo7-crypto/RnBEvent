@@ -1,4 +1,4 @@
-/**
+﻿/**
  * remus-track.js  —  RNB Events analytics beacon (REMUS)
  * Include on every page that should be tracked.
  *
@@ -10,7 +10,7 @@
  * No cookies are set. No PII is transmitted.
  */
 (function () {
-    var ENDPOINT = 'https://1nt249f9ha.execute-api.us-east-2.amazonaws.com/track-visit';
+    var ENDPOINT = 'https://api.rnbevents716.com/track-visit';
     var BOT_PATTERN = /bot|crawl|spider|slurp|mediapartners|adsbot|facebookexternalhit/i;
 
     /* Assign a random session ID per browser session (cleared when tab closes) */

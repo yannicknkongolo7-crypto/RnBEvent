@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stats | RNB Events</title>
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://1nt249f9ha.execute-api.us-east-2.amazonaws.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.rnbevents716.com; object-src 'none'; base-uri 'self'; form-action 'self';">
     <link rel="stylesheet" href="../Admin/admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -455,7 +455,7 @@
 
         /* ── Constants ─────────────────────────────── */
         var SESSION_KEY = 'rnb_admin_access';
-        var LAMBDA      = 'https://1nt249f9ha.execute-api.us-east-2.amazonaws.com';
+        var LAMBDA      = 'https://api.rnbevents716.com';
         var activeDays  = 7;
         var pendingAuth = false;
         var authAttempts  = parseInt(sessionStorage.getItem('rnb_auth_attempts') || '0', 10);

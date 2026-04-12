@@ -3,3 +3,13 @@
 
 [build.environment]
   NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/Prospect"
+  to   = "/Stat"
+  status = 301
+
+[[redirects]]
+  from = "/Prospect/*"
+  to   = "/Stat/:splat"
+  status = 301

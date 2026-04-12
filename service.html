@@ -188,7 +188,7 @@
                 <div class="quote-form-row">
                     <div class="quote-field">
                         <label for="qEventType">Event Type <span class="req">*</span></label>
-                        <select id="qEventType" name="eventType" required>
+                        <select id="qEventType" name="eventType" required onchange="handleEventTypeChange(this)">
                             <option value="">Select event type…</option>
                             <option>Wedding</option>
                             <option>Corporate Event</option>
@@ -257,6 +257,35 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeQuoteModal();
     });
+
+    var PREMIUM_EVENTS = ['Wedding', 'Corporate Event', 'Social Gathering'];
+
+    function handleEventTypeChange(sel) {
+        var isPremium = PREMIUM_EVENTS.indexOf(sel.value) !== -1;
+        var budgetSel = document.getElementById('qBudget');
+        var prev = budgetSel.value;
+        budgetSel.innerHTML = isPremium
+            ? '<option value="">Select a range…</option>'
+              + '<option>$5,000 – $10,000</option>'
+              + '<option>$10,000 – $20,000</option>'
+              + '<option>$20,000+</option>'
+              + '<option value="__other__">Other (specify)</option>'
+              + '<option>Prefer not to say</option>'
+            : '<option value="">Select a range…</option>'
+              + '<option>$3,000 – $5,000</option>'
+              + '<option>$5,000 – $10,000</option>'
+              + '<option>$10,000 – $20,000</option>'
+              + '<option>$20,000+</option>'
+              + '<option value="__other__">Other (specify)</option>'
+              + '<option>Prefer not to say</option>';
+        /* Restore previous selection if it still exists */
+        for (var i = 0; i < budgetSel.options.length; i++) {
+            if (budgetSel.options[i].value === prev || budgetSel.options[i].text === prev) {
+                budgetSel.value = budgetSel.options[i].value; break;
+            }
+        }
+        handleBudgetChange(budgetSel);
+    }
 
     function handleBudgetChange(sel) {
         var other = document.getElementById('qBudgetOther');

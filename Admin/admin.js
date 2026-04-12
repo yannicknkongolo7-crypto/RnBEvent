@@ -1,5 +1,5 @@
     // Set this to your API Gateway endpoint for Lambda upload
-    window.RNB_UPLOAD_API = window.RNB_UPLOAD_API || 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/upload-clients';
+    window.RNB_UPLOAD_API = window.RNB_UPLOAD_API || 'https://73ucgufya3.execute-api.us-east-2.amazonaws.com/upload-clients';
 (function () {
     'use strict';
 
@@ -394,7 +394,7 @@
         var errEl = document.getElementById('reset-choose-error');
         errEl.textContent = 'Sending code...';
 
-        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-reset-code', {
+        fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/send-reset-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'send' })
@@ -420,7 +420,7 @@
 
         if (code.length !== 6 || !/^\d{6}$/.test(code)) { errEl.textContent = 'Enter the 6-digit code.'; return; }
 
-        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-reset-code', {
+        fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/send-reset-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'verify', code: code })
@@ -559,7 +559,7 @@
     ══════════════════════════════════════════════════ */
 
     var S3_CLIENTS_URL = 'https://rnbevents716.s3.us-east-2.amazonaws.com/clients.json';
-    var LAMBDA_BASE    = 'https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com';
+    var LAMBDA_BASE    = 'https://73ucgufya3.execute-api.us-east-2.amazonaws.com';
 
     /* ── Post-event automation ────────────────────────── */
     function runPostEventTasks() {
@@ -1321,7 +1321,7 @@
         var btn = document.getElementById('qm-send-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'SENDING\u2026'; }
 
-        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-quote-email', {
+        fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/send-quote-email', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
@@ -1907,7 +1907,7 @@
 
     function sendBookingEmail(client) {
         if (!client.email) { showToast('No email address for this client.'); return; }
-        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/send-booking-email', {
+        fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/send-booking-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

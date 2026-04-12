@@ -351,7 +351,7 @@
                                 var dataUrl    = ev.target.result;
                                 var base64Data = dataUrl.split(',')[1];
                                 var contentType = file.type || 'application/octet-stream';
-                                fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/upload-file', {
+                                fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/upload-file', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -403,7 +403,7 @@
                         if (!isNaN(idx)) {
                             agr.attachments = (agr.attachments || []);
                             agr.attachments.splice(idx, 1);
-                            fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                            fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/update-client-section', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ codeHash: window.currentCode, section: 'agreement', data: agr })
@@ -431,7 +431,7 @@
                         reader.onload = function (ev) {
                             var base64Data  = ev.target.result.split(',')[1];
                             var contentType = file.type || 'application/octet-stream';
-                            fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/upload-file', {
+                            fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/upload-file', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ codeHash: window.currentCode, fileName: file.name, contentType: contentType, data: base64Data })
@@ -442,7 +442,7 @@
                                 if (res && res.ok && res.url) {
                                     agr.attachments = agr.attachments || [];
                                     agr.attachments.push({ name: n, caption: caption, url: res.url, uploadedAt: new Date().toISOString() });
-                                    return fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                                    return fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/update-client-section', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ codeHash: window.currentCode, section: 'agreement', data: agr })
@@ -513,7 +513,7 @@
                         agr.plannerSignedAt  = '';
                         resetAgrBtn.disabled = true;
                         resetAgrBtn.textContent = 'RESETTING...';
-                        fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                        fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/update-client-section', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -550,7 +550,7 @@
             }
 
             function saveAgreement(statusEl, btn) {
-                fetch('https://w8lrwbfe0f.execute-api.us-east-2.amazonaws.com/update-client-section', {
+                fetch('https://73ucgufya3.execute-api.us-east-2.amazonaws.com/update-client-section', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

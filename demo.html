@@ -587,9 +587,8 @@
             text-transform: uppercase;
             margin-bottom: 8px;
         }
-        .builder-selection-btns { display: flex; gap: 6px; }
+        .builder-selection-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .builder-selection-btns .builder-btn {
-            flex: 1;
             margin-bottom: 0;
             text-align: center;
             font-size: 12px;
@@ -1083,9 +1082,15 @@
                                 </div>
                                 <div class="builder-selection-bar" id="obj-selection-bar">
                                     <div class="builder-selection-label">
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="#77a361" style="vertical-align:-1px;margin-right:4px"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Selected Object
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="#77a361" style="vertical-align:-1px;margin-right:4px"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Selected &mdash; <span style="font-weight:400;opacity:.8">arrow keys to rotate</span>
                                     </div>
                                     <div class="builder-selection-btns">
+                                        <button class="builder-btn" onclick="builderRotateSelected(-15)">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.49-1.72 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.75-.87-1.59-1.01-2.47zm1.01 5.32c1.16.9 2.51 1.44 3.9 1.61V17.9c-.87-.15-1.71-.49-2.46-1.03L7.1 18.32zM13 4.07V1L8.45 5.55 13 10V6.09c2.84.48 5 2.94 5 5.91s-2.16 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93s-3.05-7.44-7-7.93z"/></svg>-15&deg;
+                                        </button>
+                                        <button class="builder-btn" onclick="builderRotateSelected(15)">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"/></svg>+15&deg;
+                                        </button>
                                         <button class="builder-btn" onclick="builderRemoveSelected()">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:4px"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Remove
                                         </button>
@@ -1687,14 +1692,32 @@
             });
         }
 
+        // Real-world dimensions in inches (from spec)
+        // Serpentine Table (4 sections assembled): outer diameter = 2 × (93 / (π/2)) ≈ 118.5"
+        // Serpentine Section (1 piece): overall length = 83"
+        const REAL_INCHES = { 'serpentine-table': 118.5, 'serpentine-section': 83 };
+
         function placeClone(template, name) {
-            const clone = template.clone(true);
-            const box   = new THREE.Box3().setFromObject(clone);
-            const size  = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
-            clone.scale.setScalar(1.8 / maxDim);      // ~1.8 scene-units wide
-            const offset = (Math.random() - 0.5) * 4;
+            const clone   = template.clone(true);
+            const box     = new THREE.Box3().setFromObject(clone);
+            const size    = box.getSize(new THREE.Vector3());
+            const maxDim  = Math.max(size.x, size.y, size.z);
+
+            // Scale to real-world size using scene calibration from Hampton load
+            const targetIn   = REAL_INCHES[name] || 72;          // inches
+            const targetFt   = targetIn / 12;
+            const unitsPerFt = window._sceneUnitsPerFoot || 0.08; // fallback
+            clone.scale.setScalar((targetFt * unitsPerFt) / maxDim);
+
+            // Initial position: random spread near centre, y=0 placeholder
+            const offset = (Math.random() - 0.5) * 2;
             clone.position.set(offset, 0, offset);
+
+            // Snap bottom of object to venue floor
+            clone.updateMatrixWorld(true);
+            const scaledBox = new THREE.Box3().setFromObject(clone);
+            clone.position.y = (window._floorY || 0) - scaledBox.min.y;
+
             clone.traverse(c => {
                 if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
             });
@@ -1782,6 +1805,12 @@
 
                     scene.add(model);
 
+                    // Calibrate scene scale against real Hampton dimensions (13,300 sq ft)
+                    const worldBox  = new THREE.Box3().setFromObject(model);
+                    const worldSize = worldBox.getSize(new THREE.Vector3());
+                    window._floorY           = worldBox.min.y;
+                    window._sceneUnitsPerFoot = Math.sqrt((worldSize.x * worldSize.z) / 13300);
+
                     // Position camera to fit
                     camera.position.set(maxDim * scale * 0.9, maxDim * scale * 0.5, maxDim * scale * 1.0);
                     controls.target.set(0, 0, 0);
@@ -1857,6 +1886,13 @@
 
             cvs.addEventListener('pointerup',    () => { isDragging = false; controls.enabled = true; });
             cvs.addEventListener('pointercancel',() => { isDragging = false; controls.enabled = true; });
+
+            // Keyboard rotation for selected object
+            document.addEventListener('keydown', (e) => {
+                if (!selectedObject) return;
+                if (e.key === 'ArrowLeft')  { e.preventDefault(); window.builderRotateSelected(-15); }
+                if (e.key === 'ArrowRight') { e.preventDefault(); window.builderRotateSelected(15);  }
+            });
 
             // Render loop
             function animate() {
@@ -1998,6 +2034,11 @@
             selectedObject = null;
             document.getElementById('obj-selection-bar').classList.remove('visible');
             updateObjectCount();
+        };
+
+        window.builderRotateSelected = function(deg) {
+            if (!selectedObject) return;
+            selectedObject.rotation.y += deg * (Math.PI / 180);
         };
     </script>
 

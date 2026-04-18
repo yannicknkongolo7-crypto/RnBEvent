@@ -1,0 +1,414 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service | RNB Events</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="page-title">SERVICE</div>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="/">
+                    <img src="RNB Logo Olive.png" alt="RNB Events Logo" class="logo-img">
+                </a>
+            </div>
+            
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <!-- Hamburger Dropdown Menu -->
+        <div class="hamburger-menu">
+            <ul class="hamburger-nav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/lovebook">The Love Book</a></li>
+                <li><a href="/crafting-moments">Crafting Moments</a></li>
+                <li><a href="/service">Service</a></li>
+                <li><a href="/about">About Us</a></li>
+                <!-- Client Portal & Guest List — temporarily hidden
+                <li><a href="/Client">Client Portal</a></li>
+                <li><a href="/rsvp">Guest List</a></li>
+                -->
+                <!-- RSVP & Seat Finder — hidden until SNS SMS approved
+                <li><a href="/rsvp">RSVP &amp; Seat Finder</a></li>
+                -->
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container">
+            <h1 class="page-hero-title">Get In Touch</h1>
+            <p class="page-hero-subtitle">Let's Create Something Beautiful Together</p>
+            <div class="hero-cta">
+                <button class="btn-secondary" onclick="openQuoteModal(); remusClick('request_quote')">Request a Quote</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Services</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                            <path d="M2 17L12 22L22 17"/>
+                            <path d="M2 12L12 17L22 12"/>
+                        </svg>
+                    </div>
+                    <h3>WEDDINGS</h3>
+                    <p>Exquisite floral designs and elegant decor to make your special day unforgettable.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <h3>CORPORATE EVENTS</h3>
+                    <p>Professional event design that elevates your brand and impresses your guests.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                            <line x1="9" y1="9" x2="9.01" y2="9"/>
+                            <line x1="15" y1="9" x2="15.01" y2="9"/>
+                        </svg>
+                    </div>
+                    <h3>SOCIAL EVENTS</h3>
+                    <p>Thoughtful designs for birthdays, anniversaries, and all of life's special moments.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RSVP & Seat Finder Feature Cards — hidden until SNS SMS approved
+    <section class="rsvp-feature-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>RSVP &amp; Seat Finder</h2>
+                <div class="divider"></div>
+                <p class="section-subtitle">Make your event seamless — your guests always know exactly where to sit.</p>
+            </div>
+            <div class="rsvp-feature-grid">
+                <div class="rsvp-feature-card">
+                    <div class="rsvp-feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <h3 class="rsvp-feature-title">Guest RSVP Builder</h3>
+                    <p class="rsvp-feature-desc">Sign up free, verify your phone, and build your complete guest list with custom table assignments. Manage your seating with ease — as many tables as you need.</p>
+                    <a href="/rsvp" class="rsvp-feature-btn">START YOUR RSVP</a>
+                </div>
+                <div class="rsvp-feature-card rsvp-feature-card--gold">
+                    <div class="rsvp-feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="4" height="4"/>
+                            <rect x="9" y="14" width="4" height="4"/>
+                            <rect x="3" y="20" width="4" height="1"/>
+                        </svg>
+                    </div>
+                    <h3 class="rsvp-feature-title">QR Seat Finder</h3>
+                    <p class="rsvp-feature-desc">Generate a shareable QR code that guests scan at the door. They type their name and instantly find their table — no printed lists, no confusion, just clarity.</p>
+                    <a href="/rsvp" class="rsvp-feature-btn rsvp-feature-btn--gold">GENERATE QR CODE</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    -->
+
+    <!-- Quote CTA -->
+    <section class="quote-cta-section">
+        <div class="container">
+            <p>Ready to bring your vision to life?</p>
+            <button class="btn-secondary" onclick="openQuoteModal(); remusClick('request_quote')">Request a Quote</button>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Book A Consultation</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="calendly-wrapper">
+                <!-- Calendly inline widget begin -->
+                <div class="calendly-inline-widget" data-url="https://calendly.com/rnbevents716" style="min-width:320px;height:700px;"></div>
+                <!-- Calendly inline widget end -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-nav">
+                    <a href="/lovebook">THE LOVE BOOK</a>
+                    <a href="/crafting-moments">CRAFTING MOMENTS</a>
+                    <a href="/service">SERVICE</a>
+                    <a href="/about">ABOUT US</a>
+                </div>
+                <div class="footer-socials">
+                    <a href="https://www.instagram.com/r.n.b.events716?igsh=MWJvMWRwcm0yZ3J4cg==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </a>
+                    <a href="https://www.facebook.com/share/185byfUx1W/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    </a>
+                    <a href="https://www.tiktok.com/@itsruthb05?_r=1&_t=ZP-95Ebyj52yfW" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                    </a>
+                </div>
+                <p class="powered-by">Designed and Powered By <a href="https://ynk-techusa.com" target="_blank" rel="noopener noreferrer">ynk-techusa.com</a></p>
+                <p class="copyright"><a href="/privacy" style="color:inherit;opacity:0.7;transition:opacity 0.3s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">Privacy &amp; Data Security</a> &nbsp;&middot;&nbsp; Copyright RNB Events 2026 - All Rights Reserved</p>
+
+    <script src="script.js"></script>
+
+    <!-- Quote Request Modal -->
+    <div id="quoteModalOverlay" class="quote-modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="quote-modal">
+            <button class="quote-close-btn" onclick="closeQuoteModal()" aria-label="Close">&times;</button>
+            <div class="quote-modal-header">
+                <h2>Request a Quote</h2>
+                <p>Tell us about your vision and we'll be in touch within 24 hours.</p>
+            </div>
+            <form id="quoteForm" onsubmit="submitQuoteForm(event)" novalidate>
+                <div class="quote-form-row">
+                    <div class="quote-field">
+                        <label for="qName">Full Name <span class="req">*</span></label>
+                        <input type="text" id="qName" name="name" placeholder="Jane Smith" required autocomplete="name">
+                    </div>
+                    <div class="quote-field">
+                        <label for="qEmail">Email Address <span class="req">*</span></label>
+                        <input type="email" id="qEmail" name="email" placeholder="jane@example.com" required autocomplete="email">
+                    </div>
+                </div>
+                <div class="quote-form-row">
+                    <div class="quote-field">
+                        <label for="qPhone">Phone Number</label>
+                        <input type="tel" id="qPhone" name="phone" placeholder="(716) 555-0100" autocomplete="tel">
+                    </div>
+                    <div class="quote-field">
+                        <label for="qLocation">Location / City <span class="req">*</span></label>
+                        <input type="text" id="qLocation" name="location" placeholder="Dallas, TX" required>
+                    </div>
+                </div>
+                <div class="quote-form-row">
+                    <div class="quote-field">
+                        <label for="qEventType">Event Type <span class="req">*</span></label>
+                        <select id="qEventType" name="eventType" required onchange="handleEventTypeChange(this)">
+                            <option value="">Select event type…</option>
+                            <option>Wedding</option>
+                            <option>Corporate Event</option>
+                            <option>Birthday</option>
+                            <option>Anniversary</option>
+                            <option>Baby Shower</option>
+                            <option>Bridal Shower</option>
+                            <option>Social Gathering</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="quote-field">
+                        <label for="qEventDate">Event Date</label>
+                        <input type="date" id="qEventDate" name="eventDate">
+                    </div>
+                </div>
+                <div class="quote-form-row">
+                    <div class="quote-field">
+                        <label for="qGuests">Guest Count</label>
+                        <input type="number" id="qGuests" name="guestCount" placeholder="e.g. 150" min="1" max="5000">
+                    </div>
+                    <div class="quote-field">
+                        <label for="qBudget">Budget Range</label>
+                        <select id="qBudget" name="budget" onchange="handleBudgetChange(this)">
+                            <option value="">Select a range…</option>
+                            <option>$3,000 – $5,000</option>
+                            <option>$5,000 – $10,000</option>
+                            <option>$10,000 – $20,000</option>
+                            <option>$20,000+</option>
+                            <option value="__other__">Other (specify)</option>
+                            <option>Prefer not to say</option>
+                        </select>
+                        <input type="text" id="qBudgetOther" placeholder="Enter your budget (e.g. $4,000)" maxlength="100" style="display:none;margin-top:8px;width:100%;padding:10px 12px;border:1px solid #e0dcd4;border-radius:3px;font-family:Montserrat,sans-serif;font-size:13px;background:#fff;color:#2d3a2d;box-sizing:border-box">
+                    </div>
+                </div>
+                <div class="quote-field">
+                    <label for="qMessage">Tell Us More</label>
+                    <textarea id="qMessage" name="message" rows="4" placeholder="Describe your vision, theme, colors, or any special requests…"></textarea>
+                </div>
+                <div class="quote-field">
+                    <label for="qServiceScale">Service Level <span class="req">*</span> &nbsp;<span id="qServiceScaleVal" style="font-weight:600;color:var(--gold,#b89a5e)">5</span>/10</label>
+                    <input type="range" id="qServiceScale" name="serviceScale" min="1" max="10" value="5" style="width:100%;accent-color:#b89a5e;cursor:pointer" oninput="document.getElementById('qServiceScaleVal').textContent=this.value">
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;letter-spacing:0.5px;margin-top:4px"><span>1 — Simple &amp; Intimate</span><span>10 — Full-Scale Luxury</span></div>
+                </div>
+                <div id="quoteFormMsg" class="quote-form-msg" aria-live="polite"></div>
+                <button type="submit" id="quoteSubmitBtn" class="quote-submit-btn">SEND REQUEST</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    const LAMBDA = 'https://api.rnbevents716.com';
+
+    function openQuoteModal() {
+        document.getElementById('quoteModalOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('qName').focus();
+    }
+    function closeQuoteModal() {
+        document.getElementById('quoteModalOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function handleOverlayClick(e) {
+        if (e.target === document.getElementById('quoteModalOverlay')) closeQuoteModal();
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeQuoteModal();
+    });
+
+    var PREMIUM_EVENTS = ['Wedding', 'Corporate Event', 'Social Gathering'];
+
+    function handleEventTypeChange(sel) {
+        var isPremium = PREMIUM_EVENTS.indexOf(sel.value) !== -1;
+        var budgetSel = document.getElementById('qBudget');
+        var prev = budgetSel.value;
+        budgetSel.innerHTML = isPremium
+            ? '<option value="">Select a range…</option>'
+              + '<option>$5,000 – $10,000</option>'
+              + '<option>$10,000 – $20,000</option>'
+              + '<option>$20,000+</option>'
+              + '<option value="__other__">Other (specify)</option>'
+              + '<option>Prefer not to say</option>'
+            : '<option value="">Select a range…</option>'
+              + '<option>$3,000 – $5,000</option>'
+              + '<option>$5,000 – $10,000</option>'
+              + '<option>$10,000 – $20,000</option>'
+              + '<option>$20,000+</option>'
+              + '<option value="__other__">Other (specify)</option>'
+              + '<option>Prefer not to say</option>';
+        /* Restore previous selection if it still exists */
+        for (var i = 0; i < budgetSel.options.length; i++) {
+            if (budgetSel.options[i].value === prev || budgetSel.options[i].text === prev) {
+                budgetSel.value = budgetSel.options[i].value; break;
+            }
+        }
+        handleBudgetChange(budgetSel);
+    }
+
+    function handleBudgetChange(sel) {
+        var other = document.getElementById('qBudgetOther');
+        other.style.display = sel.value === '__other__' ? '' : 'none';
+        if (sel.value !== '__other__') other.value = '';
+    }
+
+    async function submitQuoteForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn  = document.getElementById('quoteSubmitBtn');
+        const msg  = document.getElementById('quoteFormMsg');
+        msg.className = 'quote-form-msg';
+        msg.textContent = '';
+
+        const data = {
+            name:         form.elements['name'].value.trim(),
+            email:        form.email.value.trim(),
+            phone:        form.phone.value.trim(),
+            location:     form.location.value.trim(),
+            eventType:    form.eventType.value,
+            eventDate:    form.eventDate.value,
+            guestCount:   form.guestCount.value,
+            budget:       form.elements['budget'].value === '__other__'
+                              ? (document.getElementById('qBudgetOther').value.trim() || 'Other')
+                              : form.elements['budget'].value,
+            serviceScale: document.getElementById('qServiceScale').value,
+            message:      form.message.value.trim(),
+        };
+
+        if (!data.name)      { showMsg('Please enter your name.', 'error');          return form.elements['name'].focus(); }
+        if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+            showMsg('Please enter a valid email address.', 'error');
+            return form.email.focus();
+        }
+        if (!data.location)  { showMsg('Please enter your location.', 'error');      return form.location.focus(); }
+        if (!data.eventType) { showMsg('Please select an event type.', 'error');     return form.eventType.focus(); }
+
+        btn.disabled = true;
+        btn.textContent = 'SENDING…';
+
+        try {
+            const res  = await fetch(LAMBDA + '/send-quote-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const json = await res.json();
+            if (!res.ok || !json.ok) throw new Error(json.error || 'Submission failed');
+            form.reset();
+            showMsg('✓ Your request has been sent! We\'ll be in touch within 24 hours.', 'success');
+            btn.textContent = 'SENT ✓';
+        } catch (err) {
+            showMsg('Something went wrong. Please try again or contact us directly.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'SEND REQUEST';
+        }
+
+        function showMsg(text, type) {
+            msg.textContent = text;
+            msg.className   = 'quote-form-msg quote-form-msg--' + type;
+        }
+    }
+    </script>
+    <script src="/remus-track.js"></script>
+    <script>
+    remusTrack('public');
+    /* Track when a visitor completes a Calendly booking */
+    window.addEventListener('message', function (e) {
+        if (e.data && e.data.event === 'calendly.event_scheduled') {
+            remusClick('consultation_booked');
+        }
+    });
+    </script>
+    <script src="/cookie-consent.js"></script>
+</body>
+</html>

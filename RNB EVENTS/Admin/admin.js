@@ -1928,14 +1928,6 @@
         el.innerHTML = html;
     }
 
-    function filterDashboardClients(filter, btn) {
-        state.dashboardClientFilter = filter || 'active';
-        document.querySelectorAll('#panel-clients-dash .filter-btn').forEach(function (b) { b.classList.remove('active'); });
-        if (btn) btn.classList.add('active');
-        renderDashboardClients();
-    }
-    window.filterDashboardClients = filterDashboardClients;
-
     /* ── Auto-create client from Booked prospect ─── */
     function autoCreateClientFromProspect(prospect) {
         var existing = state.clients.find(function (c) { return c.prospectId === prospect.id; });

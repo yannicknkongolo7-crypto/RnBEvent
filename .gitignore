@@ -5,15 +5,10 @@ node_modules/
 # Build files
 dist/
 build/
-*.zip
 
 # Environment variables
 .env
 .env.local
-
-# Sensitive files
-*_credentials.csv
-AWS/
 
 # OS files
 .DS_Store
@@ -33,21 +28,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Lambda bundles
-lambda-bundle.zip
-lambda-deploy.zip
-lambda-deploy-latest.zip
-lambda.zip
-
-# Database dumps
-*.sql
-
-# Worktrees
-*.worktrees/
-
-# Response files
-response.json
-
-# Office files
-*.docx
-
+# Sensitive files
+AWS/
+*.csv
+backend/*.sql

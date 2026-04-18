@@ -1,0 +1,1 @@
+{"errorType":"SyntaxError","errorMessage":"Unexpected token '﻿', \"﻿{\"querySt\"... is not valid JSON","trace":["SyntaxError: Unexpected token '﻿', \"﻿{\"querySt\"... is not valid JSON","    at JSON.parse (<anonymous>)","    at Runtime.handleOnceNonStreaming (file:///var/runtime/index.mjs:1307:18)"]}

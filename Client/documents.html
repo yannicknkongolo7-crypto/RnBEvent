@@ -1,0 +1,1703 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+    <title>Documents & Payments | RNB Events Client Portal</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script>if (!sessionStorage.getItem('rnb_portal_access')) { location.replace('/Client'); }</script>
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="portal-header">
+        <a href="/" class="portal-home-link">
+            <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+        </a>
+        <span class="portal-badge">CLIENT PORTAL</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Client" class="portal-back">&larr; DASHBOARD</a>
+            <button class="portal-logout" onclick="portalSignOut()">SIGN OUT</button>
+        </div>
+    </header>
+
+    <!-- DOCUMENT SECURITY VERIFICATION GATE (FOR COUPLES ONLY) -->
+    <!-- CURRENTLY DISABLED - Set ENABLE_DOC_VERIFICATION = true to activate -->
+    <div id="document-verification-gate" class="gate-overlay" style="display:none;">
+        <div class="gate-card" style="max-width:520px;">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">DOCUMENT ACCESS</p>
+            <h1 class="gate-title">Verify Your Identity</h1>
+            <p class="gate-subtitle" style="margin-bottom:24px;line-height:1.5;">
+                We take your privacy seriously and want to ensure your documents are secure. 
+                Please verify your identity to access your documents.
+            </p>
+
+            <!-- Verification Method Tabs -->
+            <div class="doc-verify-tabs">
+                <button type="button" class="doc-verify-tab active" data-method="email" onclick="switchVerifyMethod('email')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:6px">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    Email
+                </button>
+                <button type="button" class="doc-verify-tab" data-method="phone" onclick="switchVerifyMethod('phone')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:6px">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    Phone
+                </button>
+            </div>
+
+            <!-- Email Verification Form -->
+            <div id="doc-verify-email-form" class="doc-verify-form-panel">
+                <form class="gate-form" onsubmit="return false;">
+                    <label for="doc-verify-email-input" class="doc-verify-label">Your Email Address</label>
+                    <input type="email" id="doc-verify-email-input" class="gate-input" placeholder="your@email.com" autocomplete="email">
+                    <button type="submit" class="gate-btn" onclick="verifyDocumentAccess('email')">VERIFY EMAIL</button>
+                    <p id="doc-verify-email-error" class="gate-error" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <!-- Phone Verification Form -->
+            <div id="doc-verify-phone-form" class="doc-verify-form-panel" style="display:none;">
+                <form class="gate-form" onsubmit="return false;">
+                    <label for="doc-verify-phone-input" class="doc-verify-label">Your Phone Number</label>
+                    <input type="tel" id="doc-verify-phone-input" class="gate-input" placeholder="(XXX) XXX-XXXX" autocomplete="tel">
+                    <p style="font-family:Montserrat,sans-serif;font-size:10px;color:#9a9486;margin:6px 0 12px;text-align:left;">
+                        Enter with or without +1 country code
+                    </p>
+                    <button type="submit" class="gate-btn" onclick="verifyDocumentAccess('phone')">VERIFY PHONE</button>
+                    <p id="doc-verify-phone-error" class="gate-error" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <p class="doc-verify-footer">
+                This verification helps protect your sensitive documents from unauthorized access.
+            </p>
+        </div>
+    </div>
+
+    <div class="subpage-hero">
+        <div class="subpage-hero-inner">
+            <p class="portal-hero-label">CLIENT PORTAL</p>
+            <h1 class="subpage-hero-title">Documents &amp; Payments</h1>
+        </div>
+    </div>
+
+    <main class="container subpage-content" id="documents-content">
+        <div class="portal-loading-state" id="portal-loading">
+            <div class="portal-spinner"></div>
+            <p class="portal-loading-text">Loading your documents...</p>
+        </div>
+    </main>
+
+    <footer class="portal-footer">
+        <p>&copy; 2026 RNB Events Production &amp; Coordination LLC &mdash; <a href="/">rnbevents716.com</a> &nbsp;&middot;&nbsp; <a href="mailto:info@rnbevents716.com">info@rnbevents716.com</a></p>
+        <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+    </footer>
+
+    <script src="/remus-track.js"></script>
+    <script src="clients-config.js"></script>
+    <script src="portal-page.js"></script>
+    <style>
+        .doc-tab-bar { display:flex; gap:0; border-bottom:2px solid #e0dbd0; margin-bottom:28px; }
+        .doc-tab-btn { background:none; border:none; cursor:pointer; font-family:Montserrat,sans-serif; font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:#7a7a6a; padding:10px 22px; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .2s, border-color .2s; }
+        .doc-tab-btn:hover { color:#527141; }
+        .doc-tab-btn.active { color:#2d3a2d; border-bottom-color:#527141; }
+        .pay-setup-notice { text-align:center; padding:50px 20px; background:#f8f6f2; border-radius:6px; }
+        .pay-setup-notice h3 { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:500; color:#2d3a2d; margin:0 0 8px; }
+        .pay-setup-notice p { font-family:Montserrat,sans-serif; font-size:12px; color:#7a7a6a; margin:0; }
+        .pay-progress-wrap { margin-bottom:28px; }
+        .pay-progress-label { display:flex; justify-content:space-between; font-family:Montserrat,sans-serif; font-size:11px; letter-spacing:1px; color:#527141; margin-bottom:6px; }
+        .pay-progress-track { height:10px; background:#e0dbd0; border-radius:10px; overflow:hidden; }
+        .pay-progress-fill { height:100%; background:linear-gradient(90deg,#527141,#7a9a54); border-radius:10px; transition:width .6s; }
+        .pay-summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+        .pay-summary-card { background:#f8f6f2; border-radius:6px; padding:16px; text-align:center; }
+        .pay-summary-card .pay-card-label { font-family:Montserrat,sans-serif; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#527141; margin:0 0 6px; }
+        .pay-summary-card .pay-card-value { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; color:#2d3a2d; margin:0; }
+        .pay-invoice-table { width:100%; border-collapse:collapse; font-family:Montserrat,sans-serif; font-size:12px; }
+        .pay-invoice-table th { text-align:left; font-size:10px; letter-spacing:1.5px; color:#527141; font-weight:600; padding:8px 10px; border-bottom:2px solid #e0dbd0; }
+        .pay-invoice-table td { padding:10px; border-bottom:1px solid #e0dbd0; color:#3d3a35; vertical-align:middle; }
+        .pay-invoice-table tr:last-child td { border-bottom:none; }
+        .pay-badge { display:inline-block; padding:3px 9px; border-radius:3px; font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; }
+        .pay-badge.paid { background:#e6f0e0; color:#3a6b2a; }
+        .pay-badge.pending { background:#fef9ec; color:#8a6d00; }
+        .pay-badge.overdue { background:#fde8e8; color:#a02020; }
+        .pay-badge.draft { background:#f0f0f0; color:#666; }
+        .pay-square-link { display:inline-flex; align-items:center; gap:8px; margin-top:16px; padding:10px 20px; background:#2d3a2d; color:#fff; border-radius:4px; font-family:Montserrat,sans-serif; font-size:11px; letter-spacing:1.5px; text-decoration:none; text-transform:uppercase; }
+        .pay-square-link:hover { background:#527141; }
+        
+        /* Loading state */
+        .portal-loading-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; min-height:400px; }
+        .portal-spinner { width:40px; height:40px; border:3px solid #e0dbd0; border-top-color:#527141; border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .portal-loading-text { font-family:Montserrat,sans-serif; font-size:13px; color:#7a7a6a; margin-top:16px; letter-spacing:0.5px; }
+        .pay-disclaimer { font-family:Montserrat,sans-serif; font-size:11px; color:#7a7a6a; margin-top:20px; padding:12px 16px; background:#f8f6f2; border-radius:4px; border-left:3px solid #c8c0b4; letter-spacing:0.3px; line-height:1.6; }
+        /* ── Payment action button + popover ── */
+        .pay-action-btn { font-family:Montserrat,sans-serif; font-size:10px; letter-spacing:1.2px; font-weight:600; text-transform:uppercase; padding:5px 12px; border-radius:3px; border:1.5px solid #527141; background:#fff; color:#527141; cursor:pointer; white-space:nowrap; }
+        .pay-action-btn:hover { background:#527141; color:#fff; }
+        .rnb-pay-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9998; }
+        .rnb-pay-pop { position:fixed; z-index:9999; background:#fff; border:1px solid #ddd8ce; border-radius:6px; box-shadow:0 6px 28px rgba(0,0,0,0.16); width:400px; max-width:90vw; padding:0; overflow:hidden; top:50%; left:50%; transform:translate(-50%, -50%); }
+        .rnb-pay-pop-head { padding:12px 14px 10px; border-bottom:1px solid #ece8e0; background:#f8f6f2; }
+        .rnb-pay-pop-label { font-family:Montserrat,sans-serif; font-size:10px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase; color:#527141; margin:0 0 2px; }
+        .rnb-pay-pop-amt { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:#2d3a2d; margin:0; }
+        .rnb-pay-pop-body { padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+        .rnb-pay-now-btn { display:block; text-align:center; padding:10px; background:#2d3a2d; color:#fff; border-radius:4px; font-family:Montserrat,sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; text-decoration:none; }
+        .rnb-pay-now-btn:hover { background:#527141; }
+        .rnb-pay-confirm-btn { width:100%; padding:10px; background:#e8f0e4; color:#3a6b2a; border:1.5px solid #b2cda4; border-radius:4px; font-family:Montserrat,sans-serif; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; }
+        .rnb-pay-confirm-btn:hover { background:#d0e8c8; }
+        .rnb-pay-confirm-btn:disabled { opacity:.5; cursor:not-allowed; }
+        .rnb-pay-pop-close { position:absolute; top:8px; right:10px; background:none; border:none; font-size:16px; color:#9a9486; cursor:pointer; line-height:1; padding:2px 4px; }
+        
+        /* ── Document Verification Gate Styling ── */
+        .doc-verify-tabs { display:flex; gap:0; border-bottom:2px solid #e0dbd0; margin:0 0 24px; }
+        .doc-verify-tab { flex:1; background:none; border:none; cursor:pointer; font-family:Montserrat,sans-serif; font-size:12px; font-weight:500; letter-spacing:1px; text-transform:uppercase; color:#7a7a6a; padding:12px 16px; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all .2s; }
+        .doc-verify-tab:hover { color:#527141; background:#fafaf8; }
+        .doc-verify-tab.active { color:#2d3a2d; border-bottom-color:#527141; background:#f8f6f2; }
+        .doc-verify-form-panel { animation:fadeIn .3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+        .doc-verify-label { display:block; font-family:Montserrat,sans-serif; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#527141; margin:0 0 10px; text-align:left; }
+        .doc-verify-footer { font-family:Montserrat,sans-serif; font-size:10px; color:#9a9486; text-align:center; margin:20px 0 0; padding-top:16px; border-top:1px solid #e0dbd0; line-height:1.5; }
+        /* ── Payment Instructions ── */
+        .payment-instructions { display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+        .payment-method-title { font-family:Montserrat,sans-serif; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#527141; margin:0 0 6px; text-align:center; }
+        .payment-method-option { display:flex; align-items:center; gap:10px; padding:10px; background:#f8f6f2; border-radius:4px; border:1px solid #e0dbd0; }
+        .payment-icon { display:flex; align-items:center; justify-content:center; width:24px; height:24px; }
+        .payment-method-option strong { font-family:Montserrat,sans-serif; font-size:12px; color:#2d3a2d; display:block; margin-bottom:2px; }
+        .payment-contact { font-family:Montserrat,sans-serif; font-size:10px; color:#7a7a6a; }
+        .payment-note { font-family:Montserrat,sans-serif; font-size:10px; color:#5a4a2a; line-height:1.5; margin:8px 0 0; padding:8px; background:#fef9ec; border-radius:4px; border-left:3px solid #c8a840; }
+        .payment-note a { color:#527141; text-decoration:underline; }
+        .payment-note a:hover { color:#2d3a2d; }
+        /* ── Payment Plan Selector ── */
+        .pay-plan-selector-wrap { margin-bottom:32px; padding:20px; background:#f8f6f2; border-radius:8px; border:1px solid #e0dbd0; }
+        .pay-plan-desc { font-family:Montserrat,sans-serif; font-size:12px; color:#7a7a6a; margin:0 0 16px; line-height:1.6; }
+        .pay-plan-options { display:grid; gap:12px; margin-bottom:16px; }
+        .pay-plan-option { display:flex; align-items:flex-start; gap:12px; padding:14px; background:#fff; border:2px solid #e0dbd0; border-radius:6px; cursor:pointer; transition:all .2s; }
+        .pay-plan-option:hover { border-color:#b2cda4; background:#fafaf8; }
+        .pay-plan-option.selected { border-color:#527141; background:#e8f0e4; }
+        .pay-plan-option input[type="radio"] { margin-top:2px; cursor:pointer; accent-color:#527141; }
+        .pay-plan-details { flex:1; display:flex; flex-direction:column; gap:4px; }
+        .pay-plan-name { font-family:Montserrat,sans-serif; font-size:13px; font-weight:600; color:#2d3a2d; letter-spacing:0.3px; }
+        .pay-plan-amount { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:600; color:#527141; }
+        .pay-plan-desc-small { font-family:Montserrat,sans-serif; font-size:11px; color:#7a7a6a; }
+        .pay-apply-plan-btn { width:100%; padding:12px; background:#2d3a2d; color:#fff; border:none; border-radius:4px; font-family:Montserrat,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:background .2s; }
+        .pay-apply-plan-btn:hover { background:#527141; }
+        .pay-plan-applied { margin:0; padding:12px; background:#e6f0e0; border-radius:4px; font-family:Montserrat,sans-serif; font-size:12px; color:#3a6b2a; text-align:center; font-weight:500; }
+    </style>
+    <script>
+        /* ── DOCUMENT ACCESS VERIFICATION ─────────────────────────────────── */
+        var ENABLE_DOC_VERIFICATION = false; // SET TO true TO ENABLE VERIFICATION
+        var DOC_VERIFY_KEY = 'rnb_doc_verified';
+        
+        function switchVerifyMethod(method) {
+            // Update tab active states
+            document.querySelectorAll('.doc-verify-tab').forEach(function(tab) {
+                tab.classList.toggle('active', tab.dataset.method === method);
+            });
+            
+            // Show/hide form panels
+            document.getElementById('doc-verify-email-form').style.display = method === 'email' ? 'block' : 'none';
+            document.getElementById('doc-verify-phone-form').style.display = method === 'phone' ? 'block' : 'none';
+            
+            // Clear errors
+            document.getElementById('doc-verify-email-error').textContent = '';
+            document.getElementById('doc-verify-phone-error').textContent = '';
+        }
+        window.switchVerifyMethod = switchVerifyMethod;
+        
+        function normalizeEmail(email) {
+            return email.toLowerCase().trim().replace(/\s+/g, '');
+        }
+        
+        function normalizePhone(phone) {
+            // Remove all non-digit characters
+            var digits = phone.replace(/\D/g, '');
+            // Remove leading 1 if present (US country code)
+            if (digits.length === 11 && digits.charAt(0) === '1') {
+                digits = digits.substring(1);
+            }
+            return digits;
+        }
+        
+        function verifyDocumentAccess(method) {
+            var client = window.currentClient;
+            if (!client) {
+                var errorEl = document.getElementById('doc-verify-' + method + '-error');
+                if (errorEl) errorEl.textContent = 'Client data not loaded. Please try again.';
+                return;
+            }
+            
+            if (method === 'email') {
+                var emailInput = document.getElementById('doc-verify-email-input');
+                var errorEl = document.getElementById('doc-verify-email-error');
+                var entered = (emailInput.value || '').trim();
+                
+                if (!entered) {
+                    errorEl.textContent = 'Please enter your email address.';
+                    return;
+                }
+                
+                if (!entered.includes('@') || !entered.includes('.')) {
+                    errorEl.textContent = 'Please enter a valid email address.';
+                    return;
+                }
+                
+                var clientEmail = client.clientEmail || '';
+                if (!clientEmail) {
+                    errorEl.textContent = 'No email on file. Please contact your event coordinator.';
+                    return;
+                }
+                
+                var normalizedEntered = normalizeEmail(entered);
+                var normalizedClient = normalizeEmail(clientEmail);
+                
+                if (normalizedEntered === normalizedClient) {
+                    // Verification successful
+                    sessionStorage.setItem(DOC_VERIFY_KEY, 'true');
+                    document.getElementById('document-verification-gate').style.display = 'none';
+                    errorEl.textContent = '';
+                    emailInput.value = '';
+                    initDocuments();
+                } else {
+                    errorEl.textContent = 'Email does not match our records. Please try again.';
+                    emailInput.value = '';
+                    emailInput.focus();
+                }
+            } else if (method === 'phone') {
+                var phoneInput = document.getElementById('doc-verify-phone-input');
+                var errorEl = document.getElementById('doc-verify-phone-error');
+                var entered = (phoneInput.value || '').trim();
+                
+                if (!entered) {
+                    errorEl.textContent = 'Please enter your phone number.';
+                    return;
+                }
+                
+                var clientPhone = client.clientPhone || '';
+                if (!clientPhone) {
+                    errorEl.textContent = 'No phone on file. Please contact your event coordinator.';
+                    return;
+                }
+                
+                var normalizedEntered = normalizePhone(entered);
+                var normalizedClient = normalizePhone(clientPhone);
+                
+                if (normalizedEntered.length < 10) {
+                    errorEl.textContent = 'Please enter a valid 10-digit phone number.';
+                    return;
+                }
+                
+                if (normalizedEntered === normalizedClient) {
+                    // Verification successful
+                    sessionStorage.setItem(DOC_VERIFY_KEY, 'true');
+                    document.getElementById('document-verification-gate').style.display = 'none';
+                    errorEl.textContent = '';
+                    phoneInput.value = '';
+                    initDocuments();
+                } else {
+                    errorEl.textContent = 'Phone number does not match our records. Please try again.';
+                    phoneInput.value = '';
+                    phoneInput.focus();
+                }
+            }
+        }
+        window.verifyDocumentAccess = verifyDocumentAccess;
+        
+        function checkDocumentAccess() {
+            // ★ VERIFICATION DISABLED - Skip directly to documents ★
+            if (!ENABLE_DOC_VERIFICATION) {
+                initDocuments();
+                return;
+            }
+            
+            // Check if user needs to verify (couples only, not RNB Team or planner)
+            var role = window.currentRole || 'couple';
+            
+            // Skip verification for RNB Team and planners
+            if (role === 'rnbTeam' || role === 'planner') {
+                initDocuments();
+                return;
+            }
+            
+            // Check if already verified in this session
+            if (sessionStorage.getItem(DOC_VERIFY_KEY) === 'true') {
+                initDocuments();
+                return;
+            }
+            
+            // Show verification gate
+            document.getElementById('document-verification-gate').style.display = 'flex';
+        }
+        
+        /* ── MAIN DOCUMENTS INIT ─────────────────────────────────────────── */
+        function initDocuments() {
+            var client = window.currentClient;
+            var role     = window.currentRole     || 'couple';
+            var roleName = window.currentRoleName || 'Client';
+            var el     = document.getElementById('documents-content');
+            var items  = (client.documents || []).map(function (d) {
+                return { name: d.name || '', type: d.type || 'Document', url: d.url || '', date: d.date || '' };
+            });
+
+            /* Agreement state */
+            var agr = Object.assign({ status: 'pending', coupleSignature: '', coupleSignedAt: '', plannerSignature: '', plannerSignedAt: '' }, client.agreement || {});
+
+            var activeDocTab = 'documents';
+
+            renderPage();
+
+            function renderPage() {
+                // Hide loading state on first render
+                var loadingEl = document.getElementById('portal-loading');
+                if (loadingEl) loadingEl.remove();
+                
+                var html = '<div class="doc-tab-bar">';
+                html += '<button type="button" class="doc-tab-btn' + (activeDocTab === 'documents' ? ' active' : '') + '" data-tab="documents">Documents</button>';
+                html += '<button type="button" class="doc-tab-btn' + (activeDocTab === 'payments' ? ' active' : '') + '" data-tab="payments">Payments</button>';
+                html += '</div>';
+                html += '<div id="doc-tab-content"></div>';
+                el.innerHTML = html;
+
+                el.querySelectorAll('.doc-tab-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        activeDocTab = this.dataset.tab;
+                        renderPage();
+                    });
+                });
+
+                var contentEl = document.getElementById('doc-tab-content');
+                if (activeDocTab === 'documents') {
+                    renderAll(contentEl);
+                } else {
+                    renderPayments(contentEl);
+                }
+            }
+
+            function doSave() {
+                var ind = document.getElementById('docs-autosave');
+                if (ind) { ind.textContent = 'Saving…'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: window.currentCode, section: 'documents', data: items, editLogEntry: { ts: new Date().toISOString(), role: role, roleName: roleName, action: 'Updated documents' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById('docs-autosave');
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved ✓'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById('docs-autosave'); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '⚠ Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById('docs-autosave'); if (i) { i.textContent = '⚠ No connection'; i.className = 'tracking-autosave error'; } });
+            }
+
+            /* ── Payments Tab ── */
+            function renderPayments(targetEl) {
+                var squareUrl = client.squareProjectUrl || 'https://square.link/u/fRda6GSg';
+                var schedule  = client.paymentSchedule  || { items: [], planEnabled: false };
+                var items     = (schedule && Array.isArray(schedule.items)) ? schedule.items : [];
+                var isCouple  = (role === 'couple');
+                var html      = '';
+
+                if (!items.length) {
+                    var contractAmt = Number(client.agreedAmount) || 0;
+                    
+                    if (contractAmt > 0 && isCouple) {
+                        // Show payment plan selector
+                        var eventDateStr = client.eventDate || '';
+                        var eventDate = parseEventDate(eventDateStr);
+                        var planOptions = getPaymentPlanOptions(eventDate, contractAmt);
+                        var now = new Date();
+                        
+                        // Check if payment plan feature is enabled (default: false for fresh clients)
+                        var planEnabled = schedule.planEnabled || false;
+                        
+                        html += '<div class="pay-setup-notice">';
+                        html += '<h3>Set Up Your Payment Plan</h3>';
+                        html += '<p>Choose a payment plan below to get started with your payments.</p>';
+                        html += '<div style="margin-top:16px;padding:14px;background:#f9f9f9;border-radius:6px;border-left:4px solid #9a8b7a">';
+                        html += '<label style="display:flex;align-items:center;cursor:pointer;font-size:15px;font-weight:500;color:#3d3a35">';
+                        html += '<input type="checkbox" id="enable-payment-plan-toggle" ' + (planEnabled ? 'checked' : '') + ' style="width:18px;height:18px;margin-right:10px;cursor:pointer">';
+                        html += '<span>Enable Payment Plan Options</span>';
+                        html += '</label>';
+                        html += '<p style="margin:8px 0 0 28px;font-size:12px;color:#7a7a6a">Turn this on to choose from flexible payment plans. Turn it off to use one-time payments only.</p>';
+                        html += '</div>';
+                        html += '</div>';
+                        
+                        if (planOptions.length > 0) {
+                            html += '<div class="pay-plan-selector-wrap" id="pay-plan-selector-content" style="display:' + (planEnabled ? 'block' : 'none') + '">';
+                            html += '<h3 class="tracking-section-title" style="margin-bottom:10px">Payment Plan Options</h3>';
+                            
+                            // Show event date and time remaining
+                            if (eventDate) {
+                                var msUntil = eventDate - now;
+                                var daysUntil = Math.floor(msUntil / (1000 * 60 * 60 * 24));
+                                var timeDesc = daysUntil <= 0 ? 'Event has passed' : 
+                                              daysUntil === 1 ? '1 day until your event' :
+                                              daysUntil < 30 ? daysUntil + ' days until your event' :
+                                              daysUntil < 60 ? 'About 1 month until your event' :
+                                              'About ' + Math.floor(daysUntil / 30) + ' months until your event';
+                                
+                                // Format date using helper function
+                                function formatEventDateDisplay(str) {
+                                    if (!str) return str;
+                                    var m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                                    if (m) {
+                                        var day = parseInt(m[1], 10);
+                                        var month = parseInt(m[2], 10) - 1;
+                                        var year = m[3];
+                                        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                                        var suf = [11,12,13].indexOf(day%100)>=0 ? 'th' : (['th','st','nd','rd'][day%10]||'th');
+                                        return months[month] + ' ' + day + suf + ', ' + year;
+                                    }
+                                    return str;
+                                }
+                                
+                                html += '<p class="pay-plan-desc">Your event is on <strong>' + formatEventDateDisplay(eventDateStr) + '</strong> (' + timeDesc + '). Your total contract amount is <strong>$' + contractAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong>.</p>';
+                            } else {
+                                html += '<p class="pay-plan-desc">Select a payment plan that works best for you. Your total contract amount is <strong>$' + contractAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong>.</p>';
+                            }
+                            
+                            html += '<div class="pay-plan-options">';
+                            
+                            planOptions.forEach(function(opt) {
+                                html += '<label class="pay-plan-option">';
+                                html += '<input type="radio" name="payment-plan" value="' + opt.value + '" onchange="window.__rnbSelectPaymentPlan(\'' + opt.value + '\')">';
+                                html += '<div class="pay-plan-details">';
+                                html += '<span class="pay-plan-name">' + (window.escHtml ? window.escHtml(opt.label) : opt.label) + '</span>';
+                                html += '<span class="pay-plan-amount">$' + (opt.installmentAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' × ' + opt.installments + '</span>';
+                                html += '<span class="pay-plan-desc-small">' + (window.escHtml ? window.escHtml(opt.description) : opt.description) + '</span>';
+                                html += '</div>';
+                                html += '</label>';
+                            });
+                            
+                            html += '</div>';
+                            html += '<button type="button" class="pay-apply-plan-btn" onclick="window.__rnbApplyPaymentPlan()">Apply Selected Plan</button>';
+                            html += '</div>';
+                        } else {
+                            html += '<div class="pay-disclaimer" style="margin-top:16px">';
+                            html += '&#9888; Unable to generate payment plans. Please contact your coordinator or make a one-time payment below.';
+                            html += '</div>';
+                        }
+                        
+                        html += '<div style="text-align:center;margin-top:20px">';
+                        html += '<button type="button" class="pay-action-btn" onclick="window.__rnbOpenPayPop(-1, this)">&#10697; PAY NOW</button>';
+                        html += '</div>';
+                    } else {
+                        html += '<div class="pay-setup-notice">';
+                        html += '<h3>Payment Schedule</h3>';
+                        html += '<p>Your payment schedule is being prepared by your coordinator.<br>Check back soon for updates.</p>';
+                        if (isCouple) {
+                            html += '<button type="button" class="pay-action-btn" style="margin-top:14px" onclick="window.__rnbOpenPayPop(-1, this)">&#10697; PAY NOW</button>';
+                        }
+                        html += '</div>';
+                    }
+                    
+                    targetEl.innerHTML = html;
+                    setupPayModal(targetEl, squareUrl, schedule);
+                    setupPaymentPlanHandlers(targetEl);
+                    return;
+                }
+
+                var contractAmt = Number(client.agreedAmount) || 0;
+                var scheduledAmt = items.reduce(function(s, it) { return s + (Number(it.amount) || 0); }, 0);
+                var totalAmt  = contractAmt > 0 ? contractAmt : scheduledAmt;
+                var paidAmt   = items.reduce(function(s, it) { return s + (it.paid ? (Number(it.amount) || 0) : 0); }, 0);
+                var remainAmt = Math.max(0, totalAmt - paidAmt);
+                var pct       = totalAmt > 0 ? Math.min(100, Math.round(paidAmt / totalAmt * 100)) : 0;
+                var now       = new Date();
+
+                function fmtAmt(n) {
+                    return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                function parseDDMMYYYY(str) {
+                    var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(str || ''));
+                    if (!m) return null;
+                    return new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+                }
+                function fmtDisplayDate(str) {
+                    if (!str) return '—';
+                    var d = parseDDMMYYYY(str);
+                    if (!d || isNaN(d)) return str;
+                    var mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                    var day = d.getDate();
+                    var suf = [11,12,13].indexOf(day%100)>=0 ? 'th' : (['th','st','nd','rd'][day%10]||'th');
+                    return mn[d.getMonth()]+' '+day+suf+' '+d.getFullYear();
+                }
+                function itemBadge(it) {
+                    if (it.paid) return '<span class="pay-badge paid">Paid</span>';
+                    var d = parseDDMMYYYY(it.dueDate);
+                    if (d && !isNaN(d) && d < now) return '<span class="pay-badge overdue">Overdue</span>';
+                    return '<span class="pay-badge pending">Due</span>';
+                }
+
+                /* Summary cards */
+                html += '<div class="pay-summary-grid">';
+                html += '<div class="pay-summary-card"><p class="pay-card-label">Total</p><p class="pay-card-value">' + fmtAmt(totalAmt) + '</p></div>';
+                html += '<div class="pay-summary-card"><p class="pay-card-label">Paid</p><p class="pay-card-value" style="color:#3a6b2a">' + fmtAmt(paidAmt) + '</p></div>';
+                html += '<div class="pay-summary-card"><p class="pay-card-label">Remaining</p><p class="pay-card-value" style="color:' + (remainAmt > 0 ? '#8a6d00' : '#3a6b2a') + '">' + fmtAmt(remainAmt) + '</p></div>';
+                html += '</div>';
+
+                /* Progress bar */
+                html += '<div class="pay-progress-wrap">';
+                html += '<div class="pay-progress-label"><span>' + pct + '% Paid</span><span>' + fmtAmt(paidAmt) + ' of ' + fmtAmt(totalAmt) + '</span></div>';
+                html += '<div class="pay-progress-track"><div class="pay-progress-fill" style="width:' + pct + '%"></div></div>';
+                html += '</div>';
+
+                /* Payment Plan Selector */
+                if (isCouple && remainAmt > 0) {
+                    var eventDateStr = client.eventDate || '';
+                    var eventDate = parseEventDate(eventDateStr);
+                    var planOptions = getPaymentPlanOptions(eventDate, remainAmt);
+                    var selectedPlan = (schedule && schedule.selectedPlan) ? schedule.selectedPlan : null;
+                    var planEnabled = (schedule && schedule.planEnabled !== false) ? true : false;
+
+                    // Show toggle for managing payment plans
+                    html += '<div style="margin-bottom:20px;padding:14px;background:#f9f9f9;border-radius:6px;border-left:4px solid #9a8b7a">';
+                    html += '<label style="display:flex;align-items:center;cursor:pointer;font-size:15px;font-weight:500;color:#3d3a35">';
+                    html += '<input type="checkbox" id="enable-payment-plan-toggle" ' + (planEnabled ? 'checked' : '') + ' style="width:18px;height:18px;margin-right:10px;cursor:pointer">';
+                    html += '<span>Show Payment Plan Options</span>';
+                    html += '</label>';
+                    html += '<p style="margin:8px 0 0 28px;font-size:12px;color:#7a7a6a">Turn this on to view and modify your payment plan options. Turn it off to hide the selector.</p>';
+                    html += '</div>';
+
+                    if (planOptions.length > 0) {
+                        html += '<div class="pay-plan-selector-wrap" id="pay-plan-selector-content" style="display:' + (planEnabled ? 'block' : 'none') + '">';
+                        html += '<h3 class="tracking-section-title" style="margin-bottom:10px">Payment Plan Options</h3>';
+                        
+                        // Show event date and time remaining
+                        if (eventDate) {
+                            var msUntil = eventDate - now;
+                            var daysUntil = Math.floor(msUntil / (1000 * 60 * 60 * 24));
+                            var timeDesc = daysUntil <= 0 ? 'Event has passed' : 
+                                          daysUntil === 1 ? '1 day until your event' :
+                                          daysUntil < 30 ? daysUntil + ' days until your event' :
+                                          daysUntil < 60 ? 'About 1 month until your event' :
+                                          'About ' + Math.floor(daysUntil / 30) + ' months until your event';
+                            
+                            html += '<p class="pay-plan-desc">Your event is on <strong>' + fmtDisplayDate(eventDateStr) + '</strong> (' + timeDesc + '). Choose a payment plan below:</p>';
+                        } else {
+                            html += '<p class="pay-plan-desc">Choose a payment plan that works best for you. Plans are based on your event date.</p>';
+                        }
+                        
+                        html += '<div class="pay-plan-options">';
+                        
+                        planOptions.forEach(function(opt) {
+                            var isSelected = selectedPlan === opt.value;
+                            var checkedAttr = isSelected ? ' checked' : '';
+                            var planClass = 'pay-plan-option' + (isSelected ? ' selected' : '');
+                            
+                            html += '<label class="' + planClass + '">';
+                            html += '<input type="radio" name="payment-plan" value="' + opt.value + '"' + checkedAttr + ' onchange="window.__rnbSelectPaymentPlan(\'' + opt.value + '\')">';
+                            html += '<div class="pay-plan-details">';
+                            html += '<span class="pay-plan-name">' + (window.escHtml ? window.escHtml(opt.label) : opt.label) + '</span>';
+                            html += '<span class="pay-plan-amount">' + fmtAmt(opt.installmentAmount) + ' × ' + opt.installments + '</span>';
+                            html += '<span class="pay-plan-desc-small">' + (window.escHtml ? window.escHtml(opt.description) : opt.description) + '</span>';
+                            html += '</div>';
+                            html += '</label>';
+                        });
+                        
+                        html += '</div>';
+                        
+                        if (!selectedPlan) {
+                            html += '<button type="button" class="pay-apply-plan-btn" onclick="window.__rnbApplyPaymentPlan()">Apply Selected Plan</button>';
+                        } else {
+                            html += '<p class="pay-plan-applied">&#10003; Your ' + (window.escHtml ? window.escHtml(getPlanLabel(selectedPlan)) : getPlanLabel(selectedPlan)) + ' is active below.</p>';
+                        }
+                        
+                        html += '</div>';
+                    }
+                }
+
+                /* Payment milestones table */
+                html += '<div class="tracking-section" style="overflow-x:auto">';
+                html += '<h3 class="tracking-section-title" style="margin-bottom:14px">Payment Milestones</h3>';
+                html += '<table class="pay-invoice-table">';
+                html += '<thead><tr><th>Description</th><th>Due Date</th><th>Amount</th><th>Status</th>' + (isCouple ? '<th></th>' : '') + '</tr></thead>';
+                html += '<tbody>';
+                items.forEach(function(it, idx) {
+                    html += '<tr>';
+                    html += '<td style="font-weight:500">' + (window.escHtml ? window.escHtml(it.label || '—') : (it.label || '—')) + '</td>';
+                    html += '<td>' + fmtDisplayDate(it.dueDate) + '</td>';
+                    html += '<td>' + fmtAmt(it.amount) + '</td>';
+                    html += '<td>' + itemBadge(it) + '</td>';
+                    if (isCouple) {
+                        if (!it.paid) {
+                            html += '<td><button type="button" class="pay-action-btn" onclick="window.__rnbOpenPayPop(' + idx + ', this)">&#10697; PAY</button></td>';
+                        } else {
+                            html += '<td><span style="font-family:Montserrat,sans-serif;font-size:10px;color:#3a6b2a;letter-spacing:0.5px">&#10003; Done</span></td>';
+                        }
+                    }
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                html += '</div>';
+
+                /* Disclaimer */
+                var updatedAt = schedule && schedule.lastUpdatedAt ? formatNoteTs(schedule.lastUpdatedAt) : null;
+                html += '<div class="pay-disclaimer">';
+                html += '&#9432; Payment schedule is manually updated by your coordinator.';
+                if (updatedAt) html += ' Last updated: ' + (window.escHtml ? window.escHtml(updatedAt) : updatedAt) + '.';
+                html += '</div>';
+
+                targetEl.innerHTML = html;
+                setupPayModal(targetEl, squareUrl, schedule);
+                setupPaymentPlanHandlers(targetEl);
+            }
+
+            /* ── Payment Plan Helper Functions ── */
+            function parseEventDate(dateStr) {
+                if (!dateStr || dateStr === 'TBD') return null;
+                
+                // Try parsing DD/MM/YYYY format first (consistent with rest of system)
+                var m1 = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                if (m1) {
+                    // DD/MM/YYYY format: day=m1[1], month=m1[2], year=m1[3]
+                    return new Date(parseInt(m1[3], 10), parseInt(m1[2], 10) - 1, parseInt(m1[1], 10));
+                }
+                
+                var months = {
+                    'january': 0, 'february': 1, 'march': 2, 'april': 3, 'may': 4, 'june': 5,
+                    'july': 6, 'august': 7, 'september': 8, 'october': 9, 'november': 10, 'december': 11
+                };
+                
+                var m2 = dateStr.match(/(\w+)\s+(\d{1,2})/i);
+                if (m2) {
+                    var monthName = m2[1].toLowerCase();
+                    var day = parseInt(m2[2], 10);
+                    var monthNum = months[monthName];
+                    
+                    if (monthNum !== undefined) {
+                        var year = new Date().getFullYear();
+                        var testDate = new Date(year, monthNum, day);
+                        
+                        // If the date is in the past, assume next year
+                        if (testDate < new Date()) {
+                            year++;
+                        }
+                        
+                        return new Date(year, monthNum, day);
+                    }
+                }
+                
+                return null;
+            }
+
+            function getPaymentPlanOptions(eventDate, remainingAmount) {
+                var options = [];
+                var now = new Date();
+                
+                if (!eventDate || remainingAmount <= 0) return options;
+                
+                var msUntilEvent = eventDate - now;
+                var daysUntilEvent = Math.floor(msUntilEvent / (1000 * 60 * 60 * 24));
+                var weeksUntilEvent = Math.floor(daysUntilEvent / 7);
+                var monthsUntilEvent = Math.floor(daysUntilEvent / 30);
+                
+                // One-time payment (always available)
+                options.push({
+                    value: 'onetime',
+                    label: 'One-Time Payment',
+                    description: 'Pay the full amount now',
+                    installments: 1,
+                    installmentAmount: remainingAmount
+                });
+                
+                // Weekly plan (if event is within 3 months but more than 2 weeks away)
+                if (weeksUntilEvent >= 2 && monthsUntilEvent < 3) {
+                    var numWeeks = Math.min(weeksUntilEvent, 12); // Cap at 12 weeks
+                    options.push({
+                        value: 'weekly',
+                        label: 'Weekly Payments',
+                        description: 'Pay over ' + numWeeks + ' weeks',
+                        installments: numWeeks,
+                        installmentAmount: remainingAmount / numWeeks
+                    });
+                }
+                
+                // 3-month plan
+                if (monthsUntilEvent >= 3) {
+                    options.push({
+                        value: '3month',
+                        label: '3-Month Plan',
+                        description: 'Pay over 3 months',
+                        installments: 3,
+                        installmentAmount: remainingAmount / 3
+                    });
+                }
+                
+                // 6-month plan
+                if (monthsUntilEvent >= 6) {
+                    options.push({
+                        value: '6month',
+                        label: '6-Month Plan',
+                        description: 'Pay over 6 months',
+                        installments: 6,
+                        installmentAmount: remainingAmount / 6
+                    });
+                }
+                
+                // 12-month plan
+                if (monthsUntilEvent >= 12) {
+                    options.push({
+                        value: '12month',
+                        label: '12-Month Plan',
+                        description: 'Pay over 12 months',
+                        installments: 12,
+                        installmentAmount: remainingAmount / 12
+                    });
+                }
+                
+                return options;
+            }
+
+            function getPlanLabel(planValue) {
+                var labels = {
+                    'onetime': 'One-Time Payment',
+                    'weekly': 'Weekly Payment Plan',
+                    '3month': '3-Month Payment Plan',
+                    '6month': '6-Month Payment Plan',
+                    '12month': '12-Month Payment Plan'
+                };
+                return labels[planValue] || planValue;
+            }
+
+            function setupPaymentPlanHandlers(targetEl) {
+                var selectedPlanValue = null;
+                
+                // Handle payment plan toggle
+                var toggleEl = document.getElementById('enable-payment-plan-toggle');
+                if (toggleEl) {
+                    toggleEl.addEventListener('change', function() {
+                        var isEnabled = this.checked;
+                        var selectorContent = document.getElementById('pay-plan-selector-content');
+                        
+                        if (selectorContent) {
+                            selectorContent.style.display = isEnabled ? 'block' : 'none';
+                        }
+                        
+                        // If disabling and a plan was already applied, confirm reset
+                        var schedule = client.paymentSchedule || { items: [] };
+                        var hadPlan = schedule.selectedPlan && schedule.selectedPlan !== 'none';
+                        
+                        if (!isEnabled && hadPlan) {
+                            if (!confirm('Disabling payment plans will reset your current payment schedule to the default state. Continue?')) {
+                                // User cancelled, revert toggle
+                                this.checked = true;
+                                if (selectorContent) selectorContent.style.display = 'block';
+                                return;
+                            }
+                            
+                            // Reset payment plan to default
+                            schedule.selectedPlan = 'none';
+                            schedule.items = [];
+                            schedule.planEnabled = false;
+                            schedule.lastUpdatedAt = new Date().toISOString();
+                            schedule.lastUpdatedBy = 'Client';
+                            client.paymentSchedule = schedule;
+                            
+                            // Save reset to backend
+                            fetch(window.RNB_SECTION_API, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    codeHash: window.currentCode,
+                                    section: 'paymentSchedule',
+                                    data: schedule,
+                                    editLogEntry: {
+                                        ts: new Date().toISOString(),
+                                        role: window.currentRole || 'couple',
+                                        roleName: window.currentRoleName || 'Client',
+                                        action: 'Disabled payment plan options - reset to default'
+                                    }
+                                })
+                            })
+                            .then(function(r) { return r.json(); })
+                            .then(function() {
+                                renderPayments(targetEl);
+                            })
+                            .catch(function(err) {
+                                alert('Failed to reset payment plan. Please try again.');
+                                console.error(err);
+                            });
+                        } else {
+                            // Just update the toggle state
+                            schedule.planEnabled = isEnabled;
+                            schedule.lastUpdatedAt = new Date().toISOString();
+                            schedule.lastUpdatedBy = 'Client';
+                            client.paymentSchedule = schedule;
+                            
+                            fetch(window.RNB_SECTION_API, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    codeHash: window.currentCode,
+                                    section: 'paymentSchedule',
+                                    data: schedule
+                                })
+                            })
+                            .then(function(r) { return r.json(); })
+                            .catch(function(err) {
+                                console.error('Failed to save toggle state:', err);
+                            });
+                        }
+                    });
+                }
+                
+                window.__rnbSelectPaymentPlan = function(planValue) {
+                    selectedPlanValue = planValue;
+                    
+                    // Update UI to show selection
+                    targetEl.querySelectorAll('.pay-plan-option').forEach(function(opt) {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    var selectedLabel = targetEl.querySelector('input[value="' + planValue + '"]');
+                    if (selectedLabel) {
+                        selectedLabel.closest('.pay-plan-option').classList.add('selected');
+                    }
+                };
+                
+                window.__rnbApplyPaymentPlan = function() {
+                    if (!selectedPlanValue) {
+                        alert('Please select a payment plan first.');
+                        return;
+                    }
+                    
+                    if (!confirm('Apply the ' + getPlanLabel(selectedPlanValue) + '? This will generate your payment schedule.')) {
+                        return;
+                    }
+                    
+                    var eventDateStr = client.eventDate || '';
+                    var eventDate = parseEventDate(eventDateStr);
+                    var schedule = client.paymentSchedule || { items: [] };
+                    var remainAmt = Number(client.agreedAmount) || 0;
+                    var paidAmt = schedule.items.reduce(function(s, it) { return s + (it.paid ? (Number(it.amount) || 0) : 0); }, 0);
+                    remainAmt = Math.max(0, remainAmt - paidAmt);
+                    
+                    var planOptions = getPaymentPlanOptions(eventDate, remainAmt);
+                    var selectedOption = planOptions.find(function(opt) { return opt.value === selectedPlanValue; });
+                    
+                    if (!selectedOption) {
+                        alert('Invalid payment plan selected.');
+                        return;
+                    }
+                    
+                    // Generate payment schedule
+                    var newItems = [];
+                    var now = new Date();
+                    var installmentAmount = selectedOption.installmentAmount;
+                    
+                    for (var i = 0; i < selectedOption.installments; i++) {
+                        var dueDate = new Date(now);
+                        
+                        if (selectedPlanValue === 'onetime') {
+                            // Due immediately
+                            dueDate.setDate(dueDate.getDate() + 1);
+                        } else if (selectedPlanValue === 'weekly') {
+                            // Due weekly
+                            dueDate.setDate(dueDate.getDate() + (7 * (i + 1)));
+                        } else {
+                            // Monthly plans
+                            var monthsToAdd = i + 1;
+                            if (selectedPlanValue === '3month') {
+                                dueDate.setMonth(dueDate.getMonth() + monthsToAdd);
+                            } else if (selectedPlanValue === '6month') {
+                                dueDate.setMonth(dueDate.getMonth() + (monthsToAdd * 2));
+                            } else if (selectedPlanValue === '12month') {
+                                dueDate.setMonth(dueDate.getMonth() + monthsToAdd);
+                            }
+                        }
+                        
+                        // Format as DD/MM/YYYY
+                        var dd = String(dueDate.getDate()).padStart(2, '0');
+                        var mm = String(dueDate.getMonth() + 1).padStart(2, '0');
+                        var yyyy = dueDate.getFullYear();
+                        var dueDateStr = dd + '/' + mm + '/' + yyyy;
+                        
+                        // Adjust last payment to account for rounding
+                        var amount = installmentAmount;
+                        if (i === selectedOption.installments - 1) {
+                            var totalScheduled = installmentAmount * (selectedOption.installments - 1);
+                            amount = remainAmt - totalScheduled;
+                        }
+                        
+                        newItems.push({
+                            label: selectedOption.label + ' - Payment ' + (i + 1) + ' of ' + selectedOption.installments,
+                            dueDate: dueDateStr,
+                            amount: Math.round(amount * 100) / 100,
+                            paid: false
+                        });
+                    }
+                    
+                    // Update schedule
+                    schedule.items = newItems;
+                    schedule.selectedPlan = selectedPlanValue;
+                    schedule.planEnabled = true; // Ensure it's enabled when applying a plan
+                    schedule.lastUpdatedAt = new Date().toISOString();
+                    schedule.lastUpdatedBy = 'Client';
+                    client.paymentSchedule = schedule;
+                    
+                    // Save to backend
+                    fetch(window.RNB_SECTION_API, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            codeHash: window.currentCode,
+                            section: 'paymentSchedule',
+                            data: schedule,
+                            editLogEntry: {
+                                ts: new Date().toISOString(),
+                                role: role,
+                                roleName: roleName,
+                                action: 'Applied payment plan: ' + getPlanLabel(selectedPlanValue)
+                            }
+                        })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function() {
+                        renderPayments(targetEl);
+                    })
+                    .catch(function(err) {
+                        alert('Failed to save payment plan. Please try again.');
+                        console.error(err);
+                    });
+                };
+            }
+
+            function setupPayModal(targetEl, squareUrl, schedule) {
+                console.log('setupPayModal called, schedule:', schedule);
+                window.__rnbOpenPayPop = function(idx, btnEl) {
+                    console.log('PAY button clicked, idx:', idx, 'btnEl:', btnEl);
+                    
+                    if (!btnEl) {
+                        console.error('Button element is null!');
+                        return;
+                    }
+                    
+                    var existing = document.getElementById('rnb-pay-pop');
+                    if (existing) { 
+                        console.log('Closing existing popup');
+                        window.__rnbClosePayPop();
+                        return; 
+                    }
+
+                    var item = (idx >= 0 && schedule && schedule.items && schedule.items[idx]) ? schedule.items[idx] : null;
+                    console.log('Payment item:', item);
+                    
+                    var label = item ? (window.escHtml ? window.escHtml(item.label || 'Payment') : (item.label || 'Payment')) : 'Payment';
+                    var amt   = item ? ('$' + Number(item.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '';
+
+                    console.log('Creating popup with label:', label, 'amount:', amt);
+
+                    // Create overlay
+                    var overlay = document.createElement('div');
+                    overlay.id = 'rnb-pay-overlay';
+                    overlay.className = 'rnb-pay-overlay';
+                    overlay.onclick = window.__rnbClosePayPop;
+                    document.body.appendChild(overlay);
+
+                    console.log('Creating popup with label:', label, 'amount:', amt);
+
+                    var pop = document.createElement('div');
+                    pop.id        = 'rnb-pay-pop';
+                    pop.className = 'rnb-pay-pop';
+                    pop.setAttribute('role', 'dialog');
+                    
+                    var escapeHtml = function(text) {
+                        if (window.escHtml) return window.escHtml(text);
+                        var div = document.createElement('div');
+                        div.textContent = text;
+                        return div.innerHTML;
+                    };
+                    
+                    pop.innerHTML =
+                        '<button type="button" class="rnb-pay-pop-close" onclick="window.__rnbClosePayPop()" aria-label="Close">&times;</button>' +
+                        '<div class="rnb-pay-pop-head">' +
+                            '<p class="rnb-pay-pop-label">' + label + '</p>' +
+                            (amt ? '<p class="rnb-pay-pop-amt">' + amt + '</p>' : '') +
+                        '</div>' +
+                        '<div class="rnb-pay-pop-body">' +
+                            '<div class="payment-instructions">' +
+                                '<p class="payment-method-title">Payment Methods</p>' +
+                                '<div class="payment-method-option">' +
+                                    '<span class="payment-icon">' +
+                                        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#527141" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>' +
+                                    '</span>' +
+                                    '<div>' +
+                                        '<strong>Zelle</strong><br>' +
+                                        '<span class="payment-contact">Contact: Mrs. Ruth</span>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="payment-method-option">' +
+                                    '<span class="payment-icon">' +
+                                        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#527141" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' +
+                                    '</span>' +
+                                    '<div>' +
+                                        '<strong>CashApp</strong><br>' +
+                                        '<span class="payment-contact">Contact: Mrs. Ruth</span>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<p class="payment-note">' +
+                                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7a7a6a" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +
+                                    '<strong>Proof of Payment:</strong> Please attach your receipt in the <a href="/Client/documents">Documents section</a> after completing your payment.' +
+                                '</p>' +
+                            '</div>' +
+                            '<button type="button" class="rnb-pay-confirm-btn" id="rnb-pay-confirm-btn"' +
+                            ' onclick="window.__rnbConfirmPay(' + idx + ')">&#10003; I Have Completed This Payment</button>' +
+                        '</div>';
+
+                    document.body.appendChild(pop);
+                    console.log('Popup appended and centered on screen');
+                };
+
+                window.__rnbClosePayPop = function() {
+                    var m = document.getElementById('rnb-pay-pop');
+                    if (m) m.remove();
+                    var overlay = document.getElementById('rnb-pay-overlay');
+                    if (overlay) overlay.remove();
+                };
+
+                window.__rnbConfirmPay = function(idx) {
+                    if (idx < 0 || !schedule || !schedule.items || !schedule.items[idx]) {
+                        window.__rnbClosePayPop();
+                        return;
+                    }
+                    if (!confirm('Mark "' + (schedule.items[idx].label || 'this payment') + '" as paid?\nThis action cannot be undone.')) return;
+
+                    var btn = document.getElementById('rnb-pay-confirm-btn');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+
+                    schedule.items[idx].paid   = true;
+                    schedule.items[idx].paidAt = new Date().toISOString();
+                    schedule.lastUpdatedAt     = new Date().toISOString();
+                    schedule.lastUpdatedBy     = 'Client';
+                    client.paymentSchedule     = schedule;
+
+                    fetch(window.RNB_SECTION_API, {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            codeHash:     window.currentCode,
+                            section:      'paymentSchedule',
+                            data:         schedule,
+                            editLogEntry: {
+                                ts:       new Date().toISOString(),
+                                role:     role,
+                                roleName: roleName,
+                                action:   'Confirmed payment: ' + (schedule.items[idx].label || 'Payment')
+                            }
+                        })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .catch(function() {})
+                    .then(function() {
+                        window.__rnbClosePayPop();
+                        renderPayments(targetEl);
+                    });
+                };
+            }
+
+            function renderAll(targetEl) {
+                targetEl = targetEl || document.getElementById('doc-tab-content') || el;
+                var html = '';
+
+                /* ─── Agreement Section ─── */
+                var statusLabel = { pending: 'PENDING SIGNATURES', 'couple-signed': 'COUPLE SIGNED — AWAITING PLANNER', 'fully-executed': 'FULLY EXECUTED' };
+                var plannerName = client.planner || 'RNB Events Team';
+                var clientName  = client.fullName || client.firstName || 'Client';
+                var eventType   = client.eventType   || 'Event';
+                var eventVenue  = client.eventVenue  || 'TBD';
+                function fmtContractDate(str) {
+                    if (!str || str === 'TBD') return str || 'TBD';
+                    var m = String(str).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                    if (!m) return str;
+                    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                    var day = parseInt(m[1], 10), mo = parseInt(m[2], 10) - 1, yr = m[3];
+                    var suf = [11,12,13].indexOf(day % 100) >= 0 ? 'th' : (['th','st','nd','rd'][day % 10] || 'th');
+                    return months[mo] + ' ' + day + suf + ' ' + yr;
+                }
+                var eventDate   = fmtContractDate(client.eventDate);
+
+                html += '<div class="agreement-wrapper">';
+                html += '<div class="agreement-header">';
+                html += '<p class="doc-type" style="margin:0">EVENTS PRODUCTION AGREEMENT</p>';
+                html += '<span class="agreement-status-badge status-' + agr.status + '">' + (window.escHtml ? window.escHtml(statusLabel[agr.status] || agr.status) : (statusLabel[agr.status] || agr.status)) + '</span>';
+                if (agr.status === 'fully-executed') {
+                    html += '<span class="agreement-signed-badge">SIGNED</span>';
+                    html += '<button type="button" id="dl-contract-btn" class="dl-contract-btn" onclick="downloadContract()">&#8595; DOWNLOAD CONTRACT</button>';
+                }
+                html += '</div>';
+
+                html += '<div class="agreement-body">';
+                html += '<div class="agreement-text">';
+                html += '<h3>Event Vendor Agreement</h3>';
+                html += '<p>This Event Vendor Agreement (&ldquo;Agreement&rdquo;) is entered into between:</p>';
+                html += '<p><strong>' + escHtml(plannerName) + '</strong> (&ldquo;Vendor&rdquo;) and <strong>' + escHtml(clientName) + '</strong> (&ldquo;Client&rdquo;)</p>';
+                html += '<p>for the following event:</p>';
+                html += '<p><strong>Event Type:</strong> ' + escHtml(eventType) + '<br>';
+                html += '<strong>Event Date:</strong> ' + escHtml(eventDate) + '<br>';
+                html += '<strong>Venue:</strong> ' + escHtml(eventVenue) + '</p>';
+                html += '<h3>Services</h3>';
+                html += '<p>The Vendor agrees to provide the decoration and design services outlined in the Client&rsquo;s mood board and written proposal (the &ldquo;Working Scope&rdquo;), which is subject to revision by mutual agreement until the Final Design Approval date defined below. Once the Final Design Approval is confirmed, no further changes are included without additional charges. Agreed services cover the following:</p>';
+                html += '<ul>';
+                html += '<li><strong>D&eacute;cor Concept &amp; Mood Board:</strong> Custom concept development and collaborative mood board creation. The mood board serves as the living design document and may be revised by mutual written agreement up to <strong>30 days prior to the event date</strong>. The version approved at the Final Design Approval date constitutes the binding &ldquo;Final Approved Scope.&rdquo;</li>';
+                html += '<li><strong>Sourcing &amp; Procurement:</strong> Sourcing, procurement, and delivery of all decorative elements <em>specifically listed</em> in the Final Approved Scope (which may include florals, linens, lighting, centerpieces, backdrops, signage, and related items). Items not listed in the Final Approved Scope are not included and cannot be assumed.</li>';
+                html += '<li><strong>Setup &amp; Installation:</strong> Full setup, styling, and installation of all Final Approved Scope d&eacute;cor at the designated venue prior to the event start time.</li>';
+                html += '<li><strong>Vendor Coordination:</strong> Coordination with venue staff and other vendors solely as it relates to the execution of the Final Approved Scope d&eacute;cor.</li>';
+                html += '<li><strong>Breakdown &amp; Removal:</strong> Post-event breakdown, removal, and cleanup of all Vendor-supplied d&eacute;cor items included in the Final Approved Scope.</li>';
+                html += '</ul>';
+                html += '<h3>Design Scope &amp; Final Approval</h3>';
+                html += '<p>The parties acknowledge that event design is a collaborative, evolving process. The following rules govern design revisions and scope changes under this agreement:</p>';
+                html += '<ul>';
+                html += '<li><strong>Revision Window:</strong> The Client may request revisions to the mood board and Working Scope at any time up to <strong>30 days before the event date</strong>. All revision requests must be submitted in writing (email or through the client portal) and are subject to the Vendor&rsquo;s written acknowledgment and approval.</li>';
+                html += '<li><strong>Final Design Approval:</strong> No later than <strong>30 days prior to the event</strong>, the Vendor will present the then-current mood board for final written sign-off. Once the Client provides written approval (or the 30-day deadline passes without Client objection), the scope becomes the &ldquo;Final Approved Scope&rdquo; and is <strong>locked</strong>. No further changes are included at no extra cost after this point.</li>';
+                html += '<li><strong>Approved Scope Governs:</strong> This agreement, once signed, secures the Vendor&rsquo;s availability and the agreed pricing based on the Working Scope at time of signing. The Final Approved Scope will govern actual deliverables. If the Final Approved Scope differs materially from the Working Scope, a written amendment confirming any pricing adjustments must be agreed before the lock date.</li>';
+                html += '</ul>';
+                html += '<div style="margin:16px 0;padding:14px 18px;background:#f5f2ec;border-left:3px solid #2d3a2d;border-radius:0 4px 4px 0;">';
+                html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#2d3a2d;text-transform:uppercase;margin-bottom:6px">Add-Ons &amp; Changes After Lock Date</p>';
+                html += '<p style="margin:0;font-size:12px;color:#3d3a35;line-height:1.8">Any decorative elements, services, or requests <strong>not included in the Final Approved Scope</strong> are considered add-ons and are subject to <strong>additional charges</strong>. All add-ons must be requested in writing, approved by the Vendor, and confirmed with a revised quote or written amendment prior to execution. The Vendor is under no obligation to accommodate add-on requests that cannot be fulfilled within the original event timeline, sourcing lead times, or budget.</p>';
+                html += '</div>';
+                html += '<h3>Financial Commitment &amp; Payment Obligation</h3>';
+                if (client.quotedAmount && Number(client.quotedAmount) > 0) {
+                    var qAmt = '$' + Number(client.quotedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    var qDep = client.quotedDeposit && Number(client.quotedDeposit) > 0
+                        ? '$' + Number(client.quotedDeposit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : null;
+                    html += '<p>By signing this agreement, the Client acknowledges and confirms the quoted total amount presented in the official RNB Events proposal and commits to fulfilling the full payment obligation prior to the event date.</p>';
+                    html += '<div style="margin:16px 0;padding:16px 20px;background:#f5f2ec;border:1.5px solid #2d3a2d;border-radius:4px;">';
+                    html += '<p style="margin:0 0 4px;font-family:Montserrat,sans-serif;font-size:10px;font-weight:600;letter-spacing:1.5px;color:#527141;text-transform:uppercase">Agreed Quoted Total</p>';
+                    html += '<p style="margin:0 0 8px;font-family:Cormorant Garamond,serif;font-size:26px;font-weight:600;color:#2d3a2d">' + escHtml(qAmt) + '</p>';
+                    if (client.quotedPackage) {
+                        html += '<p style="margin:0 0 4px;font-size:12px;color:#3d3a35"><strong>Package:</strong> ' + escHtml(client.quotedPackage) + '</p>';
+                    }
+                    if (qDep) {
+                        html += '<p style="margin:0 0 4px;font-size:12px;color:#3d3a35"><strong>Non-refundable deposit:</strong> ' + escHtml(qDep) + '</p>';
+                    }
+                    if (client.lastQuoteSentAt) {
+                        html += '<p style="margin:0;font-size:11px;color:#7a7a6a">Quote issued: ' + escHtml(formatNoteTs(client.lastQuoteSentAt)) + '</p>';
+                    }
+                    html += '<p style="margin:12px 0 0;font-size:12px;color:#3d3a35;line-height:1.75;border-top:1px solid #ddd;padding-top:10px">The Client confirms they have reviewed and agree to the quoted total of <strong>' + escHtml(qAmt) + '</strong> as stated in the official proposal and commits to fulfilling all payment obligations in full prior to the event date, per the agreed payment schedule.</p>';
+                    html += '</div>';
+                } else {
+                    html += '<p>By signing this agreement, the Client confirms and agrees to the quoted amount presented in the official RNB Events proposal and commits to fulfilling the full payment obligation in full prior to the event date.</p>';
+                }
+                html += '<h3>Client Responsibilities (Client Delegate/Event Planner)</h3>';
+                html += '<ul>';
+                html += '<li>Participate actively in the mood board and design review process and provide timely written feedback on all design proposals.</li>';
+                html += '<li>Submit all scope revision requests in writing no later than <strong>30 days before the event date</strong>.</li>';
+                html += '<li>Provide written Final Design Approval no later than 30 days before the event, or acknowledge that the Vendor&rsquo;s submitted scope shall be deemed approved.</li>';
+                html += '<li>Fulfill all financial obligations per the agreed payment schedule, including any additional charges resulting from approved add-ons or scope amendments.</li>';
+                html += '<li>Ensure the designated venue is accessible to the Vendor for setup and breakdown at the agreed times.</li>';
+                html += '<li>Notify the Vendor promptly of any changes to the event date, venue, or other logistical details that may affect d&eacute;cor planning or delivery.</li>';
+                html += '</ul>';
+                html += '<h3>Fees &amp; Payment</h3>';
+                if (client.agreedAmount && Number(client.agreedAmount) > 0) {
+                    var fmtAmt = '$' + Number(client.agreedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    html += '<p>The total agreed amount for all services rendered under this agreement is <strong>' + (window.escHtml ? window.escHtml(fmtAmt) : fmtAmt) + '</strong>, payable per the mutually agreed payment schedule.</p>';
+                    html += '<p>A non-refundable booking retainer (deposit) is required to secure the event date. Payment of the retainer constitutes acceptance of the terms of this agreement and reserves the date exclusively for the Client.</p>';
+                    html += '<div style="margin:16px 0;padding:14px 18px;background:#fdf6ec;border-left:3px solid #b89a5e;border-radius:0 4px 4px 0;">';
+                    html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#7a5c00;text-transform:uppercase;margin-bottom:6px">Disclaimer — Deposit Included</p>';
+                    html += '<p style="margin:0;font-size:12px;color:#5a4a2a;line-height:1.7">The agreed total amount of <strong>' + (window.escHtml ? window.escHtml(fmtAmt) : fmtAmt) + '</strong> stated in this agreement <strong>includes the non-refundable deposit</strong>. The deposit portion is due upon signing and is non-refundable under all circumstances, including cancellation or change of date. The remaining balance is due per the agreed payment schedule outlined by your Vendor.</p>';
+                    html += '</div>';
+                } else {
+                    html += '<p>Fees and payment terms are as agreed upon in the separate fee schedule or proposal document. A non-refundable booking retainer is required to secure the event date.</p>';
+                    html += '<div style="margin:16px 0;padding:14px 18px;background:#fdf6ec;border-left:3px solid #b89a5e;border-radius:0 4px 4px 0;">';
+                    html += '<p style="margin:0;font-family:Montserrat,sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#7a5c00;text-transform:uppercase;margin-bottom:6px">Disclaimer — Deposit Included</p>';
+                    html += '<p style="margin:0;font-size:12px;color:#5a4a2a;line-height:1.7">The agreed total amount stated in this agreement <strong>includes the non-refundable deposit</strong>. The deposit portion is non-refundable under all circumstances.</p>';
+                    html += '</div>';
+                }
+                html += '<h3>Cancellation Policy</h3>';
+                html += '<p>In the event of cancellation by the Client:</p>';
+                html += '<ul>';
+                html += '<li>The non-refundable deposit/retainer is forfeited in full under all circumstances, including change of date or venue.</li>';
+                html += '<li>Cancellations made <strong>more than 60 days</strong> before the event date: deposit forfeited; no further balance is owed.</li>';
+                html += '<li>Cancellations made <strong>between 31 and 60 days</strong> before the event date: 50% of the remaining balance (after deposit) is due, as materials sourcing and planning will have commenced.</li>';
+                html += '<li>Cancellations made <strong>30 days or fewer</strong> before the event date: the full contract amount is due, as the Final Approved Scope will have been locked and all materials procured or committed.</li>';
+                html += '</ul>';
+                html += '<p>Date changes are subject to Vendor availability and may be treated as a cancellation and rebook at the Vendor&rsquo;s discretion. Any previously approved scope or pricing is not guaranteed upon a date change.</p>';
+                html += '<h3>Privacy &amp; Data Security</h3>';
+                html += '<p>RNB Events takes the privacy and security of all client and vendor information seriously. All personal data, event details, financial information, contract terms, and communications shared under this agreement and through the RNB Events Client Portal are handled with the highest standard of care. Information is stored securely using industry-standard encryption and access-control measures. Neither party shall disclose the other&rsquo;s personal, financial, or logistical details to any third party without prior written consent, except as required by applicable law. RNB Events will never sell, rent, or share client information for marketing or commercial purposes.</p>';
+                html += '<h3>Confidentiality</h3>';
+                html += '<p>Both parties agree to keep the terms of this agreement and any proprietary information confidential.</p>';
+                html += '<h3>Agreement</h3>';
+                html += '<p>By signing below, both parties agree to the terms and conditions of this Event Vendor Agreement. The Client acknowledges that: (1) this agreement secures the Vendor&rsquo;s services based on the Working Scope at time of signing; (2) the mood board and design details may be collaboratively refined until the Final Design Approval date (30 days before the event); (3) any changes requested after the Final Design Approval date are subject to additional charges and Vendor availability; and (4) the Client confirms the quoted total amount stated in the official proposal and commits to fulfilling the full payment obligation prior to the event date. This agreement becomes legally binding when signed by both parties.</p>';
+                html += '</div>'; /* end .agreement-text */
+
+                /* ─── Contract Attachments ─── */
+                var agrAttachments = agr.attachments || [];
+                html += '<div class="agreement-attachments">';
+                html += '<p class="sig-block-title" style="margin-bottom:10px">Supporting Documents &amp; Communications</p>';
+                if (agrAttachments.length) {
+                    html += '<div class="contract-attachments-grid">';
+                    agrAttachments.forEach(function (att, i) {
+                        var isImg = /\.(png|jpg|jpeg|webp|gif)(\?|$)/i.test(att.url);
+                        html += '<div class="contract-attachment-item">';
+                        if (isImg) {
+                            html += '<a href="' + escHtml(att.url) + '" target="_blank" rel="noopener">';
+                            html += '<img src="' + escHtml(att.url) + '" alt="' + escHtml(att.name) + '" class="contract-attachment-thumb">';
+                            html += '</a>';
+                        } else {
+                            html += '<a href="' + escHtml(att.url) + '" target="_blank" rel="noopener" class="contract-attachment-link">OPEN &rarr;</a>';
+                        }
+                        html += '<p class="contract-attachment-name">' + escHtml(att.name) + '</p>';
+                        if (att.caption) html += '<p class="contract-attachment-caption">' + escHtml(att.caption) + '</p>';
+                        if (role === 'planner' || role === 'rnbTeam') {
+                            html += '<button type="button" class="tracking-remove-btn contract-att-remove" data-att-index="' + i + '" title="Remove">&times;</button>';
+                        }
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                } else {
+                    html += '<p class="sig-awaiting" style="margin-top:0">No attachments added yet.</p>';
+                }
+                if (role === 'planner' || role === 'rnbTeam') {
+                    html += '<div class="agreement-att-form">';
+                    html += '<input type="text" id="att-name" class="tracking-input" placeholder="Label (e.g. Design Conversation Screenshot)" maxlength="200">';
+                    html += '<input type="text" id="att-caption" class="tracking-input" placeholder="Caption or note (optional)" maxlength="300">';
+                    html += '<div style="display:flex;align-items:center;gap:10px;margin-top:6px">';
+                    html += '<input type="file" id="att-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="font-family:Montserrat,sans-serif;font-size:11px;flex:1;color:var(--text-mid)">';
+                    html += '<span id="att-file-status" style="font-family:Montserrat,sans-serif;font-size:11px;color:var(--sage);white-space:nowrap"></span>';
+                    html += '</div>';
+                    html += '<button type="button" id="att-add-btn" class="tracking-add-btn" style="margin-top:8px">+ ADD ATTACHMENT</button>';
+                    html += '</div>';
+                }
+                html += '</div>'; /* end .agreement-attachments */
+
+                /* ─── Signatures ─── */
+                html += '<div class="agreement-signatures">';
+
+                /* Couple signature block */
+                html += '<div class="sig-block">';
+                html += '<p class="sig-block-title">Client Signature — ' + escHtml(clientName) + '</p>';
+                if (agr.coupleSignature) {
+                    html += '<p class="sig-signed-display">' + escHtml(agr.coupleSignature) + '</p>';
+                    html += '<p class="sig-signed-date">Signed ' + escHtml(agr.coupleSignedAt ? formatNoteTs(agr.coupleSignedAt) : '') + '</p>';
+                    html += '<span class="sig-signed-check">Signed</span>';
+                } else if (role === 'couple') {
+                    html += '<div class="sig-input-wrapper">';
+                    html += '<p class="sig-hint">Type your full legal name below to sign this agreement.</p>';
+                    html += '<input type="text" id="couple-sig-input" class="sig-input" placeholder="Your Full Name" maxlength="200" autocomplete="name">';
+                    html += '<button type="button" class="sig-submit-btn" id="couple-sig-btn">SIGN AGREEMENT</button>';
+                    html += '<p id="couple-sig-status" class="sig-status-msg"></p>';
+                    html += '</div>';
+                } else {
+                    html += '<p class="sig-awaiting">Awaiting client signature.</p>';
+                }
+                html += '</div>';
+
+                /* Planner signature block */
+                html += '<div class="sig-block">';
+                html += '<p class="sig-block-title">Vendor Signature — ' + escHtml(plannerName) + '</p>';
+                if (agr.plannerSignature) {
+                    html += '<p class="sig-signed-display">' + escHtml(agr.plannerSignature) + '</p>';
+                    html += '<p class="sig-signed-date">Signed ' + escHtml(agr.plannerSignedAt ? formatNoteTs(agr.plannerSignedAt) : '') + '</p>';
+                    html += '<span class="sig-signed-check">Signed</span>';
+                } else if (role === 'planner' || role === 'rnbTeam') {
+                    if (!agr.coupleSignature) {
+                        html += '<p class="sig-awaiting">Available after client signs.</p>';
+                    } else {
+                        html += '<div class="sig-input-wrapper">';
+                        html += '<p class="sig-hint">Type your full name to countersign this agreement.</p>';
+                        html += '<input type="text" id="planner-sig-input" class="sig-input" placeholder="Your Full Name" maxlength="200" autocomplete="name">';
+                        html += '<button type="button" class="sig-submit-btn" id="planner-sig-btn">COUNTERSIGN</button>';
+                        html += '<p id="planner-sig-status" class="sig-status-msg"></p>';
+                        html += '</div>';
+                    }
+                } else {
+                    html += '<p class="sig-awaiting">Awaiting planner countersignature.</p>';
+                }
+                html += '</div>';
+
+                html += '</div>'; /* end .agreement-signatures */
+                html += '</div>'; /* end .agreement-body */
+
+                /* Admin-only: Reset agreement for a new contract */
+                if (role === 'rnbTeam' && agr.status !== 'pending') {
+                    html += '<div class="agreement-reset-section">';
+                    html += '<button type="button" class="agreement-reset-btn" id="reset-agreement-btn">RESET AGREEMENT FOR NEW CONTRACT</button>';
+                    html += '<p id="reset-agreement-status" class="sig-status-msg"></p>';
+                    html += '</div>';
+                }
+
+                html += '</div>'; /* end .agreement-wrapper */
+
+                /* ─── Existing documents list ─── */
+                if (items.length) {
+                    html += '<div class="documents-list">';
+                    items.forEach(function (doc, i) {
+                        html += '<div class="doc-row">' +
+                            '<div class="doc-info">' +
+                                '<p class="doc-type">' + escHtml(doc.type) + '</p>' +
+                                '<p class="doc-name">' + escHtml(doc.name) + '</p>' +
+                                (doc.date ? '<p class="doc-date">' + escHtml(doc.date) + '</p>' : '') +
+                            '</div>' +
+                            '<div class="doc-actions">' +
+                                '<a href="' + escHtml(doc.url) + '" target="_blank" rel="noopener" class="doc-link">OPEN &rarr;</a>' +
+                                '<button type="button" class="tracking-remove-btn" data-index="' + i + '" title="Remove">&times;</button>' +
+                            '</div>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                /* Add document form (planner/team only) */
+                if (role === 'planner' || role === 'rnbTeam') {
+                    html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                    html += '<div class="tracking-section-header"><h3 class="tracking-section-title" style="font-size:16px">Add Document</h3><span id="docs-autosave" class="tracking-autosave"></span></div>';
+                    html += '<div class="edit-add-row">';
+                    html += '<input type="text" id="d-name" class="tracking-input" placeholder="Document name" maxlength="200">';
+                    html += '<input type="text" id="d-type" class="tracking-input" placeholder="Type (e.g. Contract)" maxlength="100">';
+                    html += '</div>';
+                    html += '<div class="edit-add-row" style="margin-bottom:6px;align-items:center">';
+                    html += '<label style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;color:var(--sage);text-transform:uppercase;white-space:nowrap;margin-right:8px">Upload file</label>';
+                    html += '<input type="file" id="d-file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp" style="font-family:Montserrat,sans-serif;font-size:11px;flex:1;color:var(--text-mid)">';
+                    html += '<span id="d-file-status" style="font-family:Montserrat,sans-serif;font-size:11px;color:var(--sage);margin-left:8px;white-space:nowrap"></span>';
+                    html += '</div>';
+                    html += '<div class="edit-add-row" style="align-items:center">';
+                    html += '<span style="font-family:Montserrat,sans-serif;font-size:10px;letter-spacing:1px;color:var(--sage-light);text-transform:uppercase;white-space:nowrap;margin-right:8px">— or link —</span>';
+                    html += '<input type="url" id="d-url" class="tracking-input" placeholder="Paste URL (https://...)" maxlength="2000" style="flex:1">';
+                    html += '</div>';
+                    html += '<div class="edit-add-row">';
+                    html += '<input type="date" id="d-date" class="tracking-input" maxlength="50">';
+                    html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD</button>';
+                    html += '</div>';
+                    html += '</div>';
+                }
+
+                targetEl.innerHTML = html;
+
+                /* Wire remove buttons on document list */
+                targetEl.querySelectorAll('.doc-row .tracking-remove-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        items.splice(parseInt(this.dataset.index), 1);
+                        renderPage();
+                        doSave();
+                    });
+                });
+
+                /* Wire add document form */
+                var addBtn = document.getElementById('add-btn');
+                if (addBtn) {
+                    addBtn.addEventListener('click', function () {
+                        var n    = document.getElementById('d-name').value.trim();
+                        var u    = document.getElementById('d-url').value.trim();
+                        var fileInput = document.getElementById('d-file');
+                        var file = fileInput && fileInput.files && fileInput.files[0];
+                        if (!n) { alert('Please enter a document name.'); return; }
+                        if (!u && !file) { alert('Please paste a URL or choose a file to upload.'); return; }
+
+                        var docDate  = window.toDDMMYYYY(document.getElementById('d-date').value.trim());
+                        var docType  = document.getElementById('d-type').value.trim() || 'Document';
+
+                        if (file) {
+                            /* Upload file to S3 via Lambda */
+                            var statusEl = document.getElementById('d-file-status');
+                            statusEl.textContent = 'Uploading…';
+                            addBtn.disabled = true;
+                            var reader = new FileReader();
+                            reader.onload = function (ev) {
+                                var dataUrl    = ev.target.result;
+                                var base64Data = dataUrl.split(',')[1];
+                                var contentType = file.type || 'application/octet-stream';
+                                fetch('https://api.rnbevents716.com/upload-file', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        codeHash:    window.currentCode,
+                                        fileName:    file.name,
+                                        contentType: contentType,
+                                        data:        base64Data
+                                    })
+                                })
+                                .then(function (r) { return r.json(); })
+                                .then(function (res) {
+                                    addBtn.disabled = false;
+                                    if (res && res.ok && res.url) {
+                                        statusEl.textContent = '✓ Uploaded';
+                                        items.push({ name: n, type: docType, url: res.url, date: docDate });
+                                        renderPage();
+                                        doSave();
+                                        setTimeout(function () { statusEl.textContent = ''; }, 3000);
+                                    } else {
+                                        statusEl.textContent = 'Upload failed: ' + (res && res.error ? res.error : 'Unknown error');
+                                    }
+                                })
+                                .catch(function (err) {
+                                    addBtn.disabled = false;
+                                    statusEl.textContent = 'Upload error — check connection.';
+                                });
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            items.push({ name: n, type: docType, url: u, date: docDate });
+                            renderPage();
+                            doSave();
+                        }
+                    });
+                    document.getElementById('d-name').addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); }
+                    });
+                }
+
+                /* Wire contract attachment remove buttons */
+                targetEl.querySelectorAll('.contract-att-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var idx = parseInt(this.dataset.attIndex);
+                        if (!isNaN(idx)) {
+                            agr.attachments = (agr.attachments || []);
+                            agr.attachments.splice(idx, 1);
+                            fetch('https://api.rnbevents716.com/update-client-section', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ codeHash: window.currentCode, section: 'agreement', data: agr })
+                            }).then(function (r) { return r.json(); }).then(function (res) {
+                                if (res && res.ok) renderPage();
+                            });
+                        }
+                    });
+                });
+
+                /* Wire contract attachment add form */
+                var attAddBtn = document.getElementById('att-add-btn');
+                if (attAddBtn) {
+                    attAddBtn.addEventListener('click', function () {
+                        var n          = (document.getElementById('att-name').value || '').trim();
+                        var caption    = (document.getElementById('att-caption').value || '').trim();
+                        var fileInput  = document.getElementById('att-file');
+                        var file       = fileInput && fileInput.files && fileInput.files[0];
+                        var statusEl   = document.getElementById('att-file-status');
+                        if (!n)    { alert('Please enter a label for the attachment.'); return; }
+                        if (!file) { alert('Please choose a file to upload.'); return; }
+                        statusEl.textContent = 'Uploading\u2026';
+                        attAddBtn.disabled = true;
+                        var reader = new FileReader();
+                        reader.onload = function (ev) {
+                            var base64Data  = ev.target.result.split(',')[1];
+                            var contentType = file.type || 'application/octet-stream';
+                            fetch('https://api.rnbevents716.com/upload-file', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ codeHash: window.currentCode, fileName: file.name, contentType: contentType, data: base64Data })
+                            })
+                            .then(function (r) { return r.json(); })
+                            .then(function (res) {
+                                attAddBtn.disabled = false;
+                                if (res && res.ok && res.url) {
+                                    agr.attachments = agr.attachments || [];
+                                    agr.attachments.push({ name: n, caption: caption, url: res.url, uploadedAt: new Date().toISOString() });
+                                    return fetch('https://api.rnbevents716.com/update-client-section', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ codeHash: window.currentCode, section: 'agreement', data: agr })
+                                    }).then(function (r2) { return r2.json(); }).then(function (res2) {
+                                        if (res2 && res2.ok) {
+                                            statusEl.textContent = '';
+                                            document.getElementById('att-name').value = '';
+                                            document.getElementById('att-caption').value = '';
+                                            fileInput.value = '';
+                                            renderPage();
+                                        } else {
+                                            statusEl.textContent = 'Save failed.';
+                                        }
+                                    });
+                                } else {
+                                    statusEl.textContent = 'Upload failed: ' + (res && res.error ? res.error : 'Unknown');
+                                }
+                            })
+                            .catch(function () { attAddBtn.disabled = false; statusEl.textContent = 'Upload error.'; });
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                /* Wire couple signature */
+                var coupleSigBtn = document.getElementById('couple-sig-btn');
+                if (coupleSigBtn) {
+                    coupleSigBtn.addEventListener('click', function () {
+                        var sigText = (document.getElementById('couple-sig-input').value || '').trim();
+                        var statusEl = document.getElementById('couple-sig-status');
+                        if (!sigText) { statusEl.textContent = 'Please enter your full name.'; statusEl.className = 'sig-status-msg save-err'; return; }
+                        agr.coupleSignature          = sigText;
+                        agr.coupleSignedAt           = new Date().toISOString();
+                        agr.coupleSignatureUserAgent = navigator.userAgent || '';
+                        agr.status = agr.plannerSignature ? 'fully-executed' : 'couple-signed';
+                        coupleSigBtn.disabled = true;
+                        coupleSigBtn.textContent = 'SAVING...';
+                        saveAgreement(statusEl, coupleSigBtn);
+                    });
+                }
+
+                /* Wire planner signature */
+                var plannerSigBtn = document.getElementById('planner-sig-btn');
+                if (plannerSigBtn) {
+                    plannerSigBtn.addEventListener('click', function () {
+                        var sigText = (document.getElementById('planner-sig-input').value || '').trim();
+                        var statusEl = document.getElementById('planner-sig-status');
+                        if (!sigText) { statusEl.textContent = 'Please enter your full name.'; statusEl.className = 'sig-status-msg save-err'; return; }
+                        agr.plannerSignature = sigText;
+                        agr.plannerSignedAt  = new Date().toISOString();
+                        agr.status = agr.coupleSignature ? 'fully-executed' : 'couple-signed';
+                        plannerSigBtn.disabled = true;
+                        plannerSigBtn.textContent = 'SAVING...';
+                        saveAgreement(statusEl, plannerSigBtn);
+                    });
+                }
+
+                /* Wire admin reset agreement */
+                var resetAgrBtn = document.getElementById('reset-agreement-btn');
+                if (resetAgrBtn) {
+                    resetAgrBtn.addEventListener('click', function () {
+                        var statusEl = document.getElementById('reset-agreement-status');
+                        if (!confirm('This will clear all signatures and reset the agreement to pending. Continue?')) return;
+                        agr.status = 'pending';
+                        agr.coupleSignature = '';
+                        agr.coupleSignedAt  = '';
+                        agr.plannerSignature = '';
+                        agr.plannerSignedAt  = '';
+                        resetAgrBtn.disabled = true;
+                        resetAgrBtn.textContent = 'RESETTING...';
+                        fetch('https://api.rnbevents716.com/update-client-section', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                codeHash: window.currentCode,
+                                section:  'agreement',
+                                data:     agr,
+                                editLogEntry: {
+                                    ts:       new Date().toISOString(),
+                                    role:     window.currentRole     || 'rnbTeam',
+                                    roleName: window.currentRoleName || 'RNB Team',
+                                    action:   'Reset agreement for new contract'
+                                }
+                            })
+                        })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (res && res.ok) {
+                                renderPage();
+                            } else {
+                                statusEl.textContent = 'Reset failed: ' + (res.error || 'Unknown');
+                                statusEl.className = 'sig-status-msg save-err';
+                                resetAgrBtn.disabled = false;
+                                resetAgrBtn.textContent = 'RESET AGREEMENT FOR NEW CONTRACT';
+                            }
+                        })
+                        .catch(function (e) {
+                            statusEl.textContent = 'Reset failed: ' + e;
+                            statusEl.className = 'sig-status-msg save-err';
+                            resetAgrBtn.disabled = false;
+                            resetAgrBtn.textContent = 'RESET AGREEMENT FOR NEW CONTRACT';
+                        });
+                    });
+                }
+            }
+
+            function saveAgreement(statusEl, btn) {
+                fetch('https://api.rnbevents716.com/update-client-section', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        codeHash: window.currentCode,
+                        section:  'agreement',
+                        data:     agr,
+                        editLogEntry: {
+                            ts:       new Date().toISOString(),
+                            role:     window.currentRole     || 'couple',
+                            roleName: window.currentRoleName || 'Client',
+                            action:   'Signed agreement'
+                        }
+                    })
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    if (res && res.ok) {
+                        renderPage();
+                    } else {
+                        statusEl.textContent = 'Save failed: ' + (res.error || 'Unknown');
+                        statusEl.className = 'sig-status-msg save-err';
+                        if (btn) { btn.disabled = false; btn.textContent = btn.id === 'couple-sig-btn' ? 'SIGN AGREEMENT' : 'COUNTERSIGN'; }
+                    }
+                })
+                .catch(function (e) {
+                    statusEl.textContent = 'Save failed: ' + e;
+                    statusEl.className = 'sig-status-msg save-err';
+                    if (btn) { btn.disabled = false; btn.textContent = btn.id === 'couple-sig-btn' ? 'SIGN AGREEMENT' : 'COUNTERSIGN'; }
+                });
+            }
+
+            function formatNoteTs(isoTs) {
+                if (!isoTs) return '';
+                if (window.formatNoteTs) return window.formatNoteTs(isoTs);
+                try {
+                    var d = new Date(isoTs);
+                    var mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                    var day = d.getDate();
+                    var suf = [11,12,13].indexOf(day%100)>=0 ? 'th' : (['th','st','nd','rd'][day%10]||'th');
+                    var time = d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    return mn[d.getMonth()]+' '+day+suf+' '+d.getFullYear()+', '+time;
+                } catch (e) { return isoTs; }
+            }
+
+            function downloadContract() {
+                var btn = document.getElementById('dl-contract-btn');
+                if (!btn || btn.disabled) return;
+                btn.disabled = true;
+                btn.textContent = 'PREPARING\u2026';
+                fetch('https://api.rnbevents716.com/download-contract', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: window.currentCode })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                    if (!res.ok || !res.pdfBase64) {
+                        btn.disabled = false;
+                        btn.textContent = '\u2193 DOWNLOAD CONTRACT';
+                        alert(res.error || 'Download failed. Please try again.');
+                        return;
+                    }
+                    /* Decode base64 → Blob → trigger browser download */
+                    var binary = atob(res.pdfBase64);
+                    var bytes  = new Uint8Array(binary.length);
+                    for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+                    var blob = new Blob([bytes], { type: 'application/pdf' });
+                    var url  = URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = res.filename || 'RNB_Events_Agreement.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+                    btn.textContent = 'DOWNLOADED \u2713';
+                    setTimeout(function() { btn.disabled = false; btn.textContent = '\u2193 DOWNLOAD CONTRACT'; }, 4000);
+                })
+                .catch(function() {
+                    btn.disabled = false;
+                    btn.textContent = '\u2193 DOWNLOAD CONTRACT';
+                    alert('Connection error. Please check your internet and try again.');
+                });
+            }
+            window.downloadContract = downloadContract;
+        }
+        if (window._portalReady) { checkDocumentAccess(); } else { window.onPortalReady = checkDocumentAccess; }
+    </script>
+    <script src="/cookie-consent.js"></script>
+</body>
+</html>

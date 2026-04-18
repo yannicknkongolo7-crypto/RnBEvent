@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Portal | RNB Events</title>
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Synchronous session guard: hide gate immediately if already logged in -->
+    <script>if (sessionStorage.getItem('rnb_portal_access')) { document.documentElement.className += ' rnb-has-session'; }</script>
+    <style>
+        /* Loading overlay — MUST beat .gate-overlay (z-index:9999 in portal.css) */
+        #portal-loading {
+            position: fixed; inset: 0; background: #f5f2ec;
+            z-index: 10001; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 18px;
+            transition: opacity 0.3s ease;
+        }
+        #portal-loading.fade-out { opacity: 0; pointer-events: none; }
+        #portal-loading .pl-logo { height: 52px; width: auto; }
+        #portal-loading .pl-text {
+            font-family: Montserrat, sans-serif; font-size: 10px;
+            letter-spacing: 3px; color: #527141; text-transform: uppercase;
+        }
+        #portal-loading .pl-spinner {
+            width: 24px; height: 24px; border: 2px solid #d6cfbf;
+            border-top-color: #527141; border-radius: 50%;
+            animation: pl-spin 0.8s linear infinite;
+        }
+        @keyframes pl-spin { to { transform: rotate(360deg); } }
+        /* Hide gate immediately for users who already have a session */
+        html.rnb-has-session #access-gate { display: none !important; }
+    </style>
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function(){
+            emailjs.init("uzfFh7D6LdIbNqpdK");
+        })();
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+</head>
+<body>
+
+    <!-- LOADING OVERLAY — shown while session is validated, prevents gate flash -->
+    <div id="portal-loading">
+        <img src="../RNB Logo Olive.png" alt="RNB Events" class="pl-logo">
+        <div class="pl-spinner"></div>
+        <p class="pl-text">Loading&hellip;</p>
+    </div>
+
+    <!-- ACCESS GATE -->
+    <div id="access-gate" class="gate-overlay">
+        <div class="gate-card">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">CLIENT ACCESS</p>
+            <h1 class="gate-title">Welcome Back</h1>
+            <p class="gate-subtitle">This portal is exclusively for confirmed RNB Events clients.<br>Enter your access code to continue.</p>
+            <form id="access-form" class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input type="password" id="access-input" class="gate-input" placeholder="Enter Access Code" autocomplete="off" maxlength="32">
+                    <button type="button" class="eye-toggle" onclick="togglePw('access-input',this)" title="Show/hide code" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button type="submit" class="gate-btn" onclick="checkAccess()">ENTER</button>
+                </div>
+                <label class="gate-remember">
+                    <input type="checkbox" id="remember-me-check">
+                    Remember me on this device for 30 days
+                </label>
+                <p id="gate-error" class="gate-error" aria-live="polite"></p>
+            </form>
+            <p class="gate-footer">Don't have your code? <a href="mailto:hello@rnbevents716.com">Contact us</a></p>
+        </div>
+    </div>
+
+    <!-- EMAIL VERIFICATION GATE -->
+    <div id="email-verification-gate" class="gate-overlay" style="display: none;">
+        <div class="gate-card">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">EMAIL VERIFICATION</p>
+            <h1 class="gate-title">Verify Your Identity</h1>
+            <p class="gate-subtitle">For your security, please confirm your email address to continue.</p>
+            <p id="email-hint" class="gate-subtitle" style="font-size: 11px; color: #77a361; margin-top: 8px; display: none;">
+                Email on file: <strong id="email-hint-value"></strong>
+            </p>
+            
+            <!-- Step 1: Email Entry -->
+            <form id="email-form" class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input type="email" id="email-input" class="gate-input" placeholder="Enter Your Email Address" autocomplete="email" required>
+                    <button type="submit" class="gate-btn" onclick="sendVerificationCode()">SEND CODE</button>
+                </div>
+                <p id="email-error" class="gate-error" aria-live="polite"></p>
+            </form>
+
+            <!-- Step 2: Code Verification (hidden initially) -->
+            <form id="verification-form" class="gate-form" style="display: none;" onsubmit="return false;">
+                <p class="gate-subtitle" style="font-size: 12px; margin-bottom: 20px;">
+                    We've sent a 6-digit code to <strong id="email-display"></strong>
+                </p>
+                <div class="input-wrapper">
+                    <input type="text" id="verification-code-input" class="gate-input" placeholder="Enter 6-Digit Code" maxlength="6" autocomplete="off" pattern="[0-9]{6}" inputmode="numeric">
+                    <button type="submit" class="gate-btn" onclick="verifyEmailCode()">VERIFY</button>
+                </div>
+                <button type="button" class="gate-link-btn" onclick="resendVerificationCode()">Resend Code</button>
+                <p id="verification-error" class="gate-error" aria-live="polite"></p>
+            </form>
+
+            <!-- Admin Fallback -->
+            <div class="gate-admin-fallback">
+                <button type="button" class="gate-link-btn" onclick="toggleAdminAuth()">Admin Access</button>
+            </div>
+
+            <!-- Admin Google Auth (hidden initially) -->
+            <form id="admin-auth-form" class="gate-form" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8e0d5;" onsubmit="return false;">
+                <p class="gate-subtitle" style="font-size: 11px; margin-bottom: 16px;">
+                    Enter Google Authenticator code
+                </p>
+                <div class="input-wrapper">
+                    <input type="text" id="admin-auth-input" class="gate-input" placeholder="6-Digit Auth Code" maxlength="6" autocomplete="off" pattern="[0-9]{6}" inputmode="numeric">
+                    <button type="submit" class="gate-btn" onclick="verifyAdminAuth()">VERIFY</button>
+                </div>
+                <p id="admin-auth-error" class="gate-error" aria-live="polite"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- RE-AUTHENTICATION MODAL (for Documents access) -->
+    <div id="reauth-modal" class="gate-overlay" style="display: none;">
+        <div class="gate-card" style="max-width: 420px;">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">RE-AUTHENTICATION REQUIRED</p>
+            <h1 class="gate-title" style="font-size: 28px;">Verify Identity</h1>
+            <p class="gate-subtitle">This section contains sensitive information. Please verify your identity to continue.</p>
+            
+            <form id="reauth-form" class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input type="text" id="reauth-code-input" class="gate-input" placeholder="Enter 6-Digit Code" maxlength="6" autocomplete="off" pattern="[0-9]{6}" inputmode="numeric">
+                    <button type="submit" class="gate-btn" onclick="verifyReauth()">VERIFY</button>
+                </div>
+                <button type="button" class="gate-link-btn" onclick="resendReauthCode()">Resend Code</button>
+                <p id="reauth-error" class="gate-error" aria-live="polite"></p>
+            </form>
+
+            <!-- Admin fallback for re-auth -->
+            <form id="reauth-admin-form" class="gate-form" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8e0d5;" onsubmit="return false;">
+                <p class="gate-subtitle" style="font-size: 11px; margin-bottom: 16px;">
+                    Or use Admin Auth Code
+                </p>
+                <div class="input-wrapper">
+                    <input type="text" id="reauth-admin-input" class="gate-input" placeholder="6-Digit Auth Code" maxlength="6" autocomplete="off" pattern="[0-9]{6}" inputmode="numeric">
+                    <button type="submit" class="gate-btn" onclick="verifyReauthAdmin()">VERIFY</button>
+                </div>
+                <p id="reauth-admin-error" class="gate-error" aria-live="polite"></p>
+            </form>
+
+            <button type="button" class="gate-link-btn" style="margin-top: 16px;" onclick="toggleReauthAdmin()">Use Admin Code Instead</button>
+            <button type="button" class="gate-link-btn" style="margin-top: 8px;" onclick="closeReauthModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- PORTAL CONTENT -->
+    <main id="portal-content" class="portal hidden">
+
+        <header class="portal-header">
+            <a href="/" class="portal-home-link">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+            </a>
+            <span class="portal-badge">CLIENT PORTAL</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="portal-role-badge" class="role-badge role-couple"></span>
+                <button class="portal-logout" onclick="logOut()">SIGN OUT</button>
+            </div>
+        </header>
+
+        <!-- Hero Welcome — personalized -->
+        <section class="portal-hero">
+            <div class="portal-hero-inner">
+                <p class="portal-hero-label">EXCLUSIVELY YOURS</p>
+                <h2 class="portal-hero-title"><span id="portal-client-name">Your</span> Event Journey</h2>
+                <p class="portal-hero-sub">Everything you need — in one beautiful place.</p>
+                
+                <!-- Elegant Countdown -->
+                <div id="event-countdown" class="countdown-wrapper">
+                    <p class="countdown-label">Your Special Day</p>
+                    <div class="countdown-grid">
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="days-value">0</span>
+                            <span class="countdown-unit">Days</span>
+                        </div>
+                        <div class="countdown-divider">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="hours-value">0</span>
+                            <span class="countdown-unit">Hours</span>
+                        </div>
+                        <div class="countdown-divider">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="minutes-value">0</span>
+                            <span class="countdown-unit">Minutes</span>
+                        </div>
+                        <div class="countdown-divider">:</div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="seconds-value">0</span>
+                            <span class="countdown-unit">Seconds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Info Strip -->
+        <div class="event-strip container">
+            <div class="event-strip-item">
+                <span class="strip-label">EVENT TYPE</span>
+                <span class="strip-value" id="portal-event-type">–</span>
+            </div>
+            <div class="event-strip-divider"></div>
+            <div class="event-strip-item">
+                <span class="strip-label">EVENT DATE</span>
+                <span class="strip-value" id="portal-event-date">–</span>
+            </div>
+            <div class="event-strip-divider"></div>
+            <div class="event-strip-item">
+                <span class="strip-label">VENUE</span>
+                <span class="strip-value" id="portal-event-venue">–</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <section class="portal-dashboard container">
+
+            <div class="portal-card">
+                <div class="card-icon">&#9998;</div>
+                <h3 class="card-title">Tracking Notes</h3>
+                <p class="card-desc">Follow action items and to-dos from your planner, the RNB team, and your own checklist.</p>
+                <a href="/Client/tracking" class="card-link">VIEW NOTES &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9675;</div>
+                <h3 class="card-title">Planning Timeline</h3>
+                <p class="card-desc">Stay on track with key milestones, deadlines, and upcoming check-ins for your event.</p>
+                <a href="/Client/timeline" class="card-link">VIEW TIMELINE &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9674;</div>
+                <h3 class="card-title">Mood Board</h3>
+                <p class="card-desc">Explore the curated vision and aesthetic direction we're building for your special day.</p>
+                <a href="/Client/moodboard" class="card-link">VIEW MOOD BOARD &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9671;</div>
+                <h3 class="card-title">Vendor Directory</h3>
+                <p class="card-desc">Contact details and status for every vendor involved in making your event extraordinary.</p>
+                <a href="/Client/vendors" class="card-link">VIEW VENDORS &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9670;</div>
+                <h3 class="card-title">Documents &amp; Payments</h3>
+                <p class="card-desc">Access your signed contracts, important files, and track your payment schedule and balance.</p>
+                <a href="/Client/documents" class="card-link">VIEW DOCUMENTS &amp; PAYMENTS &rarr;</a>
+            </div>
+
+            <div class="portal-card">
+                <div class="card-icon">&#9633;</div>
+                <h3 class="card-title">Seating Chart &amp; Layout</h3>
+                <p class="card-desc">View your floor layout, manage your guest list, and organize seating arrangements for your event.</p>
+                <a href="/Client/seating-layout" class="card-link">VIEW SEATING &rarr;</a>
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+        <footer class="portal-footer">
+            <p>&copy; 2026 RNB Events Production &amp; Coordination LLC &mdash; <a href="/">rnbevents716.com</a> &nbsp;&middot;&nbsp; <a href="mailto:info@rnbevents716.com">info@rnbevents716.com</a></p>
+            <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+        </footer>
+
+    </main>
+
+    <script src="clients-config.js"></script>
+    <script src="portal.js"></script>
+    <script>
+    function togglePw(id, btn) {
+        var inp = document.getElementById(id);
+        if (!inp) return;
+        var show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        btn.innerHTML = show ? '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+    </script>
+    <script src="/remus-track.js"></script>
+    <script>remusTrack('client');</script>
+    <script src="/cookie-consent.js"></script>
+</body>
+</html>

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Find Your Seat | RNB Events</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+        :root {
+            --gs-dark:   #2d3a2d;
+            --gs-dark2:  #3e5630;
+            --gs-mid:    #527141;
+            --gs-accent: #b89a5e;
+            --gs-muted:  #a3b18a;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #faf8f5;
+            color: #3d3a35;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* ── Header ── */
+        .gs-header {
+            background: var(--gs-dark);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+        .gs-logo-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 0.22em;
+            color: var(--gs-accent);
+            text-transform: uppercase;
+        }
+        .gs-badge {
+            font-size: 0.6rem;
+            font-weight: 500;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--gs-muted);
+            border-left: 1px solid var(--gs-dark2);
+            padding-left: 14px;
+        }
+        /* ── Hero ── */
+        .gs-hero {
+            background: linear-gradient(135deg, var(--gs-dark) 0%, var(--gs-dark2) 100%);
+            padding: 40px 24px 36px;
+            text-align: center;
+        }
+        .gs-hero-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--gs-muted);
+            margin-bottom: 8px;
+        }
+        .gs-hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.4rem;
+            font-weight: 300;
+            color: #fff;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+        .gs-hero-event {
+            font-size: 0.8rem;
+            color: var(--gs-accent);
+            letter-spacing: 0.14em;
+        }
+        /* ── Main container ── */
+        .gs-main {
+            flex: 1;
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 36px 20px 60px;
+        }
+        /* ── Loading / error ── */
+        .gs-state-card {
+            background: #fff;
+            border: 1px solid #e8e4dc;
+            border-radius: 8px;
+            padding: 52px 32px;
+            text-align: center;
+        }
+        .gs-state-icon { font-size: 2.2rem; margin-bottom: 16px; }
+        .gs-state-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--gs-dark);
+            margin-bottom: 10px;
+        }
+        .gs-state-body { font-size: 0.82rem; color: #888; line-height: 1.7; }
+        /* ── Search form ── */
+        .gs-search-card {
+            background: #fff;
+            border: 1px solid #e8e4dc;
+            border-radius: 8px;
+            padding: 36px 32px 32px;
+            margin-bottom: 28px;
+        }
+        .gs-search-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 400;
+            color: var(--gs-dark);
+            margin-bottom: 6px;
+            letter-spacing: 0.04em;
+        }
+        .gs-search-sub {
+            font-size: 0.78rem;
+            color: #999;
+            margin-bottom: 26px;
+            line-height: 1.6;
+        }
+        .gs-input-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .gs-input-group { flex: 1; min-width: 140px; }
+        .gs-input-label {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        .gs-input {
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            color: #2d3a2d;
+            border: 1px solid #e0dcd4;
+            border-radius: 4px;
+            padding: 11px 14px;
+            background: #faf8f5;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .gs-input:focus { border-color: var(--gs-mid); background: #fff; }
+        .gs-find-btn {
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            padding: 14px 32px;
+            background: var(--gs-dark);
+            color: var(--gs-accent);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.25s;
+            text-transform: uppercase;
+        }
+        .gs-find-btn:hover { background: var(--gs-mid); color: #fff; }
+        .gs-find-btn:disabled { background: #ccc; color: #fff; cursor: not-allowed; }
+        /* ── Result: found ── */
+        .gs-result-found {
+            background: #fff;
+            border: 1.5px solid var(--gs-mid);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+        .gs-result-header {
+            background: var(--gs-dark);
+            padding: 22px 28px;
+            text-align: center;
+        }
+        .gs-result-label {
+            font-size: 0.62rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--gs-muted);
+            margin-bottom: 8px;
+        }
+        .gs-result-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.7rem;
+            font-weight: 400;
+            color: #fff;
+            margin-bottom: 4px;
+            letter-spacing: 0.04em;
+        }
+        .gs-table-name-big {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: var(--gs-accent);
+            letter-spacing: 0.06em;
+            line-height: 1.1;
+        }
+        .gs-result-body { padding: 24px 28px; }
+        .gs-floorplan-wrap {
+            position: relative;
+            display: block;
+            margin: 0 0 20px;
+            border: 1px solid #e0dcd4;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f5f2ec;
+        }
+        .gs-floorplan-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .gs-fp-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        /* Marker pins on floor plan */
+        .gs-pin {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        .gs-pin-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            background: rgba(82, 113, 65, 0.45);
+            border: 2px solid rgba(255,255,255,0.6);
+            flex-shrink: 0;
+        }
+        .gs-pin-lbl {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.55rem;
+            background: rgba(255,255,255,0.75);
+            color: #555;
+            padding: 1px 4px;
+            border-radius: 2px;
+            margin-top: 3px;
+            white-space: nowrap;
+            max-width: 72px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Highlighted (found) pin */
+        .gs-pin.found .gs-pin-dot {
+            width: 28px;
+            height: 28px;
+            background: var(--gs-accent);
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--gs-accent) 35%, transparent);
+            animation: gs-pulse 1.6s ease-in-out infinite;
+        }
+        .gs-pin.found .gs-pin-lbl {
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: var(--gs-dark);
+            color: var(--gs-accent);
+            padding: 3px 7px;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .gs-pin.found { transform: translate(-50%, -100%) scale(1.15); z-index: 20; }
+        @keyframes gs-pulse {
+            0%   { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gs-accent) 40%, transparent);  }
+            50%  { box-shadow: 0 0 0 12px transparent; }
+            100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gs-accent) 40%, transparent);  }
+        }
+        .gs-no-layout {
+            background: #f5f2ec;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 20px;
+            letter-spacing: 0.08em;
+        }
+        /* ── Result: not found ── */
+        .gs-result-nf {
+            background: #fff8ec;
+            border: 1px solid #e0c980;
+            border-radius: 8px;
+            padding: 28px 28px 24px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .gs-result-nf-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: #7a5f00;
+            margin-bottom: 10px;
+        }
+        .gs-result-nf-body { font-size: 0.8rem; color: #956f00; line-height: 1.7; }
+        /* ── Multiple results ── */
+        .gs-multi-result {
+            background: #fff;
+            border: 1px solid #e8e4dc;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .gs-multi-header {
+            background: #f5f2ec;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .gs-multi-name { font-size: 0.88rem; color: var(--gs-dark); font-weight: 500; }
+        .gs-multi-table {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem;
+            color: var(--gs-mid);
+            font-weight: 600;
+        }
+        /* ── Search again ── */
+        .gs-search-again {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            padding: 10px 24px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            color: #666;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            text-transform: uppercase;
+        }
+        .gs-search-again:hover { border-color: var(--gs-mid); color: var(--gs-mid); }
+        /* ── Footer ── */
+        .gs-footer {
+            background: var(--gs-dark);
+            padding: 20px 24px;
+            text-align: center;
+        }
+        .gs-footer p { font-size: 0.72rem; color: var(--gs-muted); letter-spacing: 0.06em; }
+        .gs-footer a { color: var(--gs-accent); text-decoration: none; }
+        .gs-footer a:hover { text-decoration: underline; }
+        @media (max-width: 500px) {
+            .gs-search-card { padding: 24px 18px 22px; }
+            .gs-hero-title { font-size: 1.9rem; }
+            .gs-table-name-big { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="gs-header">
+        <span class="gs-logo-text">RNB Events</span>
+        <span class="gs-badge">Guest Seat Finder</span>
+    </header>
+
+    <div class="gs-hero">
+        <p class="gs-hero-label">You're Invited</p>
+        <h1 class="gs-hero-title">Find Your Seat</h1>
+        <p class="gs-hero-event" id="gs-event-name">&nbsp;</p>
+    </div>
+
+    <main class="gs-main">
+
+        <!-- Loading state -->
+        <div id="gs-loading" class="gs-state-card">
+            <div class="gs-state-icon">&#9678;</div>
+            <h2 class="gs-state-title">Loading your event…</h2>
+            <p class="gs-state-body">Just a moment while we retrieve your seating information.</p>
+        </div>
+
+        <!-- Error state -->
+        <div id="gs-error" class="gs-state-card" style="display:none">
+            <div class="gs-state-icon">&#9785;</div>
+            <h2 class="gs-state-title" id="gs-error-title">Event Not Found</h2>
+            <p class="gs-state-body" id="gs-error-body">This link may be invalid or the seating chart is not yet available. Please contact your event planner.</p>
+        </div>
+
+        <!-- Search form + results (shown after successful event load) -->
+        <div id="gs-content" style="display:none">
+
+            <div class="gs-search-card" id="gs-search-card">
+                <h2 class="gs-search-title">Where are you sitting?</h2>
+                <p class="gs-search-sub">Enter your name as it appears on the guest list to find your table assignment.</p>
+                <div class="gs-input-row">
+                    <div class="gs-input-group">
+                        <label class="gs-input-label" for="gs-first">First Name</label>
+                        <input type="text" id="gs-first" class="gs-input" placeholder="e.g. Jane" autocomplete="given-name" maxlength="100">
+                    </div>
+                    <div class="gs-input-group">
+                        <label class="gs-input-label" for="gs-last">Last Name</label>
+                        <input type="text" id="gs-last" class="gs-input" placeholder="e.g. Smith" autocomplete="family-name" maxlength="100">
+                    </div>
+                </div>
+                <button type="button" class="gs-find-btn" id="gs-find-btn" onclick="gsSearch()">Find My Seat &rarr;</button>
+            </div>
+
+            <!-- Result area -->
+            <div id="gs-result-area" style="display:none"></div>
+
+        </div>
+
+    </main>
+
+    <footer class="gs-footer">
+        <p>&copy; 2026 RNB Events Production &amp; Coordination LLC &nbsp;&middot;&nbsp; <a href="https://rnbevents716.com">rnbevents716.com</a></p>
+    </footer>
+
+    <script>
+    /* ── Guest Seat Finder ──────────────────────────────────────────
+       No authentication required. Event data loaded via public
+       /guest-seat-lookup endpoint using first 20 chars of codeHash.
+    ──────────────────────────────────────────────────────────────── */
+
+    var GS_DATA = null; // holds event data from Lambda
+
+    /* ── Palette theming ────────────────────────────────────────── */
+    function hexLum(h) {
+        h = (h || '').replace('#', '');
+        if (h.length !== 6) return 0.5;
+        var r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255, b = parseInt(h.slice(4,6),16)/255;
+        return 0.299*r + 0.587*g + 0.114*b;
+    }
+    function shiftHex(h, amt) { /* amt: +0.1 = lighten 10%, -0.1 = darken 10% */
+        h = (h || '').replace('#','');
+        if (h.length !== 6) return '#888888';
+        return '#' + [0,2,4].map(function(i) {
+            return Math.min(255, Math.max(0, parseInt(h.slice(i,i+2),16) + Math.round(255*amt))).toString(16).padStart(2,'0');
+        }).join('');
+    }
+    function applyPalette(palette) {
+        var valid = (palette || []).filter(function(h) { return /^#[0-9a-fA-F]{6}$/.test(h); });
+        if (!valid.length) return; /* keep default RNB green theme */
+        /* Sort darkest → lightest */
+        var sorted = valid.slice().sort(function(a,b) { return hexLum(a) - hexLum(b); });
+        var dark   = sorted[0];
+        var accent = sorted[sorted.length - 1];
+        var mid    = sorted.length >= 3 ? sorted[Math.floor(sorted.length / 2)] : shiftHex(dark, 0.15);
+        var dark2  = shiftHex(dark, 0.09);  /* slightly lighter dark for hero gradient */
+        var muted  = shiftHex(mid, 0.26);   /* pale version of mid for subtle text */
+        var root = document.documentElement;
+        root.style.setProperty('--gs-dark',   dark);
+        root.style.setProperty('--gs-dark2',  dark2);
+        root.style.setProperty('--gs-mid',    mid);
+        root.style.setProperty('--gs-accent', accent);
+        root.style.setProperty('--gs-muted',  muted);
+    }
+
+    /* ── Format event date as "April 13th 2026" ── */
+    function fmtDate(str) {
+        if (!str) return '';
+        var s = String(str);
+        var ddm = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (ddm) { var d = new Date(+ddm[3], +ddm[2]-1, +ddm[1]); if (!isNaN(d.getTime())) return _fmtOrd(d); }
+        var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (iso) { var d = new Date(+iso[1], +iso[2]-1, +iso[3]); if (!isNaN(d.getTime())) return _fmtOrd(d); }
+        return s;
+    }
+    function _fmtOrd(d) {
+        var mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        var day = d.getDate();
+        var suf = [11,12,13].indexOf(day%100)>=0 ? 'th' : (['th','st','nd','rd'][day%10]||'th');
+        return mn[d.getMonth()]+' '+day+suf+' '+d.getFullYear();
+    }
+
+    /* ── HTML escape ── */
+    function gh(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ── Show error state ── */
+    function showError(title, body) {
+        document.getElementById('gs-loading').style.display = 'none';
+        document.getElementById('gs-content').style.display = 'none';
+        document.getElementById('gs-error-title').textContent = title || 'Event Not Found';
+        document.getElementById('gs-error-body').textContent  = body  || 'This link may be invalid. Please contact your event planner.';
+        document.getElementById('gs-error').style.display = 'block';
+    }
+
+    /* ── Read event code from URL param ?e= ── */
+    function getGuestCode() {
+        try {
+            return new URLSearchParams(window.location.search).get('e') || '';
+        } catch(e) {
+            var m = window.location.search.match(/[?&]e=([^&]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+    }
+
+    /* ── Initial load ── */
+    (function() {
+      try {
+        var code = getGuestCode();
+        if (!code) { showError('Invalid Link', 'This QR code or link is not valid. Please scan the correct code or contact your event planner.'); return; }
+
+        /* Check sessionStorage cache first (60-min TTL) — prevents re-fetch on page refresh/revisit */
+        var cacheKey = 'gs_seat_' + code;
+        try {
+            var cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+                var cobj = JSON.parse(cached);
+                if (cobj && cobj.ts && (Date.now() - cobj.ts) < 60 * 60 * 1000 && cobj.data && cobj.data.ok) {
+                    GS_DATA = cobj.data;
+                    applyPalette(GS_DATA.palette);
+                    var nameEl = document.getElementById('gs-event-name');
+                    var parts = [];
+                    if (GS_DATA.eventName) parts.push(GS_DATA.eventName + '\'s Event');
+                    if (GS_DATA.eventDate)  parts.push(fmtDate(GS_DATA.eventDate));
+                    if (GS_DATA.eventVenue) parts.push(GS_DATA.eventVenue);
+                    nameEl.textContent = parts.join('  \u00b7  ');
+                    document.getElementById('gs-loading').style.display = 'none';
+                    document.getElementById('gs-content').style.display = 'block';
+                    document.getElementById('gs-first').addEventListener('keydown', function(e) { if (e.key === 'Enter') { document.getElementById('gs-last').focus(); } });
+                    document.getElementById('gs-last').addEventListener('keydown',  function(e) { if (e.key === 'Enter') gsSearch(); });
+                    document.getElementById('gs-first').focus();
+                    return;
+                }
+            }
+        } catch(e) { /* sessionStorage unavailable (private browsing) — fall through */ }
+
+        fetch('https://api.rnbevents716.com/guest-seat-lookup?e=' + encodeURIComponent(code))
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d.ok) {
+                    if (d.error === 'Seating chart not available') {
+                        showError('Coming Soon', 'The seating chart for this event hasn\'t been set up yet. Please check back closer to your event date.');
+                    } else {
+                        showError('Event Not Found', 'This link may be expired or incorrect. Please contact your event planner.');
+                    }
+                    return;
+                }
+                /* Cache in sessionStorage for 60 minutes */
+                try { sessionStorage.setItem(cacheKey, JSON.stringify({ data: d, ts: Date.now() })); } catch(e) {}
+                GS_DATA = d;
+                applyPalette(d.palette);
+                /* Populate event name */
+                var nameEl = document.getElementById('gs-event-name');
+                var parts = [];
+                if (d.eventName) parts.push(d.eventName + '\'s Event');
+                if (d.eventDate)  parts.push(fmtDate(d.eventDate));
+                if (d.eventVenue) parts.push(d.eventVenue);
+                nameEl.textContent = parts.join('  \u00b7  ');
+                /* Show content */
+                document.getElementById('gs-loading').style.display = 'none';
+                document.getElementById('gs-content').style.display = 'block';
+                /* Allow Enter key to search */
+                document.getElementById('gs-first').addEventListener('keydown', function(e) { if (e.key === 'Enter') { document.getElementById('gs-last').focus(); } });
+                document.getElementById('gs-last').addEventListener('keydown',  function(e) { if (e.key === 'Enter') gsSearch(); });
+                document.getElementById('gs-first').focus();
+            })
+            .catch(function() {
+                showError('Connection Error', 'Could not load event data. Please check your connection and try again, or contact your event planner.');
+            });
+      } catch(err) {
+          showError('Something went wrong', 'Please try refreshing the page or contact your event planner.');
+      }
+    })();
+
+    /* ── Search guest list ── */
+    function gsSearch() {
+        if (!GS_DATA) return;
+        var first = (document.getElementById('gs-first').value || '').trim().toLowerCase();
+        var last  = (document.getElementById('gs-last').value  || '').trim().toLowerCase();
+        if (!first && !last) {
+            document.getElementById('gs-first').focus();
+            return;
+        }
+        var matches = [];
+        (GS_DATA.tables || []).forEach(function(t) {
+            (t.guests || []).forEach(function(g) {
+                var gf = (g.firstName || '').trim().toLowerCase();
+                var gl = (g.lastName  || '').trim().toLowerCase();
+                var firstMatch = !first || gf.startsWith(first) || gf === first;
+                var lastMatch  = !last  || gl.startsWith(last)  || gl === last;
+                if (firstMatch && lastMatch && (gf || gl)) {
+                    matches.push({ table: t, guest: g });
+                }
+            });
+        });
+        renderResult(matches, first, last);
+    }
+
+    /* ── Render result ── */
+    function renderResult(matches, first, last) {
+        var area = document.getElementById('gs-result-area');
+        area.style.display = 'block';
+        area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        if (!matches.length) {
+            area.innerHTML = renderNotFound(first, last);
+            return;
+        }
+
+        if (matches.length === 1) {
+            /* Single match — show full card */
+            renderFoundCard(area, matches[0]);
+        } else {
+            /* Multiple matches */
+            var html = '<p style="font-size:0.78rem;color:#888;margin-bottom:16px;">' + matches.length + ' guests found. Are you one of these?</p>';
+            matches.forEach(function(m) {
+                html += '<div class="gs-multi-result"><div class="gs-multi-header">' +
+                    '<span class="gs-multi-name">' + gh(m.guest.firstName) + ' ' + gh(m.guest.lastName) + '</span>' +
+                    '<span class="gs-multi-table">' + gh(m.table.name) + '</span>' +
+                    '</div></div>';
+            });
+            html += '<p style="font-size:0.75rem;color:#aaa;margin-top:14px;line-height:1.7">Multiple names matched. If your table isn\'t shown, try searching with your full first and last name.</p>';
+            html += '<div style="margin-top:20px;text-align:center"><button type="button" class="gs-search-again" onclick="gsReset()">Search Again</button></div>';
+            /* Highlight all matched tables on floor plan */
+            var matchedTables = matches.map(function(m) { return m.table.name; });
+            var fpHtml = renderFloorPlan(matchedTables);
+            if (fpHtml) {
+                area.innerHTML = fpHtml + html;
+            } else {
+                area.innerHTML = html;
+            }
+        }
+    }
+
+    function renderFoundCard(area, match) {
+        var firstName = match.guest.firstName || '';
+        var lastName  = match.guest.lastName  || '';
+        var displayName = [firstName, lastName].filter(Boolean).join(' ');
+        var html = '<div class="gs-result-found">';
+        html += '<div class="gs-result-header">';
+        html += '<p class="gs-result-label">Welcome,</p>';
+        html += '<p class="gs-result-name">' + gh(displayName) + '</p>';
+        html += '<p style="font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:#a3b18a;margin:10px 0 4px">Your table is</p>';
+        html += '<p class="gs-table-name-big">' + gh(match.table.name) + '</p>';
+        html += '</div>';
+        html += '<div class="gs-result-body">';
+        /* Floor plan with highlight */
+        var fpHtml = renderFloorPlan([match.table.name]);
+        if (fpHtml) {
+            html += fpHtml;
+        } else {
+            html += '<div class="gs-no-layout">Floor plan not yet uploaded</div>';
+        }
+        html += '<div style="text-align:center">';
+        html += '<button type="button" class="gs-search-again" onclick="gsReset()">Search Another Guest</button>';
+        html += '</div>';
+        html += '</div></div>';
+        area.innerHTML = html;
+    }
+
+    /* ── Floor plan with highlighted markers ── */
+    function renderFloorPlan(highlightTableNames) {
+        if (!GS_DATA || !GS_DATA.layoutImage) return '';
+        var markers = GS_DATA.tableMarkers || [];
+        var highlightSet = {};
+        (highlightTableNames || []).forEach(function(n) { highlightSet[n.trim().toLowerCase()] = true; });
+        var pins = markers.map(function(m) {
+            var isFound = !!highlightSet[String(m.label || '').trim().toLowerCase()];
+            return '<div class="gs-pin' + (isFound ? ' found' : '') + '" style="left:' + m.x + '%;top:' + m.y + '%">' +
+                '<div class="gs-pin-dot"></div>' +
+                '<div class="gs-pin-lbl">' + gh(m.label) + '</div>' +
+                '</div>';
+        }).join('');
+        return '<div class="gs-floorplan-wrap">' +
+            '<img src="' + gh(GS_DATA.layoutImage) + '" alt="Floor Plan" class="gs-floorplan-img" loading="lazy">' +
+            '<div class="gs-fp-overlay">' + pins + '</div>' +
+            '</div>';
+    }
+
+    function renderNotFound(first, last) {
+        var name = [(first || ''), (last || '')].filter(Boolean).map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+        return '<div class="gs-result-nf">' +
+            '<p class="gs-result-nf-title">Name Not Found</p>' +
+            '<p class="gs-result-nf-body">We couldn\'t find <strong>' + gh(name || 'that name') + '</strong> on the guest list. ' +
+            'Please double-check the spelling or try your first name only. If the issue continues, please contact your event planner.</p>' +
+            '</div>' +
+            '<div style="text-align:center">' +
+            '<button type="button" class="gs-search-again" onclick="gsReset()">Try Again</button>' +
+            '</div>';
+    }
+
+    /* ── Reset to search form ── */
+    function gsReset() {
+        var area = document.getElementById('gs-result-area');
+        area.style.display = 'none';
+        area.innerHTML = '';
+        document.getElementById('gs-first').value = '';
+        document.getElementById('gs-last').value  = '';
+        document.getElementById('gs-search-card').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('gs-first').focus();
+    }
+    </script>
+
+</body>
+</html>

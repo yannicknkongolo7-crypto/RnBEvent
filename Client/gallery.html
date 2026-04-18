@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+    <title>Inspiration Gallery | RNB Events Client Portal</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script>if (!sessionStorage.getItem('rnb_portal_access')) { location.replace('/Client'); }</script>
+    <link rel="stylesheet" href="portal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="portal-header">
+        <a href="/" class="portal-home-link">
+            <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+        </a>
+        <span class="portal-badge">CLIENT PORTAL</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Client" class="portal-back">&larr; DASHBOARD</a>
+            <button class="portal-logout" onclick="portalSignOut()">SIGN OUT</button>
+        </div>
+    </header>
+
+    <div class="subpage-hero">
+        <div class="subpage-hero-inner">
+            <p class="portal-hero-label">CLIENT PORTAL</p>
+            <h1 class="subpage-hero-title">Inspiration Gallery</h1>
+        </div>
+    </div>
+
+    <main class="container subpage-content" id="gallery-content">
+        <div class="portal-loading-state" id="portal-loading">
+            <div class="portal-spinner"></div>
+            <p class="portal-loading-text">Loading gallery...</p>
+        </div>
+    </main>
+
+    <!-- Gallery Lightbox -->
+    <div class="gallery-lightbox" id="gallery-lightbox">
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+        <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous">&lsaquo;</button>
+        <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next">&rsaquo;</button>
+        <div class="lightbox-counter" id="lightbox-counter"></div>
+        <div class="lightbox-content">
+            <img src="" alt="" class="lightbox-img" id="lightbox-img">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+
+    <footer class="portal-footer">
+        <p>&copy; 2026 RNB Events Production &amp; Coordination LLC &mdash; <a href="/">rnbevents716.com</a> &nbsp;&middot;&nbsp; <a href="mailto:info@rnbevents716.com">info@rnbevents716.com</a></p>
+        <p class="ynk-credit">Powered by <span class="ynk-brand">YNK Tech</span></p>
+    </footer>
+
+    <script src="/remus-track.js"></script>
+    <script src="clients-config.js"></script>
+    <script src="portal-page.js"></script>
+    <script>
+        function initGallery() {
+            var client   = window.currentClient;
+            var codeHash = window.currentCode;
+            var el       = document.getElementById('gallery-content');
+            var items    = (client.gallery || []).map(function (img) {
+                if (typeof img === 'string') return { url: img, caption: '' };
+                return { url: img.url || '', caption: img.caption || '' };
+            });
+
+            render();
+
+            function doSave() {
+                var ind = document.getElementById('gallery-autosave');
+                if (ind) { ind.textContent = 'Saving…'; ind.className = 'tracking-autosave saving'; }
+                fetch(window.RNB_SECTION_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codeHash: codeHash, section: 'gallery', data: items, editLogEntry: { ts: new Date().toISOString(), role: window.currentRole || 'couple', roleName: window.currentRoleName || 'Client', action: 'Updated gallery' } })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var i = document.getElementById('gallery-autosave');
+                    if (!i) return;
+                    if (d && d.ok) { i.textContent = 'Saved ✓'; i.className = 'tracking-autosave saved'; setTimeout(function() { var x = document.getElementById('gallery-autosave'); if (x) x.textContent = ''; }, 3000); }
+                    else { i.textContent = '⚠ Save failed'; i.className = 'tracking-autosave error'; }
+                })
+                .catch(function() { var i = document.getElementById('gallery-autosave'); if (i) { i.textContent = '⚠ No connection'; i.className = 'tracking-autosave error'; } });
+            }
+
+            function render() {
+                // Hide loading state on first render
+                var loadingEl = document.getElementById('portal-loading');
+                if (loadingEl) loadingEl.remove();
+                
+                var html = '';
+                if (items.length) {
+                    html += '<div class="gallery-grid">';
+                    items.forEach(function (img, i) {
+                        html += '<div class="gallery-item-edit">' +
+                            '<img src="' + escHtml(img.url) + '" alt="' + escHtml(img.caption) + '" class="gallery-img" loading="lazy" data-gallery-index="' + i + '" onclick="openLightbox(' + i + ')">' +
+                            (img.caption ? '<p class="gallery-caption">' + escHtml(img.caption) + '</p>' : '') +
+                            '<button type="button" class="tracking-remove-btn gallery-remove" data-index="' + i + '" title="Remove">&times;</button>' +
+                        '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '<div class="tracking-section tracking-editable" style="margin-top:30px">';
+                html += '<div class="tracking-section-header"><h3 class="tracking-section-title" style="font-size:16px">Add Image</h3><span id="gallery-autosave" class="tracking-autosave"></span></div>';
+                html += '<div class="edit-add-row">';
+                html += '<input type="url" id="g-url" class="tracking-input" placeholder="Paste image URL (https://...)" maxlength="2000">';
+                html += '<input type="text" id="g-cap" class="tracking-input" placeholder="Caption (optional)" maxlength="300">';
+                html += '<button type="button" id="add-btn" class="tracking-add-btn">+ ADD URL</button>';
+                html += '</div>';
+                html += '<div class="edit-add-row" style="margin-top:10px;align-items:center;gap:10px">';
+                html += '<label class="tracking-upload-label" for="g-file" style="cursor:pointer;padding:8px 16px;background:#527141;color:#fff;border-radius:3px;font-size:11px;letter-spacing:1.5px;white-space:nowrap">&#128247; UPLOAD PHOTO</label>';
+                html += '<input type="file" id="g-file" accept="image/*" style="display:none">';
+                html += '<span style="color:#888;font-size:11px">JPG / PNG / WebP &mdash; auto-compressed to under 5 MB</span>';
+                html += '</div>';
+                html += '<p id="upload-progress" class="tracking-save-status" style="min-height:18px"></p>';
+                html += '</div>';
+                el.innerHTML = html;
+
+                el.querySelectorAll('.gallery-remove').forEach(function (btn) {
+                    btn.addEventListener('click', function () { items.splice(parseInt(this.dataset.index), 1); render(); doSave(); });
+                });
+                document.getElementById('add-btn').addEventListener('click', addUrl);
+                document.getElementById('g-url').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); addUrl(); }
+                });
+                document.getElementById('g-file').addEventListener('change', function () {
+                    var file = this.files[0];
+                    if (!file) return;
+                    var prog = document.getElementById('upload-progress');
+                    this.disabled = true;
+                    uploadPortalFile(file, function (msg) { prog.textContent = msg; prog.className = 'tracking-save-status'; })
+                        .then(function (url) {
+                            var cap = document.getElementById('g-cap');
+                            items.push({ url: url, caption: cap ? cap.value.trim() : '' });
+                            render();
+                            doSave();
+                        })
+                        .catch(function (e) {
+                            var p = document.getElementById('upload-progress');
+                            if (p) { p.textContent = 'Upload failed: ' + e.message; p.className = 'tracking-save-status save-err'; }
+                        })
+                        .then(function () {
+                            var fi = document.getElementById('g-file');
+                            if (fi) { fi.disabled = false; fi.value = ''; }
+                        });
+                });
+            }
+
+            function addUrl() {
+                var url = document.getElementById('g-url').value.trim();
+                if (!url) return;
+                var cap = document.getElementById('g-cap');
+                items.push({ url: url, caption: cap ? cap.value.trim() : '' });
+                render();
+                doSave();
+            }
+
+            // Lightbox functionality
+            window.openLightbox = function(index) {
+                var lightbox = document.getElementById('gallery-lightbox');
+                var img = document.getElementById('lightbox-img');
+                var caption = document.getElementById('lightbox-caption');
+                var counter = document.getElementById('lightbox-counter');
+                var prevBtn = document.getElementById('lightbox-prev');
+                var nextBtn = document.getElementById('lightbox-next');
+                
+                window.currentLightboxIndex = index;
+                
+                if (items[index]) {
+                    img.src = items[index].url;
+                    img.alt = items[index].caption || '';
+                    caption.textContent = items[index].caption || '';
+                    caption.style.display = items[index].caption ? 'block' : 'none';
+                    counter.textContent = (index + 1) + ' / ' + items.length;
+                    
+                    prevBtn.classList.toggle('disabled', index === 0);
+                    nextBtn.classList.toggle('disabled', index === items.length - 1);
+                    
+                    lightbox.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            };
+            
+            window.closeLightbox = function() {
+                var lightbox = document.getElementById('gallery-lightbox');
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            };
+            
+            window.navigateLightbox = function(direction) {
+                var newIndex = window.currentLightboxIndex + direction;
+                if (newIndex >= 0 && newIndex < items.length) {
+                    window.openLightbox(newIndex);
+                }
+            };
+            
+            // Event listeners for lightbox
+            document.getElementById('lightbox-close').addEventListener('click', window.closeLightbox);
+            document.getElementById('lightbox-prev').addEventListener('click', function() { window.navigateLightbox(-1); });
+            document.getElementById('lightbox-next').addEventListener('click', function() { window.navigateLightbox(1); });
+            
+            // Close on background click
+            document.getElementById('gallery-lightbox').addEventListener('click', function(e) {
+                if (e.target === this) window.closeLightbox();
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (!document.getElementById('gallery-lightbox').classList.contains('active')) return;
+                if (e.key === 'Escape') window.closeLightbox();
+                if (e.key === 'ArrowLeft') window.navigateLightbox(-1);
+                if (e.key === 'ArrowRight') window.navigateLightbox(1);
+            });
+        }
+        if (window._portalReady) { initGallery(); } else { window.onPortalReady = initGallery; }
+    </script>
+    <script src="/cookie-consent.js"></script>
+</body>
+</html>

@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+    <title>RSVP &amp; Seat Finder | RNB Events</title>
+    <meta name="description" content="Reserve your seat and build your guest list for your RNB Events experience. RSVP and generate a QR code seat finder for your event.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ── RSVP Page Styles ─────────────────────────── */
+        .rsvp-hero {
+            background: linear-gradient(135deg, #2d3a2d 0%, #3d4e3d 50%, #2d3a2d 100%);
+            color: #f8f6f2;
+            padding: 100px 0 60px;
+            text-align: center;
+        }
+        .rsvp-hero-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            color: #b89a5e;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .rsvp-hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 300;
+            color: #f8f6f2;
+            margin: 0 0 16px;
+            line-height: 1.1;
+        }
+        .rsvp-hero-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(248,246,242,0.75);
+            letter-spacing: 1px;
+            max-width: 480px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+        .rsvp-divider {
+            width: 40px;
+            height: 1px;
+            background: #b89a5e;
+            margin: 20px auto;
+        }
+
+        /* ── RSVP Main Wrapper ─── */
+        .rsvp-main {
+            background: #f8f6f2;
+            min-height: 60vh;
+            padding: 60px 0 100px;
+        }
+        .rsvp-card {
+            background: #fff;
+            border: 1px solid #e8e0d5;
+            border-radius: 4px;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 48px 52px;
+            box-shadow: 0 4px 24px rgba(45,58,45,0.06);
+        }
+        @media (max-width: 700px) {
+            .rsvp-card { padding: 32px 22px; }
+        }
+
+        /* ── Step indicator ─── */
+        .rsvp-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 40px;
+        }
+        .rsvp-step-dot {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid #c8bcaf;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            color: #c8bcaf;
+            background: #fff;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .rsvp-step-dot.active {
+            border-color: #2d3a2d;
+            background: #2d3a2d;
+            color: #f8f6f2;
+        }
+        .rsvp-step-dot.done {
+            border-color: #b89a5e;
+            background: #b89a5e;
+            color: #fff;
+        }
+        .rsvp-step-line {
+            flex: 1;
+            height: 1px;
+            background: #e8e0d5;
+            max-width: 80px;
+        }
+        .rsvp-step-line.done { background: #b89a5e; }
+
+        /* ── Step panels ─── */
+        .rsvp-panel { display: none; }
+        .rsvp-panel.active { display: block; }
+
+        /* ── Form elements ─── */
+        .rsvp-panel-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            font-weight: 400;
+            color: #2d3a2d;
+            margin: 0 0 6px;
+        }
+        .rsvp-panel-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 300;
+            color: #7a8c7a;
+            letter-spacing: 0.5px;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        .rsvp-field {
+            margin-bottom: 18px;
+        }
+        .rsvp-label {
+            display: block;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: #2d3a2d;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .rsvp-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #c8bcaf;
+            border-radius: 2px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 300;
+            color: #2d3a2d;
+            background: #fdfcfa;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .rsvp-input:focus { border-color: #2d3a2d; }
+        .rsvp-input::placeholder { color: #aaa; }
+        .rsvp-error {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #c0392b;
+            margin-top: 10px;
+            min-height: 16px;
+            letter-spacing: 0.3px;
+        }
+        .rsvp-btn {
+            width: 100%;
+            padding: 14px 28px;
+            background: #2d3a2d;
+            color: #f8f6f2;
+            border: none;
+            border-radius: 2px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .rsvp-btn:hover { background: #3d4e3d; }
+        .rsvp-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+        .rsvp-btn.gold {
+            background: #b89a5e;
+        }
+        .rsvp-btn.gold:hover { background: #a0884e; }
+        .rsvp-btn-outline {
+            width: 100%;
+            padding: 12px 28px;
+            background: transparent;
+            color: #2d3a2d;
+            border: 1.5px solid #2d3a2d;
+            border-radius: 2px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .rsvp-btn-outline:hover { background: #2d3a2d; color: #f8f6f2; }
+        .rsvp-back-link {
+            display: block;
+            text-align: center;
+            margin-top: 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #7a8c7a;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-decoration: underline;
+        }
+        .rsvp-back-link:hover { color: #2d3a2d; }
+
+        /* OTP input */
+        .rsvp-otp-input {
+            width: 100%;
+            padding: 16px 14px;
+            border: 1.5px solid #2d3a2d;
+            border-radius: 2px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 300;
+            color: #2d3a2d;
+            background: #fdfcfa;
+            box-sizing: border-box;
+            text-align: center;
+            letter-spacing: 12px;
+            outline: none;
+        }
+        .rsvp-otp-hint {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #7a8c7a;
+            text-align: center;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── Guest List Builder ─── */
+        .rsvp-total-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f6f2;
+            border: 1px solid #e8e0d5;
+            border-radius: 2px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .rsvp-total-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: #7a8c7a;
+            text-transform: uppercase;
+        }
+        .rsvp-total-count {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #2d3a2d;
+        }
+        .rsvp-total-count span {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 300;
+            color: #7a8c7a;
+            margin-left: 6px;
+        }
+        .rsvp-autosave {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: #b89a5e;
+            letter-spacing: 0.5px;
+        }
+
+        /* Table cards */
+        .rsvp-tables-list { display: flex; flex-direction: column; gap: 16px; }
+        .rsvp-table-card {
+            border: 1px solid #e8e0d5;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .rsvp-table-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f6f2;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e8e0d5;
+        }
+        .rsvp-table-name-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: #2d3a2d;
+            outline: none;
+            padding: 0;
+        }
+        .rsvp-table-count {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: #7a8c7a;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .rsvp-tbl-add-btn, .rsvp-tbl-del-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 5px 10px;
+            border: 1px solid;
+            border-radius: 2px;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .rsvp-tbl-add-btn {
+            border-color: #2d3a2d;
+            color: #2d3a2d;
+        }
+        .rsvp-tbl-add-btn:hover { background: #2d3a2d; color: #fff; }
+        .rsvp-tbl-del-btn {
+            border-color: #c0392b;
+            color: #c0392b;
+        }
+        .rsvp-tbl-del-btn:hover { background: #c0392b; color: #fff; }
+        .rsvp-guest-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .rsvp-guest-table thead tr {
+            background: #f3ede6;
+        }
+        .rsvp-guest-table th {
+            padding: 7px 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            font-weight: 400;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: #7a8c7a;
+            text-align: left;
+        }
+        .rsvp-guest-table td {
+            padding: 4px 6px;
+            border-top: 1px solid #f3ede6;
+        }
+        .rsvp-guest-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid transparent;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 300;
+            color: #2d3a2d;
+            padding: 6px 4px;
+            background: transparent;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .rsvp-guest-input:focus { border-bottom-color: #b89a5e; }
+        .rsvp-row-del {
+            text-align: center;
+            color: #c8bcaf;
+            cursor: pointer;
+            font-size: 16px;
+            user-select: none;
+        }
+        .rsvp-row-del:hover { color: #c0392b; }
+        .rsvp-add-table-wrap {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .rsvp-add-table-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px 28px;
+            border: 1.5px dashed #b89a5e;
+            border-radius: 2px;
+            background: transparent;
+            color: #b89a5e;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rsvp-add-table-btn:hover { background: #b89a5e; color: #fff; border-style: solid; }
+        .rsvp-save-bar {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e8e0d5;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .rsvp-save-bar .rsvp-btn {
+            margin-top: 0;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        /* ── QR Code Panel ─── */
+        .rsvp-payment-box {
+            background: #fdf8f0;
+            border: 1.5px solid #b89a5e;
+            border-radius: 4px;
+            padding: 28px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .rsvp-payment-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .rsvp-payment-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #2d3a2d;
+            margin-bottom: 8px;
+        }
+        .rsvp-payment-desc {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 300;
+            color: #7a8c7a;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .rsvp-qr-wrap {
+            text-align: center;
+        }
+        .rsvp-qr-img {
+            width: 200px;
+            height: 200px;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 20px rgba(45,58,45,0.12);
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .rsvp-qr-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #2d3a2d;
+            margin-bottom: 6px;
+        }
+        .rsvp-qr-desc {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 300;
+            color: #7a8c7a;
+            max-width: 420px;
+            margin: 0 auto 16px;
+            line-height: 1.7;
+        }
+        .rsvp-qr-link {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #527141;
+            word-break: break-all;
+        }
+        .rsvp-qr-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 14px;
+        }
+        .rsvp-qr-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            border: 1.5px solid #2d3a2d;
+            border-radius: 2px;
+            background: transparent;
+            color: #2d3a2d;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .rsvp-qr-btn:hover { background: #2d3a2d; color: #fff; }
+        .rsvp-pending-note {
+            background: #fff8e8;
+            border: 1px solid #f0d080;
+            border-radius: 3px;
+            padding: 14px;
+            margin-top: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #7a5c00;
+            line-height: 1.6;
+        }
+
+        /* ── How it works ─── */
+        .rsvp-how {
+            background: #2d3a2d;
+            padding: 70px 0;
+            color: #f8f6f2;
+        }
+        .rsvp-how .section-header h2 { color: #f8f6f2; }
+        .rsvp-how .divider { background: #b89a5e; }
+        .rsvp-how-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+        .rsvp-how-step {
+            text-align: center;
+        }
+        .rsvp-how-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px;
+            font-weight: 300;
+            color: #b89a5e;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        .rsvp-how-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #f8f6f2;
+            margin-bottom: 8px;
+        }
+        .rsvp-how-desc {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 300;
+            color: rgba(248,246,242,0.65);
+            line-height: 1.7;
+        }
+
+        /* ── Resend timer ── */
+        .rsvp-resend-row {
+            text-align: center;
+            margin-top: 12px;
+        }
+        .rsvp-resend-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #527141;
+            cursor: pointer;
+            border: none;
+            background: none;
+            text-decoration: underline;
+            padding: 0;
+        }
+        .rsvp-resend-btn:disabled { color: #aaa; text-decoration: none; cursor: default; }
+        .rsvp-timer-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #7a8c7a;
+        }
+    </style>
+    <!-- EmailJS SDK for email verification -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function(){
+            emailjs.init('uzfFh7D6LdIbNqpdK'); // RNB Events public key
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="page-title">RSVP</div>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="/">
+                    <img src="RNB Logo Olive.png" alt="RNB Events Logo" class="logo-img">
+                </a>
+            </div>
+            
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <!-- Hamburger Dropdown Menu -->
+        <div class="hamburger-menu">
+            <ul class="hamburger-nav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/lovebook">The Love Book</a></li>
+                <li><a href="/crafting-moments">Crafting Moments</a></li>
+                <li><a href="/service">Service</a></li>
+                <li><a href="/about">About Us</a></li>
+                <!-- Client Portal & Guest List — temporarily hidden
+                <li><a href="/Client">Client Portal</a></li>
+                <li><a href="/rsvp">RSVP &amp; Seat Finder</a></li>
+                -->
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="rsvp-hero">
+        <div class="container">
+            <p class="rsvp-hero-label">RNB Events</p>
+            <h1 class="rsvp-hero-title">RSVP &amp; Seat Finder</h1>
+            <div class="rsvp-divider"></div>
+            <p class="rsvp-hero-subtitle">Sign up for free, build your guest list, and generate a shareable QR code so every guest finds their seat with ease.</p>
+        </div>
+    </section>
+
+    <!-- Main RSVP App -->
+    <section class="rsvp-main">
+        <div class="container">
+            <div class="rsvp-card">
+                <!-- Step indicators -->
+                <div class="rsvp-steps" id="rsvp-steps">
+                    <div class="rsvp-step-dot active" id="dot-1">1</div>
+                    <div class="rsvp-step-line" id="line-1"></div>
+                    <div class="rsvp-step-dot" id="dot-2">2</div>
+                    <div class="rsvp-step-line" id="line-2"></div>
+                    <div class="rsvp-step-dot" id="dot-3">3</div>
+                    <div class="rsvp-step-line" id="line-3"></div>
+                    <div class="rsvp-step-dot" id="dot-4">4</div>
+                </div>
+
+                <!-- Step 1: Email Signup -->
+                <div class="rsvp-panel active" id="panel-1">
+                    <h2 class="rsvp-panel-title">Get Started</h2>
+                    <p class="rsvp-panel-subtitle">Enter your name and email address. We'll send a verification code to your inbox.</p>
+                    <div class="rsvp-field">
+                        <label class="rsvp-label" for="inp-name">Your Full Name</label>
+                        <input type="text" id="inp-name" class="rsvp-input" placeholder="e.g. Maria & James Rodriguez" maxlength="80" autocomplete="name">
+                    </div>
+                    <div class="rsvp-field">
+                        <label class="rsvp-label" for="inp-email">Email Address</label>
+                        <input type="email" id="inp-email" class="rsvp-input" placeholder="your@email.com" maxlength="100" inputmode="email" autocomplete="email">
+                    </div>
+                    <p class="rsvp-error" id="err-1"></p>
+                    <button class="rsvp-btn" id="btn-send-otp" onclick="rsvpSendOTP()">SEND VERIFICATION CODE</button>
+                </div>
+
+                <!-- Step 2: OTP Verify -->
+                <div class="rsvp-panel" id="panel-2">
+                    <h2 class="rsvp-panel-title">Verify Your Email</h2>
+                    <p class="rsvp-panel-subtitle" id="otp-subtitle">Enter the 6-digit code we sent to your email.</p>
+                    <div class="rsvp-field">
+                        <label class="rsvp-label" for="inp-otp">Verification Code</label>
+                        <input type="text" id="inp-otp" class="rsvp-otp-input" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                    </div>
+                    <div class="rsvp-otp-hint">Code is valid for 10 minutes</div>
+                    <div class="rsvp-resend-row" id="resend-row">
+                        <button class="rsvp-resend-btn" id="resend-btn" onclick="rsvpResend()" disabled>
+                            Resend Code
+                        </button>
+                        <span class="rsvp-timer-text" id="resend-timer">&nbsp;(wait <span id="timer-count">20</span>s)</span>
+                    </div>
+                    <p class="rsvp-error" id="err-2"></p>
+                    <button class="rsvp-btn" id="btn-verify-otp" onclick="rsvpVerifyOTP()">VERIFY CODE</button>
+                    <span class="rsvp-back-link" onclick="rsvpGoBack(1)">← Back</span>
+                </div>
+
+                <!-- Step 3: Guest List Builder -->
+                <div class="rsvp-panel" id="panel-3">
+                    <h2 class="rsvp-panel-title">Build Your Guest List</h2>
+                    <p class="rsvp-panel-subtitle">Add tables and guest names. Your list saves automatically.</p>
+                    <div class="rsvp-total-bar">
+                        <div>
+                            <div class="rsvp-total-label">Total Guests</div>
+                            <div class="rsvp-total-count" id="rsvp-total-count">0<span>guests</span></div>
+                        </div>
+                        <span class="rsvp-autosave" id="rsvp-autosave"></span>
+                    </div>
+                    <div class="rsvp-tables-list" id="rsvp-tables"></div>
+                    <div class="rsvp-add-table-wrap">
+                        <button class="rsvp-add-table-btn" onclick="rsvpAddTable()">+ ADD TABLE</button>
+                    </div>
+                    <div class="rsvp-save-bar">
+                        <button class="rsvp-btn" onclick="rsvpSaveAndContinue()">SAVE &amp; CONTINUE &rarr;</button>
+                        <button class="rsvp-btn-outline" onclick="rsvpSaveGuests()">&#10003; SAVE PROGRESS</button>
+                    </div>
+                    <p class="rsvp-error" id="err-3"></p>
+                </div>
+
+                <!-- Step 4: QR Code -->
+                <div class="rsvp-panel" id="panel-4">
+                    <h2 class="rsvp-panel-title">Your QR Seat Finder</h2>
+                    <p class="rsvp-panel-subtitle">Share a QR code with your guests — they scan it to find their exact table instantly.</p>
+                    <div id="rsvp-qr-area">
+                        <!-- Payment prompt (default) -->
+                        <div class="rsvp-payment-box" id="rsvp-payment-prompt">
+                            <div class="rsvp-payment-icon">&#127915;</div>
+                            <div class="rsvp-payment-title">Unlock Your QR Code</div>
+                            <p class="rsvp-payment-desc">Your guest list is saved. Complete a one-time payment to generate your personalized QR code seat finder that guests can scan at the event.</p>
+                            <a id="square-pay-link" href="#" target="_blank" rel="noopener noreferrer" class="rsvp-btn gold" style="display:inline-block;text-decoration:none;padding:14px 36px;font-size:11px;font-family:'Montserrat',sans-serif;letter-spacing:2px;width:auto;" onclick="rsvpOpenPayment(this)">PAY &amp; GENERATE QR</a>
+                            <div class="rsvp-pending-note" id="rsvp-pending-verify" style="display:none;">
+                                &#10003; Payment submitted. Your QR code will be unlocked once confirmed — usually within minutes. Refresh this page to check.
+                            </div>
+                        </div>
+                        <!-- QR display (after payment confirmed) -->
+                        <div class="rsvp-qr-wrap" id="rsvp-qr-display" style="display:none;">
+                            <img id="rsvp-qr-img" src="" alt="Your Event QR Code" class="rsvp-qr-img">
+                            <div class="rsvp-qr-title">Guest Seat Finder Ready</div>
+                            <p class="rsvp-qr-desc">Share this QR code or the link below with your guests. They scan it or visit the link, type their name, and instantly find their table — no app required.</p>
+                            <a id="rsvp-qr-link" href="#" target="_blank" rel="noopener" class="rsvp-qr-link"></a>
+                            <div class="rsvp-qr-actions">
+                                <button class="rsvp-qr-btn" onclick="rsvpCopyLink()">COPY LINK</button>
+                                <button class="rsvp-qr-btn" onclick="rsvpDownloadQR()" style="border-color:#b89a5e;color:#b89a5e;">&#8595; DOWNLOAD QR</button>
+                                <button class="rsvp-qr-btn" onclick="rsvpGoBack(3)">&#8592; EDIT GUESTS</button>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="rsvp-error" id="err-4"></p>
+                </div>
+            </div><!-- /.rsvp-card -->
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="rsvp-how">
+        <div class="container">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="rsvp-how-grid">
+                <div class="rsvp-how-step">
+                    <div class="rsvp-how-num">01</div>
+                    <div class="rsvp-how-label">Sign Up Free</div>
+                    <p class="rsvp-how-desc">Enter your name and email. We verify with a quick email code — no password needed.</p>
+                </div>
+                <div class="rsvp-how-step">
+                    <div class="rsvp-how-num">02</div>
+                    <div class="rsvp-how-label">Build Your List</div>
+                    <p class="rsvp-how-desc">Add tables and guest names. Organize your seating however you like — as many tables as you need.</p>
+                </div>
+                <div class="rsvp-how-step">
+                    <div class="rsvp-how-num">03</div>
+                    <div class="rsvp-how-label">Unlock QR Code</div>
+                    <p class="rsvp-how-desc">Complete a simple one-time payment to generate your personalized QR code seat finder.</p>
+                </div>
+                <div class="rsvp-how-step">
+                    <div class="rsvp-how-num">04</div>
+                    <div class="rsvp-how-label">Share &amp; Enjoy</div>
+                    <p class="rsvp-how-desc">Print, text, or display your code. Guests scan it, type their name, and find their table instantly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="/RNB Logo Olive.png" alt="RNB Events" class="footer-logo">
+                </div>
+                <nav class="footer-nav">
+                    <a href="/">Home</a>
+                    <a href="/lovebook">The Love Book</a>
+                    <a href="/crafting-moments">Crafting Moments</a>
+                    <a href="/service">Service</a>
+                    <a href="/about">About Us</a>
+                    <a href="/rsvp">RSVP &amp; Seat Finder</a>
+                </nav>
+                <p class="footer-copy">&copy; 2026 RNB Events. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    /* ── Config ─────────────────────────────────── */
+    var API = 'https://api.rnbevents716.com';
+    /* Square payment link — set to your Square checkout link */
+    var SQUARE_LINK = 'https://square.link/u/fRda6GSg';
+
+    /* ── State ──────────────────────────────────── */
+    var rsvpState = {
+        phoneHash:  '',
+        name:       '',
+        phone:      '',
+        tables:     [],
+        paid:       false,
+        step:       1
+    };
+    var rsvpSaveTimer = null;
+
+    /* ── Helpers ─────────────────────────────────── */
+    function showErr(id, msg) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = msg || '';
+    }
+    function clearErr(id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = '';
+    }
+    function rsvpEsc(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function setBtn(id, text, disabled) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = text;
+        el.disabled = !!disabled;
+    }
+
+    /* Format phone to E.164 (US) */
+    function validateEmail(email) {
+        var trimmed = (email || '').trim();
+        // Basic email validation regex
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(trimmed) ? trimmed : null;
+    }
+
+    function maskEmail(email) {
+        // user@example.com → u***r@example.com
+        if (!email || !email.includes('@')) return email;
+        var parts = email.split('@');
+        var local = parts[0];
+        var domain = parts[1];
+        if (local.length <= 2) return local[0] + '***@' + domain;
+        var masked = local[0] + '***' + local[local.length - 1] + '@' + domain;
+        return masked;
+    }
+
+    /* ── Step navigation ─────────────────────────── */
+    function goToStep(n) {
+        [1,2,3,4].forEach(function(i) {
+            var panel = document.getElementById('panel-' + i);
+            if (panel) panel.classList.toggle('active', i === n);
+            var dot = document.getElementById('dot-' + i);
+            if (dot) {
+                dot.classList.remove('active','done');
+                if (i < n) dot.classList.add('done');
+                else if (i === n) dot.classList.add('active');
+            }
+            if (i < 4) {
+                var line = document.getElementById('line-' + i);
+                if (line) line.classList.toggle('done', i < n);
+            }
+        });
+        rsvpState.step = n;
+        window.scrollTo({ top: document.querySelector('.rsvp-main').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function rsvpGoBack(n) { goToStep(n); }
+
+    /* ── Step 1: Send OTP ───────────────────────── */
+    function rsvpSendOTP() {
+        clearErr('err-1');
+        var name  = (document.getElementById('inp-name').value  || '').trim();
+        var email = (document.getElementById('inp-email').value || '').trim();
+        if (!name) { showErr('err-1', 'Please enter your name.'); return; }
+        var validEmail = validateEmail(email);
+        if (!validEmail) { showErr('err-1', 'Please enter a valid email address.'); return; }
+
+        setBtn('btn-send-otp', 'SENDING\u2026', true);
+        rsvpState.name  = name;
+        rsvpState.email = validEmail;
+
+        // Generate 6-digit OTP code
+        var otp = Math.floor(100000 + Math.random() * 900000).toString();
+        rsvpState.pendingOTP = otp;
+        rsvpState.otpTimestamp = Date.now();
+
+        // Send via EmailJS
+        var templateParams = {
+            to_email: validEmail,
+            client_name: name,
+            passcode: otp,
+            time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        };
+
+        emailjs.send('service_t0gqn4j', 'template_ov3vejp', templateParams)
+            .then(function(response) {
+                setBtn('btn-send-otp', 'SEND VERIFICATION CODE', false);
+                var subtitle = document.getElementById('otp-subtitle');
+                if (subtitle) subtitle.textContent = 'Enter the 6-digit code we sent to ' + maskEmail(validEmail) + '.';
+                goToStep(2);
+                startResendTimer();
+                document.getElementById('inp-otp').focus();
+            })
+            .catch(function(error) {
+                setBtn('btn-send-otp', 'SEND VERIFICATION CODE', false);
+                showErr('err-1', 'Could not send verification code. Please check your email and try again.');
+                console.error('EmailJS error:', error);
+            });
+    }
+
+    /* OTP resend timer */
+    var resendCountdown = null;
+    function startResendTimer() {
+        var count = 20;
+        var timerEl = document.getElementById('timer-count');
+        var resendBtn = document.getElementById('resend-btn');
+        var timerText = document.getElementById('resend-timer');
+        if (resendBtn) resendBtn.disabled = true;
+        if (timerText) timerText.style.display = '';
+        clearInterval(resendCountdown);
+        resendCountdown = setInterval(function() {
+            count--;
+            if (timerEl) timerEl.textContent = count;
+            if (count <= 0) {
+                clearInterval(resendCountdown);
+                if (resendBtn) resendBtn.disabled = false;
+                if (timerText) timerText.style.display = 'none';
+            }
+        }, 1000);
+    }
+
+    function rsvpResend() {
+        clearErr('err-2');
+        document.getElementById('inp-otp').value = '';
+        
+        // Generate new OTP code
+        var otp = Math.floor(100000 + Math.random() * 900000).toString();
+        rsvpState.pendingOTP = otp;
+        rsvpState.otpTimestamp = Date.now();
+
+        // Send via EmailJS
+        var templateParams = {
+            to_email: rsvpState.email,
+            client_name: rsvpState.name,
+            passcode: otp,
+            time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        };
+
+        emailjs.send('service_t0gqn4j', 'template_ov3vejp', templateParams)
+            .then(function(response) {
+                startResendTimer();
+                document.getElementById('inp-otp').focus();
+            })
+            .catch(function(error) {
+                showErr('err-2', 'Could not resend code. Please try again.');
+                console.error('EmailJS error:', error);
+            });
+    }
+
+    /* ── Step 2: Verify OTP ───────────────────────── */
+    function rsvpVerifyOTP() {
+        clearErr('err-2');
+        var otp = (document.getElementById('inp-otp').value || '').trim();
+        if (!/^\d{6}$/.test(otp)) { showErr('err-2', 'Please enter the 6-digit code.'); return; }
+
+        setBtn('btn-verify-otp', 'VERIFYING\u2026', true);
+
+        // Verify OTP locally
+        var now = Date.now();
+        var tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+        
+        if (!rsvpState.pendingOTP || !rsvpState.otpTimestamp) {
+            setBtn('btn-verify-otp', 'VERIFY CODE', false);
+            showErr('err-2', 'No verification code found. Please request a new code.');
+            return;
+        }
+
+        if ((now - rsvpState.otpTimestamp) > tenMinutes) {
+            setBtn('btn-verify-otp', 'VERIFY CODE', false);
+            showErr('err-2', 'Verification code expired. Please request a new code.');
+            return;
+        }
+
+        if (otp !== rsvpState.pendingOTP) {
+            setBtn('btn-verify-otp', 'VERIFY CODE', false);
+            showErr('err-2', 'Invalid verification code. Please check and try again.');
+            return;
+        }
+
+        // Code is valid - generate a session token
+        setBtn('btn-verify-otp', 'VERIFY CODE', false);
+        rsvpState.emailHash = btoa(rsvpState.email + ':' + Date.now()); // Simple token
+        rsvpState.tables = rsvpState.tables || [];
+        rsvpState.paid = rsvpState.paid || false;
+        
+        /* Persist token for this session */
+        try { sessionStorage.setItem('rsvp_token', rsvpState.emailHash); } catch(e){}
+        renderTables();
+        updateTotalCount();
+        goToStep(3);
+    }
+
+    /* allow Enter key on OTP input */
+    document.getElementById('inp-otp').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') rsvpVerifyOTP();
+    });
+    document.getElementById('inp-name').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('inp-email').focus();
+    });
+    document.getElementById('inp-email').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') rsvpSendOTP();
+    });
+
+    /* ── Step 3: Guest List ───────────────────────── */
+    function rsvpAddTable() {
+        rsvpState.tables.push({
+            id: 't_' + Date.now(),
+            name: 'Table ' + (rsvpState.tables.length + 1),
+            guests: []
+        });
+        renderTables();
+        scheduleAutoSave();
+    }
+
+    function renderTables() {
+        var container = document.getElementById('rsvp-tables');
+        if (!container) return;
+        var tables = rsvpState.tables;
+        if (!tables.length) {
+            container.innerHTML = '<p style="text-align:center;font-family:Montserrat,sans-serif;font-size:12px;color:#aaa;padding:20px 0;font-weight:300;">No tables yet. Add your first table below.</p>';
+            updateTotalCount();
+            return;
+        }
+        container.innerHTML = tables.map(function(t, ti) {
+            return renderTableCard(t, ti, tables.length);
+        }).join('');
+        bindTableEvents();
+        updateTotalCount();
+    }
+
+    function renderTableCard(t, ti, tableCount) {
+        var guestCount = (t.guests || []).length;
+        var html = '<div class="rsvp-table-card" id="rtc-' + rsvpEsc(t.id) + '">';
+        html += '<div class="rsvp-table-header">';
+        html += '<input type="text" class="rsvp-table-name-input" data-tid="' + rsvpEsc(t.id) + '" value="' + rsvpEsc(t.name) + '" maxlength="80" aria-label="Table name">';
+        html += '<span class="rsvp-table-count">' + guestCount + ' guest' + (guestCount !== 1 ? 's' : '') + '</span>';
+        html += '<button type="button" class="rsvp-tbl-add-btn" data-tid="' + rsvpEsc(t.id) + '">+ ADD GUEST</button>';
+        if (tableCount > 1) {
+            html += '<button type="button" class="rsvp-tbl-del-btn" data-del-tid="' + rsvpEsc(t.id) + '">&#128465;</button>';
+        }
+        html += '</div>'; // end header
+        html += '<table class="rsvp-guest-table">';
+        html += '<thead><tr><th style="width:46%">First Name</th><th style="width:46%">Last Name</th><th style="width:8%"></th></tr></thead>';
+        html += '<tbody id="rtb-' + rsvpEsc(t.id) + '">';
+        (t.guests || []).forEach(function(g, gi) {
+            html += '<tr data-gi="' + gi + '">' +
+                '<td><input type="text" class="rsvp-guest-input rsvp-fn" data-tid="' + rsvpEsc(t.id) + '" data-gi="' + gi + '" value="' + rsvpEsc(g.firstName || '') + '" placeholder="First name" maxlength="80"></td>' +
+                '<td><input type="text" class="rsvp-guest-input rsvp-ln" data-tid="' + rsvpEsc(t.id) + '" data-gi="' + gi + '" value="' + rsvpEsc(g.lastName  || '') + '" placeholder="Last name" maxlength="80"></td>' +
+                '<td class="rsvp-row-del" data-del-gi="' + gi + '" data-tid="' + rsvpEsc(t.id) + '">&times;</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+        return html;
+    }
+
+    function findTable(tid) {
+        return rsvpState.tables.find(function(t) { return t.id === tid; });
+    }
+
+    function bindTableEvents() {
+        /* Table name input */
+        document.querySelectorAll('.rsvp-table-name-input').forEach(function(inp) {
+            inp.addEventListener('input', function() {
+                var t = findTable(this.dataset.tid);
+                if (t) { t.name = this.value.slice(0,80); scheduleAutoSave(); }
+            });
+        });
+        /* Add guest button */
+        document.querySelectorAll('.rsvp-tbl-add-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var t = findTable(this.dataset.tid);
+                if (t) {
+                    if (!t.guests) t.guests = [];
+                    t.guests.push({ firstName: '', lastName: '' });
+                    renderTables();
+                    var tbody = document.getElementById('rtb-' + t.id);
+                    if (tbody) {
+                        var rows = tbody.querySelectorAll('tr');
+                        var lr = rows[rows.length - 1];
+                        if (lr) { var fn = lr.querySelector('.rsvp-fn'); if (fn) fn.focus(); }
+                    }
+                    scheduleAutoSave();
+                }
+            });
+        });
+        /* Delete table */
+        document.querySelectorAll('[data-del-tid]').forEach(function(btn) {
+            if (!btn.classList.contains('rsvp-tbl-del-btn')) return;
+            btn.addEventListener('click', function() {
+                var tid = this.dataset.delTid;
+                if (!confirm('Delete this table and all its guests?')) return;
+                rsvpState.tables = rsvpState.tables.filter(function(t) { return t.id !== tid; });
+                renderTables();
+                scheduleAutoSave();
+            });
+        });
+        /* Guest inputs */
+        document.querySelectorAll('.rsvp-fn, .rsvp-ln').forEach(function(inp) {
+            inp.addEventListener('input', function() {
+                var t = findTable(this.dataset.tid);
+                var gi = parseInt(this.dataset.gi, 10);
+                if (t && t.guests && t.guests[gi] !== undefined) {
+                    if (this.classList.contains('rsvp-fn')) t.guests[gi].firstName = this.value.slice(0,80);
+                    else t.guests[gi].lastName = this.value.slice(0,80);
+                    updateTotalCount();
+                    scheduleAutoSave();
+                }
+            });
+            inp.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var t = findTable(this.dataset.tid);
+                    var gi = parseInt(this.dataset.gi, 10);
+                    if (this.classList.contains('rsvp-ln') && t && gi === t.guests.length - 1) {
+                        t.guests.push({ firstName: '', lastName: '' });
+                        renderTables();
+                        var tbody = document.getElementById('rtb-' + t.id);
+                        if (tbody) {
+                            var rows = tbody.querySelectorAll('tr');
+                            var lr = rows[rows.length - 1];
+                            if (lr) { var fn = lr.querySelector('.rsvp-fn'); if (fn) fn.focus(); }
+                        }
+                        scheduleAutoSave();
+                    } else if (this.classList.contains('rsvp-fn')) {
+                        var row = this.closest('tr');
+                        if (row) { var ln = row.querySelector('.rsvp-ln'); if (ln) ln.focus(); }
+                    }
+                }
+            });
+        });
+        /* Delete guest row */
+        document.querySelectorAll('[data-del-gi]').forEach(function(cell) {
+            cell.addEventListener('click', function() {
+                var t = findTable(this.dataset.tid);
+                var gi = parseInt(this.dataset.delGi, 10);
+                if (t && t.guests) {
+                    t.guests.splice(gi, 1);
+                    renderTables();
+                    scheduleAutoSave();
+                }
+            });
+        });
+    }
+
+    function updateTotalCount() {
+        var total = rsvpState.tables.reduce(function(n, t) { return n + (t.guests || []).length; }, 0);
+        var el = document.getElementById('rsvp-total-count');
+        if (el) el.innerHTML = total + '<span>guest' + (total !== 1 ? 's' : '') + '</span>';
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(rsvpSaveTimer);
+        var as = document.getElementById('rsvp-autosave');
+        if (as) as.textContent = 'Saving\u2026';
+        rsvpSaveTimer = setTimeout(function() { rsvpSaveGuests(true); }, 1800);
+    }
+
+    function rsvpSaveGuests(silent) {
+        if (!rsvpState.phoneHash) return;
+        var as = document.getElementById('rsvp-autosave');
+        if (as && !silent) as.textContent = 'Saving\u2026';
+        fetch(API + '/rsvp-save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-RSVP-Token': rsvpState.phoneHash
+            },
+            body: JSON.stringify({ tables: rsvpState.tables })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (as) as.textContent = d.ok ? '\u2713 Saved' : 'Save failed';
+            setTimeout(function() { if (as) as.textContent = ''; }, 2000);
+        })
+        .catch(function() {
+            if (as) as.textContent = 'Save failed';
+        });
+    }
+
+    function rsvpSaveAndContinue() {
+        clearErr('err-3');
+        var total = rsvpState.tables.reduce(function(n, t) { return n + (t.guests || []).length; }, 0);
+        if (total === 0 && rsvpState.tables.length === 0) {
+            showErr('err-3', 'Add at least one table with guests before continuing.');
+            return;
+        }
+        clearTimeout(rsvpSaveTimer);
+        /* Save first, then proceed */
+        fetch(API + '/rsvp-save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-RSVP-Token': rsvpState.phoneHash
+            },
+            body: JSON.stringify({ tables: rsvpState.tables })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.ok) {
+                goToStep(4);
+                renderQRStep();
+            } else {
+                showErr('err-3', 'Save failed. Please try again.');
+            }
+        })
+        .catch(function() { showErr('err-3', 'Network error. Please try again.'); });
+    }
+
+    /* ── Step 4: QR Code ─────────────────────────── */
+    function renderQRStep() {
+        var guestUrl = 'https://rnbevents716.com/gs.html?r=' + encodeURIComponent(rsvpState.phoneHash);
+        var payLink  = document.getElementById('square-pay-link');
+        if (payLink) payLink.href = SQUARE_LINK || '#';
+
+        if (rsvpState.paid) {
+            showQRCode(guestUrl);
+        } else {
+            document.getElementById('rsvp-payment-prompt').style.display = '';
+            document.getElementById('rsvp-qr-display').style.display = 'none';
+        }
+    }
+
+    function showQRCode(guestUrl) {
+        var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=png&data=' + encodeURIComponent(guestUrl);
+        document.getElementById('rsvp-payment-prompt').style.display = 'none';
+        var qrDisplay = document.getElementById('rsvp-qr-display');
+        qrDisplay.style.display = '';
+        document.getElementById('rsvp-qr-img').src = qrSrc;
+        var linkEl = document.getElementById('rsvp-qr-link');
+        linkEl.href = guestUrl;
+        linkEl.textContent = guestUrl;
+        window._rsvpQrUrl = guestUrl;
+    }
+
+    function rsvpOpenPayment(payBtn) {
+        /* show pending note after opening Square link */
+        setTimeout(function() {
+            var pendingNote = document.getElementById('rsvp-pending-verify');
+            if (pendingNote) pendingNote.style.display = '';
+            /* Check if payment was confirmed (poll once after delay) */
+            setTimeout(function() { rsvpCheckPayment(); }, 8000);
+        }, 1500);
+    }
+
+    function rsvpCheckPayment() {
+        if (!rsvpState.phoneHash) return;
+        fetch(API + '/rsvp-get?r=' + encodeURIComponent(rsvpState.phoneHash))
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d && d.paid) {
+                rsvpState.paid = true;
+                var guestUrl = 'https://rnbevents716.com/gs.html?r=' + encodeURIComponent(rsvpState.phoneHash);
+                showQRCode(guestUrl);
+            }
+        })
+        .catch(function() {});
+    }
+
+    function rsvpCopyLink() {
+        var url = window._rsvpQrUrl || '';
+        if (!url) return;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(function() {
+                var btns = document.querySelectorAll('.rsvp-qr-btn');
+                btns.forEach(function(b) {
+                    if (b.textContent === 'COPY LINK') {
+                        var orig = b.textContent;
+                        b.textContent = 'COPIED \u2713';
+                        setTimeout(function() { b.textContent = orig; }, 1800);
+                    }
+                });
+            });
+        }
+    }
+
+    function rsvpDownloadQR() {
+        var img = document.getElementById('rsvp-qr-img');
+        if (!img || !img.src) return;
+        var a = document.createElement('a');
+        a.href = img.src;
+        a.download = 'rnb-events-seat-finder-qr.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    /* ── Auto-restore session ────────────────────── */
+    (function init() {
+        try {
+            var token = sessionStorage.getItem('rsvp_token');
+            if (!token) return;
+            /* Try to reload their existing data */
+            fetch(API + '/rsvp-get?r=' + encodeURIComponent(token))
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(d) {
+                if (d && d.ok) {
+                    rsvpState.phoneHash = token;
+                    rsvpState.tables    = Array.isArray(d.tables) ? d.tables : [];
+                    rsvpState.paid      = !!d.paid;
+                    rsvpState.name      = d.name || '';
+                    /* Skip to step 3 */
+                    renderTables();
+                    updateTotalCount();
+                    goToStep(3);
+                    /* Pre-fill name field */
+                    if (rsvpState.name) {
+                        var nameEl = document.getElementById('inp-name');
+                        if (nameEl) nameEl.value = rsvpState.name;
+                    }
+                }
+            })
+            .catch(function() {});
+        } catch(e) {}
+    })();
+    </script>
+    <script src="script.js"></script>
+    <script src="/cookie-consent.js"></script>
+</body>
+</html>

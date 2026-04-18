@@ -1,0 +1,833 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DK2C6GZWJZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DK2C6GZWJZ');
+    </script>
+    <title>Admin Dashboard | RNB Events</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' https://rnbevents716.com https://www.google-analytics.com data:; frame-src https://rnbevents716.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://api.rnbevents716.com https://rnbevents716.s3.us-east-2.amazonaws.com https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ACCESS GATE -->
+    <div id="access-gate" class="gate-overlay">
+
+        <!-- STEP 1 — Admin Code -->
+        <div id="gate-step1" class="gate-card">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">ADMIN ACCESS</p>
+            <h1 class="gate-title">RNB Dashboard</h1>
+            <p class="gate-subtitle">Administrative access only. This area is not public.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot active"><span>1</span></div>
+                <div class="step-line"></div>
+                <div class="step-dot"><span>2</span></div>
+            </div>
+
+            <form class="gate-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <input type="password" id="access-input" class="gate-input" placeholder="Admin Code" autocomplete="off" maxlength="64">
+                    <button type="button" class="eye-toggle" onclick="togglePw('access-input',this)" title="Show/hide code" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button type="submit" class="gate-btn" onclick="adminStep1()">NEXT &rsaquo;</button>
+                </div>
+                <p id="gate-error-1" class="gate-error" aria-live="polite"></p>
+            </form>
+            <div class="gate-2fa-footer">
+                <button class="text-btn" onclick="showResetStep()">Forgot Password?</button>
+            </div>
+        </div>
+
+        <!-- STEP 2 — TOTP -->
+        <div id="gate-step2" class="gate-card hidden">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">TWO-FACTOR AUTH</p>
+            <h1 class="gate-title">Verify Identity</h1>
+            <p class="gate-subtitle">Enter the 6-digit code from your authenticator app.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot done"><span>1</span></div>
+                <div class="step-line done"></div>
+                <div class="step-dot active"><span>2</span></div>
+            </div>
+
+            <form class="gate-form" onsubmit="return false;">
+                <input type="text" id="totp-input" class="totp-input"
+                    placeholder="000000" inputmode="numeric"
+                    pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                <label class="gate-remember" style="margin:10px 0 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:#527141;cursor:pointer;letter-spacing:0.5px">
+                    <input type="checkbox" id="admin-remember-check"> Remember me on this device for 30 days
+                </label>
+                <button id="totp-verify-btn" type="submit" class="gate-btn totp-btn" onclick="adminStep2()">VERIFY</button>
+                <p id="gate-error-2" class="gate-error" aria-live="polite"></p>
+            </form>
+
+            <div class="gate-2fa-footer">
+                <button class="text-btn" onclick="showSetup()">First time? Set up authenticator</button>
+                <button class="text-btn back-btn" onclick="backToStep1()">&larr; Back</button>
+            </div>
+        </div>
+
+        <!-- PASSWORD RESET — Verify via TOTP -->
+        <div id="gate-step-reset" class="gate-card hidden">
+            <div class="gate-logo">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="gate-logo-img">
+            </div>
+            <p class="gate-label">PASSWORD RESET</p>
+            <h1 class="gate-title">Reset Admin Code</h1>
+
+            <!-- Phase 1: choose verification method -->
+            <div id="reset-choose">
+                <p class="gate-subtitle">Verify your identity to reset the admin code.</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+                    <button class="gate-btn" onclick="resetViaTOTP()" style="width:100%">VERIFY WITH AUTHENTICATOR</button>
+                    <button class="gate-btn" onclick="resetViaEmail()" style="width:100%;background:#527141">SEND CODE TO RECOVERY EMAIL</button>
+                </div>
+                <p id="reset-choose-error" class="gate-error" aria-live="polite"></p>
+            </div>
+
+            <!-- Phase 2a: TOTP verification -->
+            <div id="reset-totp" class="hidden">
+                <p class="gate-subtitle">Enter the 6-digit code from your authenticator app.</p>
+                <form class="gate-form" onsubmit="return false;">
+                    <input type="text" id="reset-totp-input" class="totp-input" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                    <button type="submit" class="gate-btn totp-btn" onclick="resetVerifyTOTP()">VERIFY</button>
+                    <p id="reset-totp-error" class="gate-error" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <!-- Phase 2b: Email code verification -->
+            <div id="reset-email" class="hidden">
+                <p class="gate-subtitle">A 6-digit code was sent to the recovery email.</p>
+                <form class="gate-form" onsubmit="return false;">
+                    <input type="text" id="reset-email-code" class="totp-input" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
+                    <button type="submit" class="gate-btn totp-btn" onclick="resetVerifyEmail()">VERIFY CODE</button>
+                    <p id="reset-email-error" class="gate-error" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <!-- Phase 3: new password -->
+            <div id="reset-newpass" class="hidden">
+                <p class="gate-subtitle">Enter your new admin code.</p>
+                <form class="gate-form" onsubmit="return false;">
+                    <div class="input-wrapper" style="margin-bottom:8px">
+                        <input type="password" id="reset-new-password" class="gate-input" placeholder="New Admin Code" autocomplete="new-password" maxlength="64">
+                        <button type="button" class="eye-toggle" onclick="togglePw('reset-new-password',this)" title="Show/hide" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="password" id="reset-confirm-password" class="gate-input" placeholder="Confirm Admin Code" autocomplete="new-password" maxlength="64">
+                        <button type="button" class="eye-toggle" onclick="togglePw('reset-confirm-password',this)" title="Show/hide" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
+                    <button type="submit" class="gate-btn" onclick="resetSavePassword()" style="margin-top:12px">SAVE NEW CODE</button>
+                    <p id="reset-save-error" class="gate-error" aria-live="polite"></p>
+                    <p id="reset-save-success" class="gate-error" style="color:#527141" aria-live="polite"></p>
+                </form>
+            </div>
+
+            <div class="gate-2fa-footer" style="margin-top:16px">
+                <button class="text-btn back-btn" onclick="cancelReset()">&larr; Back to login</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 2FA SETUP MODAL -->
+    <div id="modal-2fa-setup" class="modal-overlay hidden">
+        <div class="modal-card setup-modal">
+            <h3 class="modal-title">Set Up Authenticator App</h3>
+            <p class="setup-intro">Add this key to <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app.</p>
+
+            <ol class="setup-steps">
+                <li>Open your authenticator app</li>
+                <li>Tap <strong>"+"</strong> or <strong>"Add account"</strong></li>
+                <li>Choose <strong>"Enter setup key"</strong></li>
+                <li>Enter the account name and key below</li>
+                <li>Save — the app will start generating 6-digit codes</li>
+            </ol>
+
+            <div class="setup-field">
+                <span class="setup-field-label">ACCOUNT NAME</span>
+                <code class="setup-code">RNB Events Admin</code>
+            </div>
+
+            <div class="setup-field">
+                <span class="setup-field-label">SECRET KEY</span>
+                <div class="setup-secret-row">
+                    <code id="setup-secret-display" class="setup-code secret-code"></code>
+                    <button id="copy-secret-btn" class="copy-btn" onclick="copySecret()">COPY</button>
+                </div>
+            </div>
+
+            <p class="setup-note">&#9888; Keep this key private. It is the second factor for your admin login.</p>
+
+            <div class="modal-actions">
+                <button class="modal-save" onclick="closeModal('modal-2fa-setup')">DONE — I&rsquo;VE SET IT UP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN CONTENT -->
+    <main id="admin-content" class="hidden">
+
+        <!-- Side Navigation Menu -->
+        <div id="admin-sidenav" class="admin-sidenav">
+            <div class="sidenav-header">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="sidenav-logo">
+                <button class="sidenav-close" onclick="closeAdminNav()" aria-label="Close menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidenav-menu">
+                <a href="#" class="sidenav-item" onclick="closeAdminNav(); return false;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="#" class="sidenav-item" onclick="openSecurityPage(); closeAdminNav(); return false;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Security Settings
+                </a>
+                <a href="../Stats" class="sidenav-item" target="_blank">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    View Statistics
+                </a>
+            </nav>
+            <div class="sidenav-footer">
+                <button class="sidenav-logout" onclick="adminLogout()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Sign Out
+                </button>
+            </div>
+        </div>
+        <div id="admin-sidenav-overlay" class="admin-sidenav-overlay" onclick="closeAdminNav()"></div>
+
+        <header class="admin-header">
+            <button class="hamburger-btn" onclick="openAdminNav()" aria-label="Open menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <a href="/" class="portal-home-link">
+                <img src="../RNB Logo Olive.png" alt="RNB Events" class="portal-logo">
+            </a>
+            <span class="admin-badge">ADMIN DASHBOARD</span>
+            <span id="sync-status" class="sync-indicator"></span>
+            <button class="portal-logout" onclick="adminLogout()">SIGN OUT</button>
+        </header>
+
+        <!-- Stats Row -->
+        <section class="admin-stats-row" id="stats-row">
+            <!-- Populated by JS -->
+        </section>
+
+        <!-- Security Settings Page -->
+        <section id="security-page" class="security-page container hidden">
+            <div class="security-header">
+                <button class="back-to-dash-btn" onclick="closeSecurityPage()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    Back to Dashboard
+                </button>
+                <h1 class="security-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:12px;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Security Settings
+                </h1>
+                <p class="security-subtitle">Configure security features and access controls for your RNB Events platform.</p>
+            </div>
+
+            <!-- Client Portal Security -->
+            <div class="security-section">
+                <div class="security-section-header">
+                    <h2 class="security-section-title">Client Portal Security</h2>
+                    <p class="security-section-desc">Additional security layers for client document access and sensitive information.</p>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-toggle-row">
+                        <div class="security-toggle-info">
+                            <div class="security-toggle-label">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:8px;color:#527141;">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                                Document Verification Gate
+                            </div>
+                            <p class="security-toggle-desc">
+                                Require couples to verify their identity with email or phone number before accessing documents. 
+                                RNB Team and planners bypass this verification. Client email/phone must be set in Client Manager.
+                            </p>
+                            <div id="deploy-instructions" class="deploy-instructions" style="display:none;">
+                                <p style="margin:12px 0 8px;font-family:Montserrat,sans-serif;font-size:11px;color:#527141;font-weight:600;">To apply this change:</p>
+                                <ol style="margin:0;padding-left:20px;font-family:Montserrat,sans-serif;font-size:11px;color:#7a7a6a;line-height:1.8;">
+                                    <li>Open <code style="background:#f0f5ee;padding:2px 6px;border-radius:2px;font-size:10px;">Client/documents.html</code></li>
+                                    <li>Find line ~171: <code style="background:#f0f5ee;padding:2px 6px;border-radius:2px;font-size:10px;">var ENABLE_DOC_VERIFICATION = false;</code></li>
+                                    <li>Change to: <code id="new-value-code" style="background:#e8f4e8;padding:2px 6px;border-radius:2px;font-size:10px;font-weight:600;color:#527141;">true</code></li>
+                                    <li>Commit and push to GitHub</li>
+                                </ol>
+                                <button onclick="copyDeployCommand()" style="margin-top:10px;font-family:Montserrat,sans-serif;font-size:9px;font-weight:600;letter-spacing:1.5px;padding:6px 12px;background:#527141;color:#fff;border:none;border-radius:2px;cursor:pointer;">
+                                    📋 COPY GIT COMMANDS
+                                </button>
+                            </div>
+                        </div>
+                        <label class="security-toggle-switch">
+                            <input type="checkbox" id="toggle-doc-verification" onchange="saveSecuritySetting('docVerification', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div id="doc-verify-status" class="security-status-badge">Loading...</div>
+                </div>
+
+                <!-- Placeholder for future security features -->
+                <div class="security-card security-placeholder">
+                    <div class="security-placeholder-content">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9a9486" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <p style="margin:12px 0 0;font-family:Montserrat,sans-serif;font-size:12px;color:#7a7a6a;letter-spacing:0.5px;">
+                            Additional security features coming soon...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Security (Future) -->
+            <div class="security-section">
+                <div class="security-section-header">
+                    <h2 class="security-section-title">Admin Security</h2>
+                    <p class="security-section-desc">Manage admin access, two-factor authentication, and session settings.</p>
+                </div>
+                <div class="security-card security-placeholder">
+                    <div class="security-placeholder-content">
+                        <p style="margin:0;font-family:Montserrat,sans-serif;font-size:12px;color:#7a7a6a;">
+                            Admin security settings (session timeout, 2FA preferences, etc.) coming soon.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="admin-grid container" id="main-dashboard">
+
+            <!-- ── Prospect CRM ── -->
+            <section class="admin-panel" id="panel-prospects">
+                <div class="panel-header">
+                    <h2 class="panel-title">Prospect CRM</h2>
+                    <button class="panel-btn" onclick="openAddProspect()">+ ADD</button>
+                </div>
+
+                <div class="crm-filters">
+                    <button class="filter-btn active" data-filter="all" onclick="filterProspects('all', this)">All</button>
+                    <button class="filter-btn" data-filter="New Lead"          onclick="filterProspects('New Lead', this)">New Lead</button>
+                    <button class="filter-btn" data-filter="In Conversation"   onclick="filterProspects('In Conversation', this)">In Conversation</button>
+                    <button class="filter-btn" data-filter="Proposal Sent"     onclick="filterProspects('Proposal Sent', this)">Proposal Sent</button>
+                    <button class="filter-btn" data-filter="Booked"            onclick="filterProspects('Booked', this)">Booked</button>
+                    <button class="filter-btn" data-filter="Lost"              onclick="filterProspects('Lost', this)">Lost</button>
+                </div>
+
+                <div id="crm-table"><!-- Populated by JS --></div>
+            </section>
+
+            <!-- ── Published Clients ── -->
+            <section class="admin-panel" id="panel-clients-dash">
+                <div class="panel-header">
+                    <h2 class="panel-title">Published Clients</h2>
+                    <div style="display:flex;gap:8px;">
+                        <button class="panel-btn" onclick="viewAllClients()">VIEW ALL</button>
+                        <button class="panel-btn" onclick="switchTool('clients');openAddClient()">+ NEW</button>
+                    </div>
+                </div>
+                <div id="dashboard-clients"><!-- Populated by JS --></div>
+            </section>
+
+        </div>
+
+        <!-- ── Admin Tools ── -->
+        <section class="admin-tools container" id="admin-tools-section">
+            <div class="tools-header">
+                <h2 class="panel-title">Admin Tools</h2>
+                <div class="tools-tabs">
+                    <button class="tool-tab active" onclick="switchTool('kanban', this)">PROSPECT KANBAN</button>
+                    <button class="tool-tab" onclick="switchTool('content', this)">CONTENT EDITOR</button>
+                    <button class="tool-tab" onclick="switchTool('clients', this)">CLIENT MANAGER</button>
+                    <button class="tool-tab" onclick="switchTool('rsvp', this)">RSVP SIGNUPS</button>
+                </div>
+            </div>
+
+            <!-- Kanban Board -->
+            <div id="tool-kanban" class="tool-panel">
+                <p class="tool-desc">Drag prospect cards between columns to stage a status change, then hit <strong>SUBMIT CHANGES</strong> to confirm. Click EDIT on any card to modify details.</p>
+                <div id="kanban-submit-bar"></div>
+                <div class="kanban-board" id="kanban-board"><!-- Populated by JS --></div>
+            </div>
+
+            <!-- Content Editor -->
+            <div id="tool-content" class="tool-panel hidden">
+                <p class="tool-desc">Draft text, captions, and image replacements per page. Preview the live site inline, then submit per tab or view all changes at once.</p>
+                <div class="content-tab-row">
+                    <div class="content-page-tabs">
+                        <button class="ctab active" onclick="switchContentTab('home', this)">HOME</button>
+                        <button class="ctab" onclick="switchContentTab('service', this)">SERVICE</button>
+                        <button class="ctab" onclick="switchContentTab('lovebook', this)">LOVE BOOK</button>
+                        <button class="ctab" onclick="switchContentTab('about', this)">ABOUT</button>
+                        <button class="ctab" onclick="switchContentTab('crafting', this)">CRAFTING MOMENTS</button>
+                    </div>
+                    <button id="preview-toggle-btn" class="preview-toggle-btn" onclick="toggleContentPreview()">&#9633; PREVIEW LIVE</button>
+                </div>
+                <div id="content-preview-pane" class="content-preview-pane hidden">
+                    <iframe id="content-preview-iframe" class="content-preview-iframe" title="Live site preview"></iframe>
+                </div>
+                <div id="content-editor-fields"><!-- Populated by JS --></div>
+                <div class="content-editor-actions">
+                    <button class="panel-btn" onclick="submitContentPage()">SUBMIT THIS PAGE</button>
+                    <button class="panel-btn content-undo-btn" onclick="undoContentDraft()">&#8630; UNDO</button>
+                    <button class="panel-btn content-view-btn" onclick="viewContentChanges()">VIEW ALL CHANGES</button>
+                </div>
+            </div>
+
+            <!-- Client Manager -->
+            <div id="tool-clients" class="tool-panel hidden">
+                <p class="tool-desc">Create and manage client portal access codes. Each client gets a unique code that unlocks their personalized view at <strong>/Client</strong>. Changes are published to the cloud automatically when you save.</p>
+                <div style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="panel-btn" onclick="openAddClient()">+ NEW CLIENT</button>
+                </div>
+                <div id="clients-list"><!-- Populated by JS --></div>
+            </div>
+
+            <!-- RSVP Signups -->
+            <div id="tool-rsvp" class="tool-panel hidden">
+                <p class="tool-desc">Manage public RSVP sign-ups. Mark payments as confirmed to unlock QR Seat Finder codes for guests.</p>
+                <div style="margin-bottom:16px;display:flex;gap:10px;">
+                    <button class="panel-btn" onclick="renderRsvpAdmin()">&#8635; REFRESH</button>
+                </div>
+                <div id="rsvp-admin-list"><!-- Populated by JS --></div>
+            </div>
+        </section>
+
+        <footer class="admin-footer">
+            <p>&copy; 2026 RNB Events</p>
+            <p class="ynk-credit">Designed and Powered By <a href="https://ynk-techusa.com" target="_blank" rel="noopener noreferrer" class="ynk-brand">ynk-techusa.com</a></p>
+        </footer>
+
+    </main>
+
+    <!-- Add Prospect Modal -->
+    <div id="modal-prospect" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">Add Prospect</h3>
+            <form id="form-prospect" onsubmit="return false;">
+                <div class="form-row">
+                    <label class="form-label">NAME</label>
+                    <input type="text"  id="f-name"      class="form-input" placeholder="Full Name">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">EMAIL</label>
+                    <input type="email" id="f-email"     class="form-input" placeholder="email@example.com">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">PHONE</label>
+                    <input type="text"  id="f-phone"     class="form-input" placeholder="716-555-0000">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">EVENT TYPE</label>
+                    <select id="f-etype" class="form-input">
+                        <option value="">Select Event Type…</option>
+                        <option>Wedding</option>
+                        <option>Sweet 16</option>
+                        <option>Birthday Party</option>
+                        <option>Baby Shower</option>
+                        <option>Bridal Shower</option>
+                        <option>Engagement Party</option>
+                        <option>Anniversary</option>
+                        <option>Corporate Event</option>
+                        <option>Graduation Party</option>
+                        <option>Holiday Party</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">EVENT DATE</label>
+                    <input type="date" id="f-edate" class="form-input">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">STATUS</label>
+                    <select id="f-status" class="form-input">
+                        <option>New Lead</option>
+                        <option>In Conversation</option>
+                        <option>Proposal Sent</option>
+                        <option>Booked</option>
+                        <option>Lost</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">NOTES</label>
+                    <textarea id="f-notes" class="form-input form-textarea" placeholder="Any relevant notes…"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" onclick="closeModal('modal-prospect')">CANCEL</button>
+                    <button type="submit" class="modal-save"   onclick="saveProspect()">SAVE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="modal-task" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">Add Website Task</h3>
+            <form onsubmit="return false;">
+                <div class="form-row">
+                    <label class="form-label">SECTION</label>
+                    <input type="text" id="t-section" class="form-input" placeholder="Home, Service, Love Book…">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">TASK</label>
+                    <textarea id="t-task" class="form-input form-textarea" placeholder="Describe the change needed…"></textarea>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">PRIORITY</label>
+                    <select id="t-priority" class="form-input">
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">FILE REFERENCE (optional)</label>
+                    <input type="text" id="t-file" class="form-input" placeholder="index.html, service.html…">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" onclick="closeModal('modal-task')">CANCEL</button>
+                    <button type="submit" class="modal-save"   onclick="saveTask()">SAVE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Content Changes Modal -->
+    <div id="modal-content-changes" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">Pending Content Changes</h3>
+            <p style="font-size:11px;color:#527141;letter-spacing:0.5px;margin-bottom:20px;">Share this summary with your developer to update the live website.</p>
+            <div id="content-changes-list"><!-- Populated by JS --></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="copyAllChanges()">COPY ALL</button>
+                <button class="modal-save" onclick="closeModal('modal-content-changes')">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Client Modal -->
+    <div id="modal-client" class="modal-overlay hidden">
+        <div class="modal-card modal-card-wide">
+            <h3 class="modal-title" id="client-modal-title">New Client</h3>
+            <form id="form-client" onsubmit="return false;">
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">ACCESS CODE <span style="font-size:10px;font-weight:300">(Couple)</span></label>
+                        <input type="text" id="c-code" class="form-input" placeholder="e.g. SMITH2026">
+                        <small class="form-hint">Couple uses this code to access their portal</small>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">CLIENT NAME</label>
+                        <input type="text" id="c-name" class="form-input" placeholder="Full Name">
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">PLANNER CODE <span style="font-size:10px;font-weight:300">(auto-generated)</span></label>
+                        <input type="text" id="c-planner-code" class="form-input" placeholder="PLAN-XXXXXX" maxlength="20">
+                        <small class="form-hint">Event planner uses this to access the portal</small>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">TEAM CODE <span style="font-size:10px;font-weight:300">(auto-generated)</span></label>
+                        <input type="text" id="c-team-code" class="form-input" placeholder="TEAM-XXXXXX" maxlength="20">
+                        <small class="form-hint">RNB Team uses this to access the portal</small>
+                    </div>
+                </div>
+                <div style="margin-bottom:16px">
+                    <button type="button" class="panel-btn" onclick="fillGeneratedCodes()">GENERATE PLANNER &amp; TEAM CODES</button>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">FIRST NAME (portal greeting)</label>
+                        <input type="text" id="c-first" class="form-input" placeholder="First Name">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">EVENT TYPE</label>
+                        <select id="c-etype" class="form-input">
+                            <option value="">Select Event Type…</option>
+                            <option>Wedding</option>
+                            <option>Sweet 16</option>
+                            <option>Birthday Party</option>
+                            <option>Baby Shower</option>
+                            <option>Bridal Shower</option>
+                            <option>Engagement Party</option>
+                            <option>Anniversary</option>
+                            <option>Corporate Event</option>
+                            <option>Graduation Party</option>
+                            <option>Holiday Party</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">EVENT DATE</label>
+                        <input type="date" id="c-edate" class="form-input">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">VENUE</label>
+                        <input type="text" id="c-venue" class="form-input" placeholder="Venue Name">
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">PLANNER NAME</label>
+                        <input type="text" id="c-planner" class="form-input" placeholder="RNB Events Team" value="RNB Events Team">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">PLANNER EMAIL</label>
+                        <input type="email" id="c-pemail" class="form-input" placeholder="hello@rnbevents716.com" value="hello@rnbevents716.com">
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">CLIENT EMAIL <span style="font-size:10px;font-weight:300">(for document security verification)</span></label>
+                        <input type="email" id="c-client-email" class="form-input" placeholder="client@example.com">
+                        <small class="form-hint">Client's email for second-layer security on document page. Not used for RNB Team access.</small>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">CLIENT PHONE <span style="font-size:10px;font-weight:300">(for document security verification)</span></label>
+                        <input type="tel" id="c-client-phone" class="form-input" placeholder="+1 (XXX) XXX-XXXX">
+                        <small class="form-hint">Client's phone for second-layer security on document page. Not used for RNB Team access.</small>
+                    </div>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">AGREED AMOUNT ($) <span style="font-size:10px;font-weight:300">(total incl. deposit)</span></label>
+                        <input type="number" id="c-amount" class="form-input" placeholder="e.g. 2500.00" min="0" step="0.01">
+                        <small class="form-hint">Total amount agreed with client — synced to the contract in their portal. Includes deposit.</small>
+                    </div>
+                    <div class="form-row"><!-- spacer --></div>
+                </div>
+                <hr class="form-divider">
+                <h4 class="form-section-title">PAYMENT SCHEDULE <span style="font-size:10px;font-weight:300;text-transform:none;letter-spacing:0">(manually managed)</span></h4>
+                <p class="form-hint" style="margin-bottom:12px">Enter each payment milestone. Check &ldquo;Paid&rdquo; when received &mdash; the client sees this in their portal with a disclaimer that it&rsquo;s manually managed.</p>
+                <div id="c-payment-rows"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" style="margin-bottom:20px" onclick="addPaymentRow()">+ ADD PAYMENT</button>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label class="form-label">PAYMENT LINK <span style="font-size:10px;font-weight:300;text-transform:none;letter-spacing:0">(optional)</span></label>
+                        <input type="url" id="c-square-url" class="form-input" placeholder="https://squareup.com/pay/... or any payment URL" maxlength="600">
+                        <small class="form-hint">A &ldquo;Pay Now&rdquo; button will appear in the client&rsquo;s payment tab when this is set.</small>
+                    </div>
+                    <div class="form-row"><!-- spacer --></div>
+                </div>
+                <hr class="form-divider">
+                <h4 class="form-section-title">TIMELINE MILESTONES</h4>
+                <div id="c-timeline-rows"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addClientTimelineRow()">+ MILESTONE</button>
+
+                <hr class="form-divider">
+                <h4 class="form-section-title">TRACKING NOTES</h4>
+                <p class="form-hint" style="margin-bottom:10px">To-do items visible to the client in their portal.</p>
+                <h5 class="form-sub-title">Event Planner To-Dos</h5>
+                <div id="c-planner-todos"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addTrackingRow('c-planner-todos')">+ PLANNER ITEM</button>
+                <h5 class="form-sub-title" style="margin-top:14px">RNB Team To-Dos</h5>
+                <div id="c-team-todos"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addTrackingRow('c-team-todos')">+ TEAM ITEM</button>
+                <h5 class="form-sub-title" style="margin-top:14px">Client To-Dos (if Applicable)</h5>
+                <div id="c-client-todos"><!-- Populated by JS --></div>
+                <button type="button" class="panel-btn" onclick="addTrackingRow('c-client-todos')">+ CLIENT ITEM</button>
+
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" onclick="closeModal('modal-client')">CANCEL</button>
+                    <button type="submit" class="modal-save" onclick="saveClient()">SAVE CLIENT</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- All Clients View Modal -->
+    <div id="modal-all-clients" class="modal-overlay hidden">
+        <div class="modal-card modal-card-full">
+            <div class="all-clients-header">
+                <h3 class="modal-title">All Clients</h3>
+                <div class="all-clients-summary" id="all-clients-summary"></div>
+            </div>
+            <div class="all-clients-filters" id="all-clients-filters"></div>
+            <div class="all-clients-table" id="all-clients-table"><!-- Populated by JS --></div>
+            <div class="modal-actions">
+                <button class="modal-save" onclick="closeModal('modal-all-clients')">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Quote Modal -->
+    <div id="modal-send-quote" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width:620px;width:94vw">
+            <h3 class="modal-title">Build &amp; Send Quote</h3>
+            <p style="font-family:Montserrat,sans-serif;font-size:11px;color:#527141;letter-spacing:0.5px;margin-bottom:20px;">Customize and send a branded package quote directly to the prospect.</p>
+
+            <!-- Prospect -->
+            <div class="form-row" style="margin-bottom:18px">
+                <label class="form-label">PROSPECT</label>
+                <p id="qm-prospect-name" style="font-family:'Cormorant Garamond',serif;font-size:17px;color:#2d3a2d;margin:4px 0 2px;font-weight:500"></p>
+                <p id="qm-prospect-email" style="font-family:Montserrat,sans-serif;font-size:11px;color:#527141;margin:0;letter-spacing:0.5px"></p>
+            </div>
+
+            <!-- Package + Estimated Amount -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px">
+                <div class="form-row" style="margin:0">
+                    <label class="form-label">SELECT PACKAGE</label>
+                    <select id="qm-package" class="form-input" onchange="onQuotePackageChange()">
+                        <option value="Silver">Silver — Essentials</option>
+                        <option value="Gold">Gold — Full-Service</option>
+                        <option value="Platinum">Platinum — Premium</option>
+                        <option value="Presidential">Presidential — Ultra-Luxury</option>
+                    </select>
+                </div>
+                <div class="form-row" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end">
+                    <label class="form-label">ESTIMATED TOTAL</label>
+                    <p id="qm-total" style="margin:4px 0 0;font-family:'Cormorant Garamond',serif;font-size:26px;color:#b89a5e;font-weight:500;letter-spacing:1px">$0.00</p>
+                </div>
+            </div>
+
+            <!-- Quote Line Items -->
+            <div style="margin-bottom:18px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <label class="form-label" style="margin:0">QUOTE LINE ITEMS</label>
+                    <button type="button" onclick="addQuoteLineItem()" style="font-family:Montserrat,sans-serif;font-size:10px;letter-spacing:1.5px;padding:5px 12px;border:1px solid #527141;background:transparent;color:#527141;cursor:pointer;border-radius:2px;transition:all 0.2s">+ ADD LINE</button>
+                </div>
+                <!-- Column headers -->
+                <div class="qm-col-header" style="display:grid;grid-template-columns:1fr 52px 90px 72px 28px;gap:4px;margin-bottom:4px;padding:0 2px">
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif">DESCRIPTION</span>
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif;text-align:center">QTY</span>
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif;text-align:right">UNIT PRICE ($)</span>
+                    <span style="font-size:9px;letter-spacing:1px;color:#888;font-family:Montserrat,sans-serif;text-align:right">SUBTOTAL</span>
+                    <span></span>
+                </div>
+                <div id="qm-line-items" style="display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto;padding-right:2px"></div>
+                <!-- Items subtotal row -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid #e0dcd4">
+                    <span style="font-family:Montserrat,sans-serif;font-size:9px;letter-spacing:1.5px;color:#888;text-transform:uppercase">Items Subtotal</span>
+                    <span id="qm-items-subtotal" style="font-family:Montserrat,sans-serif;font-size:12px;color:#555">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Discount % -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                <div class="form-row" style="margin:0">
+                    <label class="form-label">DISCOUNT %</label>
+                    <input type="number" id="qm-discount-pct" class="form-input" min="0" max="100" step="0.01" value="0" oninput="recalcQuoteTotal()" style="font-size:12px;padding:5px 8px">
+                </div>
+                <div class="form-row" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end">
+                    <label class="form-label">DISCOUNT AMT</label>
+                    <span id="qm-discount-amt" style="font-size:13px;color:#c0392b;padding:7px 0;font-family:Montserrat,sans-serif">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Labor Production + Deposit -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                <div class="form-row" style="margin:0">
+                    <label class="form-label">LABOR PRODUCTION <span style="font-size:9px;font-weight:300">(labor, setup &amp; teardown)</span></label>
+                    <input type="number" id="qm-labor" class="form-input" min="0" step="0.01" value="0" oninput="recalcQuoteTotal()" style="font-size:12px;padding:5px 8px">
+                </div>
+                <div class="form-row" style="margin:0">
+                    <label class="form-label">DEPOSIT</label>
+                    <input type="number" id="qm-deposit" class="form-input" min="0" step="0.01" value="0" oninput="recalcQuoteTotal()" style="font-size:12px;padding:5px 8px">
+                </div>
+            </div>
+
+            <!-- Tax + Grand Total -->
+            <div style="border-top:2px solid #2d3a2d;padding-top:12px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-family:Montserrat,sans-serif;font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase">TEXAS SALES TAX (8.25%) — non-modifiable</span>
+                    <span id="qm-tax-amt" style="font-family:Montserrat,sans-serif;font-size:12px;color:#555">$0.00</span>
+                </div>
+                <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px">
+                    <span style="font-family:Montserrat,sans-serif;font-size:10px;letter-spacing:1.5px;color:#2d3a2d;text-transform:uppercase">Grand Total</span>
+                    <span id="qm-total-bottom" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#b89a5e;font-weight:500">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Custom Note -->
+            <div class="form-row" style="margin-bottom:6px">
+                <label class="form-label">PERSONAL NOTE TO CLIENT <span style="font-weight:300;font-size:10px">optional</span></label>
+                <textarea id="qm-note" class="form-input" rows="3" placeholder="Add a personal message that will appear in the email..." style="resize:vertical;min-height:72px;font-size:13px"></textarea>
+            </div>
+
+            <!-- Safety Warning -->
+            <div id="qm-warning" style="display:none;margin-top:14px;padding:12px 16px;background:#fff8e1;border:1px solid #f0c040;border-radius:4px;font-family:Montserrat,sans-serif;font-size:11px;color:#7a5c00;letter-spacing:0.5px;line-height:1.7"></div>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-cancel" onclick="closeModal('modal-send-quote')">CANCEL</button>
+                <button type="button" class="modal-save" id="qm-send-btn" onclick="sendQuoteEmail()">SEND QUOTE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="admin-toast" class="admin-toast"></div>
+
+    <script src="admin-data.js"></script>
+    <script src="admin.js"></script>
+    <script>
+    function togglePw(id, btn) {
+        var inp = document.getElementById(id);
+        if (!inp) return;
+        var show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        btn.innerHTML = show ? '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+    </script>
+    <script src="/remus-track.js"></script>
+    <script>remusTrack('admin');</script>
+</body>
+</html>

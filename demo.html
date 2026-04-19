@@ -1429,9 +1429,9 @@
                             <p>Explore the Hampton venue, load a two-table setup, and place saved custom grouped assets into the room.</p>
                         </div>
                         <div class="builder-quickbar">
-                            <button class="builder-quick-btn" onclick="builderLoadTwoTableSetup()">
+                            <button class="builder-quick-btn" onclick="hudTogglePanel('venue', 'objects')">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm2 5h6v8H5v-8zm8 0h6v8h-6v-8z"/></svg>
-                                Load 2-Table Setup
+                                Objects
                             </button>
                             <button class="builder-quick-btn secondary" onclick="switchBuilderWorkspace('asset')">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm-7.64 5L12 10.47 19.64 7 12 3.53 4.36 7zM5 12.74V17l7 3.18V13.9l-7-1.16zm9 7.44L19 17v-4.26l-5 1.16v6.28z"/></svg>
@@ -1458,11 +1458,7 @@
                                     <button class="hud-btn" id="venue-hud-objects" onclick="hudTogglePanel('venue', 'objects')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Objects</button>
                                     <div class="hud-sep"></div>
                                     <button class="hud-btn" id="venue-hud-camera" onclick="hudTogglePanel('venue', 'camera')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z"/></svg>View</button>
-                                    <button class="hud-btn" id="venue-hud-light" onclick="hudTogglePanel('venue', 'light')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>Light</button>
-                                    <button class="hud-btn" id="venue-hud-display" onclick="hudTogglePanel('venue', 'display')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2z"/></svg>Display</button>
-                                    <button class="hud-btn" id="venue-hud-align" onclick="hudTogglePanel('venue', 'align')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zm4-7H6v5h2v-5zm4 3h-2v2h2v-2zm4-5h-2v7h2v-7z"/></svg>Align</button>
-                                    <div class="hud-sep"></div>
-                                    <button class="hud-btn" id="venue-hud-inspector" onclick="hudTogglePanel('venue', 'inspector')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Inspector<span class="hud-sel-badge" id="venue-sel-badge"></span></button>
+                                    <button class="hud-btn" id="venue-hud-inspector" onclick="hudTogglePanel('venue', 'inspector')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Adjuster<span class="hud-sel-badge" id="venue-sel-badge"></span></button>
                                     <div class="hud-sep"></div>
                                     <button class="hud-btn active" id="venue-hud-rotate-toggle" onclick="builderQuickToggleRotate('venue')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M10 16.5v-9l6 4.5-6 4.5zm2-14.5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg><span id="venue-hud-rotate-label">Pause</span></button>
                                     <button class="hud-btn disabled" id="venue-hud-undo" onclick="builderUndo('venue')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.67 0-5.1 1.05-6.9 2.76L2 7.17V16h8.83l-4.3-4.3A7.96 7.96 0 0 1 12.5 10c3.54 0 6.55 2.29 7.61 5.47l1.9-.63C20.69 10.77 16.93 8 12.5 8z"/></svg>Undo</button>
@@ -1479,10 +1475,7 @@
                                     <div class="custom-assets-library" id="venue-custom-assets"></div>
                                 </div>
                                 <div class="builder-panel" id="venue-panel-camera"><div class="builder-panel-header"><span class="builder-panel-title">Camera Views</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'camera')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn" onclick="builderCam('venue', 'front')">Front</button><button class="panel-btn" onclick="builderCam('venue', 'top')">Top</button><button class="panel-btn" onclick="builderCam('venue', 'side')">Side</button><button class="panel-btn" onclick="builderCam('venue', 'iso')">Iso</button><button class="panel-btn" onclick="builderCam('venue', 'reset')">Reset</button></div></div>
-                                <div class="builder-panel" id="venue-panel-light"><div class="builder-panel-header"><span class="builder-panel-title">Lighting</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'light')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn active" id="venue-btn-light-day" onclick="builderLight('venue', 'day')">Day</button><button class="panel-btn" id="venue-btn-light-evening" onclick="builderLight('venue', 'evening')">Evening</button><button class="panel-btn" id="venue-btn-light-night" onclick="builderLight('venue', 'night')">Night</button></div></div>
-                                <div class="builder-panel" id="venue-panel-display"><div class="builder-panel-header"><span class="builder-panel-title">Display</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'display')">&#x2715;</button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Wireframe</span><button class="panel-toggle" id="venue-tog-wire" onclick="builderToggle('venue', 'wire')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Auto-rotate</span><button class="panel-toggle on" id="venue-tog-rotate" onclick="builderToggle('venue', 'rotate')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Grid floor</span><button class="panel-toggle" id="venue-tog-grid" onclick="builderToggle('venue', 'grid')"></button></div></div>
-                                <div class="builder-panel" id="venue-panel-inspector"><div class="builder-panel-header"><span class="builder-panel-title">Inspector</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'inspector')">&#x2715;</button></div><div id="venue-inspector-body"><div class="inspector-empty">No object selected — click an object in the scene</div></div></div>
-                                <div class="builder-panel" id="venue-panel-align"><div class="builder-panel-header"><span class="builder-panel-title">Align Objects</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'align')">&#x2715;</button></div><div class="panel-section-title">Align (select 2+ objects)</div><div class="align-grid"><button class="align-btn" onclick="builderAlign('venue', 'left')">Left</button><button class="align-btn" onclick="builderAlign('venue', 'centerX')">Ctr X</button><button class="align-btn" onclick="builderAlign('venue', 'right')">Right</button><button class="align-btn" onclick="builderAlign('venue', 'front')">Front</button><button class="align-btn" onclick="builderAlign('venue', 'centerZ')">Ctr Z</button><button class="align-btn" onclick="builderAlign('venue', 'back')">Back</button></div><div class="panel-section-title">Distribute evenly (3+ objects)</div><div class="align-dist-grid"><button class="align-btn" onclick="builderAlign('venue', 'distX')">Spread X</button><button class="align-btn" onclick="builderAlign('venue', 'distZ')">Spread Z</button></div><div style="color:rgba(255,255,255,0.3);font-size:10px;margin-top:12px;text-align:center;">Shift+click to multi-select objects first</div></div>
+                                <div class="builder-panel" id="venue-panel-inspector"><div class="builder-panel-header"><span class="builder-panel-title">Adjuster</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'inspector')">&#x2715;</button></div><div id="venue-inspector-body"><div class="inspector-empty">No object selected — click an object in the scene</div></div></div>
                             </div>
 
                             <div class="ctx-menu" id="venue-ctx-menu">
@@ -1542,11 +1535,7 @@
                                     <button class="hud-btn" id="asset-hud-objects" onclick="hudTogglePanel('asset', 'objects')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Objects</button>
                                     <div class="hud-sep"></div>
                                     <button class="hud-btn" id="asset-hud-camera" onclick="hudTogglePanel('asset', 'camera')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z"/></svg>View</button>
-                                    <button class="hud-btn" id="asset-hud-light" onclick="hudTogglePanel('asset', 'light')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>Light</button>
-                                    <button class="hud-btn" id="asset-hud-display" onclick="hudTogglePanel('asset', 'display')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2z"/></svg>Display</button>
-                                    <button class="hud-btn" id="asset-hud-align" onclick="hudTogglePanel('asset', 'align')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zm4-7H6v5h2v-5zm4 3h-2v2h2v-2zm4-5h-2v7h2v-7z"/></svg>Align</button>
-                                    <div class="hud-sep"></div>
-                                    <button class="hud-btn" id="asset-hud-inspector" onclick="hudTogglePanel('asset', 'inspector')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Inspector<span class="hud-sel-badge" id="asset-sel-badge"></span></button>
+                                    <button class="hud-btn" id="asset-hud-inspector" onclick="hudTogglePanel('asset', 'inspector')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Adjuster<span class="hud-sel-badge" id="asset-sel-badge"></span></button>
                                     <div class="hud-sep"></div>
                                     <button class="hud-btn" id="asset-hud-rotate-toggle" onclick="builderQuickToggleRotate('asset')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M10 16.5v-9l6 4.5-6 4.5zm2-14.5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg><span id="asset-hud-rotate-label">Play</span></button>
                                     <button class="hud-btn disabled" id="asset-hud-undo" onclick="builderUndo('asset')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.67 0-5.1 1.05-6.9 2.76L2 7.17V16h8.83l-4.3-4.3A7.96 7.96 0 0 1 12.5 10c3.54 0 6.55 2.29 7.61 5.47l1.9-.63C20.69 10.77 16.93 8 12.5 8z"/></svg>Undo</button>
@@ -1563,10 +1552,7 @@
                                     <div class="custom-assets-library" id="asset-custom-assets"></div>
                                 </div>
                                 <div class="builder-panel" id="asset-panel-camera"><div class="builder-panel-header"><span class="builder-panel-title">Camera Views</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'camera')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn" onclick="builderCam('asset', 'front')">Front</button><button class="panel-btn" onclick="builderCam('asset', 'top')">Top</button><button class="panel-btn" onclick="builderCam('asset', 'side')">Side</button><button class="panel-btn" onclick="builderCam('asset', 'iso')">Iso</button><button class="panel-btn" onclick="builderCam('asset', 'reset')">Reset</button></div></div>
-                                <div class="builder-panel" id="asset-panel-light"><div class="builder-panel-header"><span class="builder-panel-title">Lighting</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'light')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn active" id="asset-btn-light-day" onclick="builderLight('asset', 'day')">Day</button><button class="panel-btn" id="asset-btn-light-evening" onclick="builderLight('asset', 'evening')">Evening</button><button class="panel-btn" id="asset-btn-light-night" onclick="builderLight('asset', 'night')">Night</button></div></div>
-                                <div class="builder-panel" id="asset-panel-display"><div class="builder-panel-header"><span class="builder-panel-title">Display</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'display')">&#x2715;</button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Wireframe</span><button class="panel-toggle" id="asset-tog-wire" onclick="builderToggle('asset', 'wire')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Auto-rotate</span><button class="panel-toggle" id="asset-tog-rotate" onclick="builderToggle('asset', 'rotate')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Grid floor</span><button class="panel-toggle" id="asset-tog-grid" onclick="builderToggle('asset', 'grid')"></button></div></div>
-                                <div class="builder-panel" id="asset-panel-inspector"><div class="builder-panel-header"><span class="builder-panel-title">Inspector</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'inspector')">&#x2715;</button></div><div id="asset-inspector-body"><div class="inspector-empty">No object selected — click an object in the scene</div></div></div>
-                                <div class="builder-panel" id="asset-panel-align"><div class="builder-panel-header"><span class="builder-panel-title">Align Objects</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'align')">&#x2715;</button></div><div class="panel-section-title">Align (select 2+ objects)</div><div class="align-grid"><button class="align-btn" onclick="builderAlign('asset', 'left')">Left</button><button class="align-btn" onclick="builderAlign('asset', 'centerX')">Ctr X</button><button class="align-btn" onclick="builderAlign('asset', 'right')">Right</button><button class="align-btn" onclick="builderAlign('asset', 'front')">Front</button><button class="align-btn" onclick="builderAlign('asset', 'centerZ')">Ctr Z</button><button class="align-btn" onclick="builderAlign('asset', 'back')">Back</button></div><div class="panel-section-title">Distribute evenly (3+ objects)</div><div class="align-dist-grid"><button class="align-btn" onclick="builderAlign('asset', 'distX')">Spread X</button><button class="align-btn" onclick="builderAlign('asset', 'distZ')">Spread Z</button></div><div style="color:rgba(255,255,255,0.3);font-size:10px;margin-top:12px;text-align:center;">Shift+click to multi-select objects first</div></div>
+                                <div class="builder-panel" id="asset-panel-inspector"><div class="builder-panel-header"><span class="builder-panel-title">Adjuster</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'inspector')">&#x2715;</button></div><div id="asset-inspector-body"><div class="inspector-empty">No object selected — click an object in the scene</div></div></div>
                             </div>
 
                             <div class="ctx-menu" id="asset-ctx-menu">
@@ -2166,7 +2152,7 @@
                     'serpentine-table': '3d-assets/serpentine-table.glb',
                     'serpentine-section': '3d-assets/serpentine-section.glb',
                 };
-                const BUILDER_PANELS = ['objects', 'camera', 'light', 'display', 'align', 'inspector'];
+                const BUILDER_PANELS = ['objects', 'camera', 'inspector'];
                 const CUSTOM_ASSET_STORAGE_KEY = 'rnb-demo-custom-assets-v1';
                 const BASE_CAMERA = new THREE.Vector3(8, 5, 10);
                 const builderConfigs = {
@@ -2242,8 +2228,9 @@
                     if (!bounds || bounds.isEmpty()) return;
                     const boxCenter = bounds.getCenter(new THREE.Vector3());
                     const size = bounds.getSize(new THREE.Vector3());
+                    const leftOffset = options.leftOffset != null ? options.leftOffset : 0;
                     const center = new THREE.Vector3(
-                        boxCenter.x,
+                        boxCenter.x + size.x * leftOffset,
                         options.targetY != null ? options.targetY : boxCenter.y,
                         boxCenter.z
                     );
@@ -2308,6 +2295,105 @@
                     if (hudLabel) hudLabel.textContent = enabled ? 'Pause' : 'Play';
                 }
 
+                function getObjectMaterials(object3d) {
+                    const entries = [];
+                    object3d.traverse(node => {
+                        if ((!node.isMesh && !node.isSprite) || !node.material) return;
+                        const materials = Array.isArray(node.material) ? node.material : [node.material];
+                        const editable = materials.map(material => {
+                            const clone = material.userData.__editableClone ? material : material.clone();
+                            clone.userData.__editableClone = true;
+                            return clone;
+                        });
+                        node.material = Array.isArray(node.material) ? editable : editable[0];
+                        entries.push(...editable);
+                    });
+                    return entries;
+                }
+
+                function getObjectColor(object3d, fallback = '#77a361') {
+                    if (!object3d) return fallback;
+                    if (object3d.userData.customColor) return object3d.userData.customColor;
+                    let value = fallback;
+                    object3d.traverse(node => {
+                        if (value !== fallback || (!node.isMesh && !node.isSprite) || !node.material) return;
+                        const materials = Array.isArray(node.material) ? node.material : [node.material];
+                        const match = materials.find(material => material?.color?.isColor);
+                        if (match) value = `#${match.color.getHexString()}`;
+                    });
+                    return value;
+                }
+
+                function applyObjectColor(object3d, color, saveUserData = true) {
+                    if (!object3d) return;
+                    getObjectMaterials(object3d).forEach(material => {
+                        if (material.color?.isColor) material.color.set(color);
+                        material.needsUpdate = true;
+                    });
+                    if (saveUserData) object3d.userData.customColor = color;
+                }
+
+                function collectVenueSurfaceMeshes(ctx) {
+                    ctx.venueSurfaceMeshes = { walls: [], floor: [] };
+                    if (!ctx.model) return;
+
+                    const worldBox = new THREE.Box3().setFromObject(ctx.model);
+                    const totalSize = worldBox.getSize(new THREE.Vector3());
+                    const floorThreshold = ctx.floorY + Math.max(0.18, totalSize.y * 0.05);
+                    const floorCandidates = [];
+                    const wallCandidates = [];
+
+                    ctx.model.traverse(node => {
+                        if (!node.isMesh) return;
+                        const box = new THREE.Box3().setFromObject(node);
+                        if (box.isEmpty()) return;
+                        const size = box.getSize(new THREE.Vector3());
+                        const center = box.getCenter(new THREE.Vector3());
+                        const name = `${node.name || ''} ${(Array.isArray(node.material) ? node.material[0]?.name : node.material?.name) || ''}`.toLowerCase();
+                        const looksLikeFloor = name.includes('floor')
+                            || (box.min.y <= floorThreshold && size.y <= Math.max(0.25, totalSize.y * 0.08) && size.x >= totalSize.x * 0.18 && size.z >= totalSize.z * 0.18);
+                        const looksLikeWall = name.includes('wall')
+                            || (size.y >= totalSize.y * 0.22 && (size.x <= totalSize.x * 0.32 || size.z <= totalSize.z * 0.32) && center.y >= ctx.floorY + size.y * 0.35);
+
+                        if (looksLikeFloor) floorCandidates.push({ node, area: size.x * size.z });
+                        if (looksLikeWall) wallCandidates.push({ node, score: size.y * Math.max(size.x, size.z) });
+                    });
+
+                    floorCandidates.sort((a, b) => b.area - a.area);
+                    wallCandidates.sort((a, b) => b.score - a.score);
+                    ctx.venueSurfaceMeshes.floor = floorCandidates.slice(0, 2).map(item => item.node);
+                    ctx.venueSurfaceMeshes.walls = wallCandidates.slice(0, 16).map(item => item.node);
+
+                    if (ctx.venueSurfaceMeshes.floor[0]) ctx.venueStyle.floorColor = getObjectColor(ctx.venueSurfaceMeshes.floor[0], ctx.venueStyle.floorColor);
+                    if (ctx.venueSurfaceMeshes.walls[0]) ctx.venueStyle.wallColor = getObjectColor(ctx.venueSurfaceMeshes.walls[0], ctx.venueStyle.wallColor);
+                }
+
+                function applyVenueSurfaceColor(ctx, surface, color, commit = true) {
+                    if (!ctx?.venueSurfaceMeshes) return;
+                    const key = surface === 'wall' ? 'walls' : 'floor';
+                    (ctx.venueSurfaceMeshes[key] || []).forEach(mesh => applyObjectColor(mesh, color, false));
+                    if (surface === 'wall') ctx.venueStyle.wallColor = color;
+                    if (surface === 'floor') ctx.venueStyle.floorColor = color;
+                    if (getPanelEl(ctx.id, 'inspector')?.classList.contains('open')) refreshInspector(ctx.id);
+                    if (commit) commitHistory(ctx.id);
+                }
+
+                function applyVenueWallOpacity(ctx, opacity, commit = true) {
+                    if (!ctx?.venueSurfaceMeshes) return;
+                    const normalized = Math.max(0.15, Math.min(1, Number(opacity) || 1));
+                    (ctx.venueSurfaceMeshes.walls || []).forEach(mesh => {
+                        getObjectMaterials(mesh).forEach(material => {
+                            material.transparent = normalized < 0.99;
+                            material.opacity = normalized;
+                            material.depthWrite = normalized >= 0.99;
+                            material.needsUpdate = true;
+                        });
+                    });
+                    ctx.venueStyle.wallOpacity = normalized;
+                    if (getPanelEl(ctx.id, 'inspector')?.classList.contains('open')) refreshInspector(ctx.id);
+                    if (commit) commitHistory(ctx.id);
+                }
+
                 function serializeSceneObject(object3d) {
                     const payload = {
                         id: ensureSceneObjectId(object3d),
@@ -2316,6 +2402,7 @@
                         rotationY: object3d.rotation.y,
                         scale: { x: object3d.scale.x, y: object3d.scale.y, z: object3d.scale.z },
                     };
+                    if (object3d.userData.customColor) payload.customColor = object3d.userData.customColor;
                     if (payload.type === 'text-label') payload.text = object3d.userData.labelText || 'Label';
                     if (payload.type === 'custom-asset') {
                         payload.customAssetId = object3d.userData.customAssetId;
@@ -2334,6 +2421,7 @@
                         })),
                         selectedIds: ctx.selectedObjects.map(object3d => ensureSceneObjectId(object3d)),
                         selectedId: ctx.selectedObject ? ensureSceneObjectId(ctx.selectedObject) : null,
+                        venueStyle: cloneUserData(ctx.venueStyle),
                     };
                 }
 
@@ -2645,6 +2733,7 @@
                                 snapToFloor: false,
                             });
                         }
+                        if (item.customColor) applyObjectColor(child, item.customColor);
                         group.add(child);
                     }
 
@@ -2769,7 +2858,18 @@
                         }
                         if (!object3d) continue;
                         object3d.userData.sceneObjectId = item.id;
+                        if (item.customColor) applyObjectColor(object3d, item.customColor);
                         idMap.set(item.id, object3d);
+                    }
+
+                    if (ctx.id === 'venue') {
+                        ctx.venueStyle = {
+                            ...ctx.venueStyle,
+                            ...(state.venueStyle || {}),
+                        };
+                        applyVenueSurfaceColor(ctx, 'wall', ctx.venueStyle.wallColor, false);
+                        applyVenueSurfaceColor(ctx, 'floor', ctx.venueStyle.floorColor, false);
+                        applyVenueWallOpacity(ctx, ctx.venueStyle.wallOpacity, false);
                     }
 
                     ctx.groups = (state.groups || []).map(group => ({
@@ -2881,6 +2981,7 @@
                             z: object3d.scale.z,
                         },
                         text: object3d.userData.labelText || undefined,
+                        customColor: object3d.userData.customColor || undefined,
                     };
                 }
 
@@ -3109,22 +3210,35 @@
                     if (!body) return;
 
                     const count = ctx.selectedObjects.length;
-                    if (count === 0) {
-                        body.innerHTML = '<div class="inspector-empty">No object selected - click an object in the scene</div>';
-                        return;
-                    }
+                    const selectedColor = count > 0 ? getObjectColor(ctx.selectedObject || ctx.selectedObjects[0]) : '#77a361';
+                    const itemSection = count === 0
+                        ? '<div class="inspector-empty">No object selected - click an object in the scene</div>'
+                        : (() => {
+                            let headerHtml = '';
+                            let sliderHtml = '';
+                            if (count > 1) {
+                                headerHtml = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${count} objects selected</div><div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">Shift+click to add or remove objects from the selection.</div>`;
+                            } else {
+                                const object3d = ctx.selectedObject;
+                                const name = escapeHtml(object3d.userData.assetName || object3d.userData.objectType || 'Object');
+                                const rotation = Math.round(((object3d.rotation.y * 180 / Math.PI) % 360 + 360) % 360);
+                                headerHtml = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${name}</div><div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">x: ${object3d.position.x.toFixed(1)} | z: ${object3d.position.z.toFixed(1)}</div>`;
+                                sliderHtml = `<div class="panel-slider-row"><span class="panel-slider-label">Rotation</span><input type="range" class="panel-slider" id="${builderId}-insp-rot-slider" min="0" max="359" value="${rotation}" oninput="builderSetRotation('${builderId}', this.value)"><span class="panel-slider-val" id="${builderId}-insp-rot-val">${rotation}°</span></div>`;
+                            }
 
-                    let headerHtml = '';
-                    let sliderHtml = '';
-                    if (count > 1) {
-                        headerHtml = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${count} objects selected</div><div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">Shift+click to add or remove objects from the selection.</div>`;
-                    } else {
-                        const object3d = ctx.selectedObject;
-                        const name = escapeHtml(object3d.userData.assetName || object3d.userData.objectType || 'Object');
-                        const rotation = Math.round(((object3d.rotation.y * 180 / Math.PI) % 360 + 360) % 360);
-                        headerHtml = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${name}</div><div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">x: ${object3d.position.x.toFixed(1)} | z: ${object3d.position.z.toFixed(1)}</div>`;
-                        sliderHtml = `<div class="panel-slider-row"><span class="panel-slider-label">Rotation</span><input type="range" class="panel-slider" id="${builderId}-insp-rot-slider" min="0" max="359" value="${rotation}" oninput="builderSetRotation('${builderId}', this.value)"><span class="panel-slider-val" id="${builderId}-insp-rot-val">${rotation}°</span></div>`;
-                    }
+                            return [
+                                headerHtml,
+                                sliderHtml,
+                                '<div class="panel-section-title">Selected Item</div>',
+                                `<div class="panel-slider-row"><span class="panel-slider-label">Color</span><input type="color" class="panel-slider" value="${selectedColor}" oninput="builderSetSelectedColor('${builderId}', this.value, false)" onchange="builderSetSelectedColor('${builderId}', this.value, true)"></div>`,
+                                '<div class="inspector-action-grid">',
+                                `    <button class="panel-btn" onclick="builderRotateSelected('${builderId}', -15)">-15°</button>`,
+                                `    <button class="panel-btn" onclick="builderRotateSelected('${builderId}', 15)">+15°</button>`,
+                                `    <button class="panel-btn" onclick="builderDuplicateSelected('${builderId}')">Dupe</button>`,
+                                `    <button class="panel-btn" onclick="builderRemoveSelected('${builderId}')">Remove</button>`,
+                                '</div>',
+                            ].join('');
+                        })();
 
                     const groupChips = ctx.groups.map((group, index) => {
                         const active = ctx.selectedObjects.length > 0 && ctx.selectedObjects.every(object3d => group.members.includes(object3d));
@@ -3141,16 +3255,19 @@
                         ? '<div class="panel-section-title">Groups</div><div class="group-chip-wrap">' + groupChips + '</div>'
                         : '';
 
+                    const venueSection = builderId === 'venue'
+                        ? [
+                            '<div class="panel-section-title">Venue</div>',
+                            `<div class="panel-slider-row"><span class="panel-slider-label">Wall Color</span><input type="color" class="panel-slider" value="${ctx.venueStyle.wallColor}" oninput="builderSetVenueSurfaceColor('venue', 'wall', this.value, false)" onchange="builderSetVenueSurfaceColor('venue', 'wall', this.value, true)"></div>`,
+                            `<div class="panel-slider-row"><span class="panel-slider-label">Floor Color</span><input type="color" class="panel-slider" value="${ctx.venueStyle.floorColor}" oninput="builderSetVenueSurfaceColor('venue', 'floor', this.value, false)" onchange="builderSetVenueSurfaceColor('venue', 'floor', this.value, true)"></div>`,
+                            `<div class="panel-slider-row"><span class="panel-slider-label">Wall Transparency</span><input type="range" class="panel-slider" min="15" max="100" value="${Math.round((ctx.venueStyle.wallOpacity || 1) * 100)}" oninput="builderSetWallOpacity('venue', this.value, false)" onchange="builderSetWallOpacity('venue', this.value, true)"><span class="panel-slider-val">${Math.round((ctx.venueStyle.wallOpacity || 1) * 100)}%</span></div>`,
+                        ].join('')
+                        : '';
+
                     body.innerHTML = [
-                        headerHtml,
-                        sliderHtml,
-                        '<div class="inspector-action-grid">',
-                        `    <button class="panel-btn" onclick="builderRotateSelected('${builderId}', -15)">-15°</button>`,
-                        `    <button class="panel-btn" onclick="builderRotateSelected('${builderId}', 15)">+15°</button>`,
-                        `    <button class="panel-btn" onclick="builderDuplicateSelected('${builderId}')">Dupe</button>`,
-                        `    <button class="panel-btn" onclick="builderRemoveSelected('${builderId}')">Remove</button>`,
-                        '</div>',
+                        itemSection,
                         groupSection,
+                        venueSection,
                         '<div class="panel-section-title">Scene</div>',
                         `<button class="builder-btn" onclick="builderCreateGroup('${builderId}')">+ New Group</button>`,
                         extraButtons,
@@ -3244,6 +3361,12 @@
                         resetTarget: new THREE.Vector3(),
                         resetCameraPosition: config.defaultCamera.clone(),
                         resetDistance: builderId === 'venue' ? 12 : 9,
+                        venueSurfaceMeshes: { walls: [], floor: [] },
+                        venueStyle: {
+                            wallColor: '#d7d1c8',
+                            floorColor: '#6e5743',
+                            wallOpacity: 1,
+                        },
                         undoStack: [],
                         redoStack: [],
                         suppressHistory: false,
@@ -3292,11 +3415,16 @@
                                 ctx.floorY = worldBox.min.y;
                                 ctx.sceneUnitsPerFoot = Math.sqrt((worldSize.x * worldSize.z) / 13300);
                                 ctx.gridHelper.position.y = ctx.floorY + 0.01;
+                                collectVenueSurfaceMeshes(ctx);
                                 frameScene(ctx, worldBox, {
                                     padding: 1.18,
                                     direction: new THREE.Vector3(0, 0.86, 1.08),
                                     targetY: ctx.floorY + (worldSize.y * 0.18),
+                                    leftOffset: 0.15,
                                 });
+                                applyVenueSurfaceColor(ctx, 'wall', ctx.venueStyle.wallColor, false);
+                                applyVenueSurfaceColor(ctx, 'floor', ctx.venueStyle.floorColor, false);
+                                applyVenueWallOpacity(ctx, ctx.venueStyle.wallOpacity, false);
 
                                 const overlay = document.getElementById(config.loadingId);
                                 if (overlay) overlay.classList.add('hidden');
@@ -3527,6 +3655,26 @@
                     updateObjectCount(builderId);
                     syncSelectionUI(ctx);
                     commitHistory(builderId);
+                };
+
+                window.builderSetSelectedColor = function(builderId, color, commit = true) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length === 0) return;
+                    ctx.selectedObjects.forEach(object3d => applyObjectColor(object3d, color));
+                    if (getPanelEl(builderId, 'inspector')?.classList.contains('open')) refreshInspector(builderId);
+                    if (commit) commitHistory(builderId);
+                };
+
+                window.builderSetVenueSurfaceColor = function(builderId, surface, color, commit = true) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || builderId !== 'venue') return;
+                    applyVenueSurfaceColor(ctx, surface, color, commit);
+                };
+
+                window.builderSetWallOpacity = function(builderId, value, commit = true) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || builderId !== 'venue') return;
+                    applyVenueWallOpacity(ctx, Number(value) / 100, commit);
                 };
 
                 window.builderSetRotation = function(builderId, degrees) {

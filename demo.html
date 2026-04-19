@@ -2815,7 +2815,7 @@
 
                     const count = ctx.selectedObjects.length;
                     if (count === 0) {
-                        body.innerHTML = '<div class="inspector-empty">No object selected — click an object in the scene</div>';
+                        body.innerHTML = '<div class="inspector-empty">No object selected - click an object in the scene</div>';
                         return;
                     }
 
@@ -2833,28 +2833,34 @@
 
                     const groupChips = ctx.groups.map((group, index) => {
                         const active = ctx.selectedObjects.length > 0 && ctx.selectedObjects.every(object3d => group.members.includes(object3d));
-                        return `<span class="group-chip${active ? ' active-group' : ''}" onclick="builderAddToGroup('${builderId}', ${index})">${group.name}${active ? ' ✓' : ''}</span>`;
+                        const activeClass = active ? ' active-group' : '';
+                        const activeLabel = active ? ' ✓' : '';
+                        return `<span class="group-chip${activeClass}" onclick="builderAddToGroup('${builderId}', ${index})">${escapeHtml(group.name)}${activeLabel}</span>`;
                     }).join('');
 
                     const extraButtons = builderId === 'asset'
                         ? '<button class="builder-btn" onclick="builderPromptSaveCustomAsset(\'asset\')">Save Selected as Custom Asset</button>'
                         : '';
 
-                    body.innerHTML = `
-                        ${headerHtml}
-                        ${sliderHtml}
-                        <div class="inspector-action-grid">
-                            <button class="panel-btn" onclick="builderRotateSelected('${builderId}', -15)">-15°</button>
-                            <button class="panel-btn" onclick="builderRotateSelected('${builderId}', 15)">+15°</button>
-                            <button class="panel-btn" onclick="builderDuplicateSelected('${builderId}')">Dupe</button>
-                            <button class="panel-btn" onclick="builderRemoveSelected('${builderId}')">Remove</button>
-                        </div>
-                        ${ctx.groups.length > 0 ? `<div class="panel-section-title">Groups</div><div class="group-chip-wrap">${groupChips}</div>` : ''}
-                        <div class="panel-section-title">Scene</div>
-                        <button class="builder-btn" onclick="builderCreateGroup('${builderId}')">+ New Group</button>
-                        ${extraButtons}
-                        <button class="builder-btn" onclick="builderClearObjects('${builderId}')">Clear All Objects</button>
-                    `;
+                    const groupSection = ctx.groups.length > 0
+                        ? '<div class="panel-section-title">Groups</div><div class="group-chip-wrap">' + groupChips + '</div>'
+                        : '';
+
+                    body.innerHTML = [
+                        headerHtml,
+                        sliderHtml,
+                        '<div class="inspector-action-grid">',
+                        `    <button class="panel-btn" onclick="builderRotateSelected('${builderId}', -15)">-15°</button>`,
+                        `    <button class="panel-btn" onclick="builderRotateSelected('${builderId}', 15)">+15°</button>`,
+                        `    <button class="panel-btn" onclick="builderDuplicateSelected('${builderId}')">Dupe</button>`,
+                        `    <button class="panel-btn" onclick="builderRemoveSelected('${builderId}')">Remove</button>`,
+                        '</div>',
+                        groupSection,
+                        '<div class="panel-section-title">Scene</div>',
+                        `<button class="builder-btn" onclick="builderCreateGroup('${builderId}')">+ New Group</button>`,
+                        extraButtons,
+                        `<button class="builder-btn" onclick="builderClearObjects('${builderId}')">Clear All Objects</button>`
+                    ].join('');
                 }
 
                 function createAssetStudioBase(ctx) {
@@ -2941,7 +2947,6 @@
                     };
                     builders[builderId] = ctx;
 
-                    const resize = () => {
                     const resize = () => {
                         const width = wrap.clientWidth;
                         const height = wrap.clientHeight;
@@ -3344,6 +3349,7 @@
 
                 renderCustomAssetLibraries();
                 bindGlobalListeners();
+                window.switchBuilderWorkspace(window._activeBuilderWorkspace || 'venue');
             </script>
 
 </body>

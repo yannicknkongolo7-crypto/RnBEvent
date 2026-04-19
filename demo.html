@@ -2229,7 +2229,7 @@
                     const radius = Math.max(size.x, size.y, size.z) * 0.5 || 1;
                     const fov = THREE.MathUtils.degToRad(ctx.camera.fov);
                     const distance = (radius / Math.tan(fov / 2)) * (options.padding || 1.45);
-                    const direction = (options.direction || new THREE.Vector3(0.85, 0.55, 1)).clone().normalize();
+                    const direction = (options.direction || new THREE.Vector3(0, 0.68, 1)).clone().normalize();
                     ctx.controls.target.copy(center);
                     ctx.camera.position.copy(center).add(direction.multiplyScalar(distance));
                     ctx.resetTarget = center.clone();
@@ -2923,7 +2923,7 @@
                     );
                     frameScene(ctx, focusBounds, {
                         padding: 1.15,
-                        direction: new THREE.Vector3(0.15, 0.8, 1.05),
+                        direction: new THREE.Vector3(0, 0.82, 1.02),
                         targetY: ctx.floorY + 0.75,
                     });
                 }
@@ -3047,7 +3047,7 @@
                                 ctx.gridHelper.position.y = ctx.floorY + 0.01;
                                 frameScene(ctx, worldBox, {
                                     padding: 1.18,
-                                    direction: new THREE.Vector3(0.15, 0.9, 1.1),
+                                    direction: new THREE.Vector3(0, 0.86, 1.08),
                                     targetY: ctx.floorY + (worldSize.y * 0.18),
                                 });
 
@@ -3141,7 +3141,7 @@
                         front: target.clone().add(new THREE.Vector3(0, distance * 0.22, distance)),
                         top: target.clone().add(new THREE.Vector3(0.01, distance, 0.01)),
                         side: target.clone().add(new THREE.Vector3(distance, distance * 0.22, 0)),
-                        iso: target.clone().add(new THREE.Vector3(distance * 0.18, distance * 0.72, distance * 0.88)),
+                        iso: target.clone().add(new THREE.Vector3(0, distance * 0.74, distance * 0.92)),
                         reset: (ctx.resetCameraPosition || builderConfigs[builderId].defaultCamera).clone(),
                     };
                     const pos = positions[view] || positions.reset;

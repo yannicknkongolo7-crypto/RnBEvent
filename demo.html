@@ -336,6 +336,33 @@
             margin: 0 auto;
             padding: 40px 20px;
         }
+        .builder-mode-nav {
+            display: inline-flex;
+            gap: 8px;
+            padding: 6px;
+            background: #edf2e8;
+            border-radius: 999px;
+            margin-bottom: 20px;
+        }
+        .builder-mode-btn {
+            border: none;
+            background: transparent;
+            color: #527141;
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .builder-mode-btn.active {
+            background: #2c3e2c;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(44,62,44,0.18);
+        }
         .builder-label {
             text-align: center;
             margin-bottom: 28px;
@@ -348,6 +375,56 @@
             font-weight: 500;
         }
         .builder-label p { color: #888; font-size: 14px; }
+        .builder-workspace {
+            display: none;
+        }
+        .builder-workspace.active {
+            display: block;
+        }
+        .builder-quickbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 0 18px;
+        }
+        .builder-quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            border-radius: 999px;
+            background: #2c3e2c;
+            color: #fff;
+            padding: 11px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            cursor: pointer;
+            transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+            font-family: inherit;
+        }
+        .builder-quick-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(44,62,44,0.2);
+        }
+        .builder-quick-btn.secondary {
+            background: #77a361;
+        }
+        .builder-quick-btn.ghost {
+            background: #eef3ea;
+            color: #2c3e2c;
+            border: 1px solid #d6e2cf;
+        }
+        .custom-assets-library {
+            margin-top: 14px;
+        }
+        .custom-assets-empty {
+            color: rgba(255,255,255,0.38);
+            font-size: 11px;
+            line-height: 1.6;
+            padding: 8px 2px 2px;
+        }
         .builder-layout {
             display: grid;
             grid-template-columns: 1fr 260px;
@@ -873,6 +950,17 @@
         }
         .text-label-modal-confirm:hover { background: #5d8a49; }
 
+        .custom-asset-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10002;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-asset-modal-overlay.open { display: flex; }
+
         @media (max-width: 900px) {
             .builder-layout { display: block; }
             .builder-hud { flex-wrap: nowrap; border-radius: 28px; top: 8px; }
@@ -903,6 +991,21 @@
             .builder-freeze-badge { font-size: 9px; top: 52px; padding: 3px 12px; }
 
             .concierge-panel { height: 520px; }
+            .builder-mode-nav {
+                display: flex;
+                width: 100%;
+            }
+            .builder-mode-btn {
+                flex: 1;
+                padding: 10px 12px;
+            }
+            .builder-quickbar {
+                justify-content: stretch;
+            }
+            .builder-quick-btn {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
         }
 
         /* ── Demo page shared ─────────────────────────────── */
@@ -1237,10 +1340,10 @@
         <!-- Tab Navigation -->
         <div class="demo-tabs">
             <div class="demo-tab-nav">
-                <button class="demo-tab-btn active" onclick="switchTab('chatbot')">
+                <button class="demo-tab-btn active" onclick="switchTab(this, 'chatbot')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Chat Concierge
                 </button>
-                <button class="demo-tab-btn" onclick="switchTab('3d')">
+                <button class="demo-tab-btn" onclick="switchTab(this, '3d')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>3D Venue Builder
                 </button>
             </div>
@@ -1300,250 +1403,178 @@
             <div id="tab-3d" class="demo-tab-content">
                 <div class="builder-wrap">
                     <div class="builder-label">
-                        <h2>3D Venue Builder</h2>
-                        <p>Explore the Hampton venue — use the toolbar to add objects, adjust lighting and freeze the layout</p>
-                    </div>
-                    <div class="builder-layout">
-                        <!-- Canvas + HUD + panels -->
-                        <div class="builder-canvas-wrap">
-                            <canvas id="builder-canvas"></canvas>
-
-                            <!-- Loading overlay -->
-                            <div class="builder-loading" id="builder-loading">
-                                <div class="builder-spinner"></div>
-                                <p>LOADING HAMPTON VENUE</p>
-                                <div class="builder-progress">
-                                    <div class="builder-progress-bar" id="builder-prog"></div>
-                                </div>
-                            </div>
-
-                            <!-- Hint -->
-                            <div class="builder-hint" id="builder-hint">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style="vertical-align:-1px;margin-right:4px"><path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05 1.56 4 4.92 4 9h7V1.07z"/></svg>
-                                Drag orbit · Scroll zoom · Right-click pan
-                            </div>
-
-                            <!-- Freeze badge -->
-                            <div class="builder-freeze-badge" id="freeze-badge">
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="white" style="vertical-align:-1px;margin-right:5px"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                                LAYOUT LOCKED — drag objects only
-                            </div>
-
-                            <!-- ── FLOATING HUD TOOLBAR ── -->
-                            <div class="builder-hud">
-                                <!-- Objects -->
-                                <button class="hud-btn" id="hud-objects" onclick="hudTogglePanel('objects')">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-                                    Objects
-                                </button>
-                                <div class="hud-sep"></div>
-                                <!-- Camera -->
-                                <button class="hud-btn" id="hud-camera" onclick="hudTogglePanel('camera')">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                    View
-                                </button>
-                                <!-- Light -->
-                                <button class="hud-btn" id="hud-light" onclick="hudTogglePanel('light')">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>
-                                    Light
-                                </button>
-                                <!-- Display -->
-                                <button class="hud-btn" id="hud-display" onclick="hudTogglePanel('display')">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
-                                    Display
-                                </button>
-                                <!-- Align -->
-                                <button class="hud-btn" id="hud-align" onclick="hudTogglePanel('align')">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zm4-7H6v5h2v-5zm4 3h-2v2h2v-2zm4-5h-2v7h2v-7zm4-3h-2v10h2V10zM6 9H4v3h2V9zm4-3H8v3h2V6zm4-2h-2v3h2V4zm4 1h-2v2h2V5z"/></svg>
-                                    Align
-                                </button>
-                                <div class="hud-sep"></div>
-                                <!-- Inspector (selection) -->
-                                <button class="hud-btn" id="hud-inspector" onclick="hudTogglePanel('inspector')">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>
-                                    Inspector<span class="hud-sel-badge" id="sel-badge"></span>
-                                </button>
-                                <div class="hud-sep"></div>
-                                <!-- Freeze layout -->
-                                <button class="hud-btn" id="hud-freeze" onclick="builderToggleFreeze()">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                                    Freeze
-                                </button>
-                            </div>
-
-                            <!-- ── PANEL: Objects ── -->
-                            <div class="builder-panel" id="panel-objects">
-                                <div class="builder-panel-header">
-                                    <span class="builder-panel-title">Add Objects</span>
-                                    <button class="builder-panel-close" onclick="hudClosePanel('objects')">&#x2715;</button>
-                                </div>
-                                <div class="panel-obj-card">
-                                    <div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M20 9V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h3v2H5v2h14v-2h-2v-2h3c1.1 0 2-.9 2-2v-2h-2zm-2 4H4V7h14v6zm-5 4h-2v-2h2v2z"/></svg></div>
-                                    <div class="panel-obj-meta">
-                                        <div class="panel-obj-name">Serpentine Table</div>
-                                        <div class="panel-obj-sub" id="obj-serpentine-count">0 placed &middot; 118" dia</div>
-                                    </div>
-                                    <button class="panel-obj-add" onclick="builderAddObject('serpentine-table')">+ ADD</button>
-                                </div>
-                                <div class="panel-obj-card">
-                                    <div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>
-                                    <div class="panel-obj-meta">
-                                        <div class="panel-obj-name">Serpentine Section</div>
-                                        <div class="panel-obj-sub" id="obj-section-count">0 placed &middot; 83"L</div>
-                                    </div>
-                                    <button class="panel-obj-add" onclick="builderAddObject('serpentine-section')">+ ADD</button>
-                                </div>
-                                <div class="panel-obj-card">
-                                    <div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></svg></div>
-                                    <div class="panel-obj-meta">
-                                        <div class="panel-obj-name">Text Label</div>
-                                        <div class="panel-obj-sub" id="obj-text-count">0 placed &middot; floor label</div>
-                                    </div>
-                                    <button class="panel-obj-add" onclick="builderPromptTextLabel()">+ ADD</button>
-                                </div>
-                            </div>
-
-                            <!-- ── PANEL: Camera / View ── -->
-                            <div class="builder-panel" id="panel-camera">
-                                <div class="builder-panel-header">
-                                    <span class="builder-panel-title">Camera Views</span>
-                                    <button class="builder-panel-close" onclick="hudClosePanel('camera')">&#x2715;</button>
-                                </div>
-                                <div class="panel-btn-grid">
-                                    <button class="panel-btn" onclick="builderCam('front')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>Front</button>
-                                    <button class="panel-btn" onclick="builderCam('top')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>Top</button>
-                                    <button class="panel-btn" onclick="builderCam('side')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Side</button>
-                                    <button class="panel-btn" onclick="builderCam('iso')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5.5 9h11L12 2zm0 3.84L14.6 10h-5.2L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5S15.01 22 17.5 22s4.5-2.01 4.5-4.5S19.99 13 17.5 13zm0 7c-1.38 0-2.5-1.12-2.5-2.5S16.12 15 17.5 15s2.5 1.12 2.5 2.5S18.88 20 17.5 20zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"/></svg>Iso</button>
-                                    <button class="panel-btn" onclick="builderCam('reset')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>Reset</button>
-                                </div>
-                            </div>
-
-                            <!-- ── PANEL: Lighting ── -->
-                            <div class="builder-panel" id="panel-light">
-                                <div class="builder-panel-header">
-                                    <span class="builder-panel-title">Lighting</span>
-                                    <button class="builder-panel-close" onclick="hudClosePanel('light')">&#x2715;</button>
-                                </div>
-                                <div class="panel-btn-grid">
-                                    <button class="panel-btn active" id="btn-light-day" onclick="builderLight('day')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>Day</button>
-                                    <button class="panel-btn" id="btn-light-evening" onclick="builderLight('evening')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 15.31L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>Evening</button>
-                                    <button class="panel-btn" id="btn-light-night" onclick="builderLight('night')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>Night</button>
-                                </div>
-                            </div>
-
-                            <!-- ── PANEL: Display ── -->
-                            <div class="builder-panel" id="panel-display">
-                                <div class="builder-panel-header">
-                                    <span class="builder-panel-title">Display</span>
-                                    <button class="builder-panel-close" onclick="hudClosePanel('display')">&#x2715;</button>
-                                </div>
-                                <div class="panel-toggle-row">
-                                    <span class="panel-toggle-label">Wireframe</span>
-                                    <button class="panel-toggle" id="tog-wire" onclick="builderToggle('wire')"></button>
-                                </div>
-                                <div class="panel-toggle-row">
-                                    <span class="panel-toggle-label">Auto-rotate</span>
-                                    <button class="panel-toggle on" id="tog-rotate" onclick="builderToggle('rotate')"></button>
-                                </div>
-                                <div class="panel-toggle-row">
-                                    <span class="panel-toggle-label">Grid floor</span>
-                                    <button class="panel-toggle" id="tog-grid" onclick="builderToggle('grid')"></button>
-                                </div>
-                            </div>
-
-                            <!-- ── PANEL: Inspector ── -->
-                            <div class="builder-panel" id="panel-inspector">
-                                <div class="builder-panel-header">
-                                    <span class="builder-panel-title">Inspector</span>
-                                    <button class="builder-panel-close" onclick="hudClosePanel('inspector')">&#x2715;</button>
-                                </div>
-                                <div id="inspector-body">
-                                    <div class="inspector-empty">No object selected — click an object in the scene</div>
-                                </div>
-                            </div>
-
-                            <!-- ── PANEL: Align ── -->
-                            <div class="builder-panel" id="panel-align">
-                                <div class="builder-panel-header">
-                                    <span class="builder-panel-title">Align Objects</span>
-                                    <button class="builder-panel-close" onclick="hudClosePanel('align')">&#x2715;</button>
-                                </div>
-                                <div class="panel-section-title">Align (select 2+ objects)</div>
-                                <div class="align-grid">
-                                    <button class="align-btn" onclick="builderAlign('left')" title="Align left edges">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zM6 7v10h4V7H6zm6 3v4h4v-4h-4zm6-5v14h4V5h-4z"/></svg>Left
-                                    </button>
-                                    <button class="align-btn" onclick="builderAlign('centerX')" title="Center on vertical axis">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2h2v2.07C16.44 4.56 19 7.58 19 11c0 3.42-2.56 6.44-6 6.93V20h2v2H9v-2h2v-2.07C7.56 17.44 5 14.42 5 11c0-3.42 2.56-6.44 6-6.93V2zm1 4a5 5 0 1 0 0 10A5 5 0 0 0 12 6z"/></svg>Ctr X
-                                    </button>
-                                    <button class="align-btn" onclick="builderAlign('right')" title="Align right edges">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2h2v20h-2V2zM2 7v10h4V7H2zm6 3v4h4v-4H8zm6-5v14h4V5h-4z"/></svg>Right
-                                    </button>
-                                    <button class="align-btn" onclick="builderAlign('front')" title="Align to front (min depth)">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 4h20v2H2V4zm5 6h10v2H7v-2zm-3 6h16v2H4v-2z"/></svg>Front
-                                    </button>
-                                    <button class="align-btn" onclick="builderAlign('centerZ')" title="Center on horizontal axis">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 11h20v2H2v-2z"/></svg>Ctr Z
-                                    </button>
-                                    <button class="align-btn" onclick="builderAlign('back')" title="Align to back (max depth)">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4V4zm3 6h10v2H7v-2zm-5 6h20v2H2v-2z"/></svg>Back
-                                    </button>
-                                </div>
-                                <div class="panel-section-title">Distribute evenly (3+ objects)</div>
-                                <div class="align-dist-grid">
-                                    <button class="align-btn" onclick="builderAlign('distX')" title="Space evenly left-right">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zm18 0h-2V2h2v20zM8 10v4h8v-4H8z"/></svg>Spread X
-                                    </button>
-                                    <button class="align-btn" onclick="builderAlign('distZ')" title="Space evenly front-back">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 4v2h20V4H2zm0 14v2h20v-2H2zM8 10v4h8v-4H8z"/></svg>Spread Z
-                                    </button>
-                                </div>
-                                <div style="color:rgba(255,255,255,0.3);font-size:10px;margin-top:12px;text-align:center;">Shift+click to multi-select objects first</div>
-                            </div>
-
-                        </div><!-- /.builder-canvas-wrap -->
-
-                    <!-- Canvas right-click context menu (fixed, outside canvas wrap so it escapes overflow:hidden) -->
-                    <div class="ctx-menu" id="ctx-menu">
-                        <div class="ctx-label" id="ctx-title">Selection</div>
-                        <button class="ctx-item" onclick="ctxDuplicate()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                            Duplicate
-                        </button>
-                        <button class="ctx-item" onclick="ctxGroupSelected()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
-                            Group selection
-                        </button>
-                        <div class="ctx-sep"></div>
-                        <button class="ctx-item" onclick="ctxSelectAll()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2c0-1.1-.9-2-2-2zM5 21v-2H3c0 1.1.9 2 2 2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8c1.1 0 2-.9 2-2h-2v2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2z"/></svg>
-                            Select all
-                        </button>
-                        <button class="ctx-item" onclick="ctxDeselectAll()">
-                            Deselect all
-                        </button>
-                        <div class="ctx-sep"></div>
-                        <button class="ctx-item danger" onclick="ctxRemoveSelected()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                            Remove selected
-                        </button>
+                        <div class="builder-mode-nav">
+                            <button class="builder-mode-btn active" id="builder-mode-venue" onclick="switchBuilderWorkspace('venue')">Venue Builder</button>
+                            <button class="builder-mode-btn" id="builder-mode-asset" onclick="switchBuilderWorkspace('asset')">Asset Builder</button>
+                        </div>
                     </div>
 
-                    <!-- Text Label Input Modal -->
-                    <div class="text-label-modal-overlay" id="text-label-modal">
-                        <div class="text-label-modal-box">
-                            <div class="text-label-modal-title">Add Text Label</div>
-                            <div class="text-label-modal-sub">Appears as a floating label on the floor plan</div>
-                            <input class="text-label-modal-input" id="text-label-input" type="text"
-                                placeholder="e.g. Dance Floor, Bar Area, Stage…" maxlength="40"
-                                onkeydown="if(event.key==='Enter')builderConfirmTextLabel();if(event.key==='Escape')builderCancelTextLabel();">
-                            <div class="text-label-modal-actions">
-                                <button class="text-label-modal-cancel" onclick="builderCancelTextLabel()">Cancel</button>
-                                <button class="text-label-modal-confirm" onclick="builderConfirmTextLabel()">Add Label</button>
+                    <div class="builder-workspace active" id="builder-workspace-venue">
+                        <div class="builder-label">
+                            <h2>3D Venue Builder</h2>
+                            <p>Explore the Hampton venue, load a two-table setup, and place saved custom grouped assets into the room.</p>
+                        </div>
+                        <div class="builder-quickbar">
+                            <button class="builder-quick-btn" onclick="builderLoadTwoTableSetup()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm2 5h6v8H5v-8zm8 0h6v8h-6v-8z"/></svg>
+                                Load 2-Table Setup
+                            </button>
+                            <button class="builder-quick-btn secondary" onclick="switchBuilderWorkspace('asset')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm-7.64 5L12 10.47 19.64 7 12 3.53 4.36 7zM5 12.74V17l7 3.18V13.9l-7-1.16zm9 7.44L19 17v-4.26l-5 1.16v6.28z"/></svg>
+                                Open Asset Builder
+                            </button>
+                        </div>
+                        <div class="builder-layout">
+                            <div class="builder-canvas-wrap">
+                                <canvas id="venue-builder-canvas"></canvas>
+                                <div class="builder-loading" id="venue-builder-loading">
+                                    <div class="builder-spinner"></div>
+                                    <p>LOADING HAMPTON VENUE</p>
+                                    <div class="builder-progress"><div class="builder-progress-bar" id="venue-builder-prog"></div></div>
+                                </div>
+                                <div class="builder-hint" id="venue-builder-hint">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style="vertical-align:-1px;margin-right:4px"><path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05 1.56 4 4.92 4 9h7V1.07z"/></svg>
+                                    Drag orbit · Scroll zoom · Right-click pan
+                                </div>
+                                <div class="builder-freeze-badge" id="venue-freeze-badge">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="white" style="vertical-align:-1px;margin-right:5px"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                    LAYOUT LOCKED — drag objects only
+                                </div>
+                                <div class="builder-hud">
+                                    <button class="hud-btn" id="venue-hud-objects" onclick="hudTogglePanel('venue', 'objects')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Objects</button>
+                                    <div class="hud-sep"></div>
+                                    <button class="hud-btn" id="venue-hud-camera" onclick="hudTogglePanel('venue', 'camera')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z"/></svg>View</button>
+                                    <button class="hud-btn" id="venue-hud-light" onclick="hudTogglePanel('venue', 'light')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>Light</button>
+                                    <button class="hud-btn" id="venue-hud-display" onclick="hudTogglePanel('venue', 'display')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2z"/></svg>Display</button>
+                                    <button class="hud-btn" id="venue-hud-align" onclick="hudTogglePanel('venue', 'align')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zm4-7H6v5h2v-5zm4 3h-2v2h2v-2zm4-5h-2v7h2v-7z"/></svg>Align</button>
+                                    <div class="hud-sep"></div>
+                                    <button class="hud-btn" id="venue-hud-inspector" onclick="hudTogglePanel('venue', 'inspector')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Inspector<span class="hud-sel-badge" id="venue-sel-badge"></span></button>
+                                    <div class="hud-sep"></div>
+                                    <button class="hud-btn" id="venue-hud-freeze" onclick="builderToggleFreeze('venue')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z"/></svg>Freeze</button>
+                                </div>
+                                <div class="builder-panel" id="venue-panel-objects">
+                                    <div class="builder-panel-header"><span class="builder-panel-title">Add Objects</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'objects')">&#x2715;</button></div>
+                                    <div class="panel-obj-card"><div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M20 9V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h3v2H5v2h14v-2h-2v-2h3c1.1 0 2-.9 2-2v-2h-2z"/></svg></div><div class="panel-obj-meta"><div class="panel-obj-name">Serpentine Table</div><div class="panel-obj-sub" id="obj-venue-serpentine-count">0 placed &middot; 118" dia</div></div><button class="panel-obj-add" onclick="builderAddObject('venue', 'serpentine-table')">+ ADD</button></div>
+                                    <div class="panel-obj-card"><div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div><div class="panel-obj-meta"><div class="panel-obj-name">Serpentine Section</div><div class="panel-obj-sub" id="obj-venue-section-count">0 placed &middot; 83"L</div></div><button class="panel-obj-add" onclick="builderAddObject('venue', 'serpentine-section')">+ ADD</button></div>
+                                    <div class="panel-obj-card"><div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></svg></div><div class="panel-obj-meta"><div class="panel-obj-name">Text Label</div><div class="panel-obj-sub" id="obj-venue-text-count">0 placed &middot; floor label</div></div><button class="panel-obj-add" onclick="builderPromptTextLabel('venue')">+ ADD</button></div>
+                                    <div class="panel-section-title">Saved Custom Assets</div>
+                                    <div class="custom-assets-library" id="venue-custom-assets"></div>
+                                </div>
+                                <div class="builder-panel" id="venue-panel-camera"><div class="builder-panel-header"><span class="builder-panel-title">Camera Views</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'camera')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn" onclick="builderCam('venue', 'front')">Front</button><button class="panel-btn" onclick="builderCam('venue', 'top')">Top</button><button class="panel-btn" onclick="builderCam('venue', 'side')">Side</button><button class="panel-btn" onclick="builderCam('venue', 'iso')">Iso</button><button class="panel-btn" onclick="builderCam('venue', 'reset')">Reset</button></div></div>
+                                <div class="builder-panel" id="venue-panel-light"><div class="builder-panel-header"><span class="builder-panel-title">Lighting</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'light')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn active" id="venue-btn-light-day" onclick="builderLight('venue', 'day')">Day</button><button class="panel-btn" id="venue-btn-light-evening" onclick="builderLight('venue', 'evening')">Evening</button><button class="panel-btn" id="venue-btn-light-night" onclick="builderLight('venue', 'night')">Night</button></div></div>
+                                <div class="builder-panel" id="venue-panel-display"><div class="builder-panel-header"><span class="builder-panel-title">Display</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'display')">&#x2715;</button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Wireframe</span><button class="panel-toggle" id="venue-tog-wire" onclick="builderToggle('venue', 'wire')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Auto-rotate</span><button class="panel-toggle on" id="venue-tog-rotate" onclick="builderToggle('venue', 'rotate')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Grid floor</span><button class="panel-toggle" id="venue-tog-grid" onclick="builderToggle('venue', 'grid')"></button></div></div>
+                                <div class="builder-panel" id="venue-panel-inspector"><div class="builder-panel-header"><span class="builder-panel-title">Inspector</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'inspector')">&#x2715;</button></div><div id="venue-inspector-body"><div class="inspector-empty">No object selected — click an object in the scene</div></div></div>
+                                <div class="builder-panel" id="venue-panel-align"><div class="builder-panel-header"><span class="builder-panel-title">Align Objects</span><button class="builder-panel-close" onclick="hudClosePanel('venue', 'align')">&#x2715;</button></div><div class="panel-section-title">Align (select 2+ objects)</div><div class="align-grid"><button class="align-btn" onclick="builderAlign('venue', 'left')">Left</button><button class="align-btn" onclick="builderAlign('venue', 'centerX')">Ctr X</button><button class="align-btn" onclick="builderAlign('venue', 'right')">Right</button><button class="align-btn" onclick="builderAlign('venue', 'front')">Front</button><button class="align-btn" onclick="builderAlign('venue', 'centerZ')">Ctr Z</button><button class="align-btn" onclick="builderAlign('venue', 'back')">Back</button></div><div class="panel-section-title">Distribute evenly (3+ objects)</div><div class="align-dist-grid"><button class="align-btn" onclick="builderAlign('venue', 'distX')">Spread X</button><button class="align-btn" onclick="builderAlign('venue', 'distZ')">Spread Z</button></div><div style="color:rgba(255,255,255,0.3);font-size:10px;margin-top:12px;text-align:center;">Shift+click to multi-select objects first</div></div>
+                            </div>
+
+                            <div class="ctx-menu" id="venue-ctx-menu">
+                                <div class="ctx-label" id="venue-ctx-title">Selection</div>
+                                <button class="ctx-item" onclick="ctxDuplicate('venue')">Duplicate</button>
+                                <button class="ctx-item" onclick="ctxGroupSelected('venue')">Group selection</button>
+                                <div class="ctx-sep"></div>
+                                <button class="ctx-item" onclick="ctxSelectAll('venue')">Select all</button>
+                                <button class="ctx-item" onclick="ctxDeselectAll('venue')">Deselect all</button>
+                                <div class="ctx-sep"></div>
+                                <button class="ctx-item danger" onclick="ctxRemoveSelected('venue')">Remove selected</button>
+                            </div>
+
+                            <div class="text-label-modal-overlay" id="text-label-modal-venue">
+                                <div class="text-label-modal-box">
+                                    <div class="text-label-modal-title">Add Text Label</div>
+                                    <div class="text-label-modal-sub">Appears as a floating label on the venue floor plan</div>
+                                    <input class="text-label-modal-input" id="text-label-input-venue" type="text" placeholder="e.g. Dance Floor, Bar Area, Stage…" maxlength="40" onkeydown="if(event.key==='Enter')builderConfirmTextLabel('venue');if(event.key==='Escape')builderCancelTextLabel('venue');">
+                                    <div class="text-label-modal-actions"><button class="text-label-modal-cancel" onclick="builderCancelTextLabel('venue')">Cancel</button><button class="text-label-modal-confirm" onclick="builderConfirmTextLabel('venue')">Add Label</button></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    </div><!-- /.builder-layout -->
+
+                    <div class="builder-workspace" id="builder-workspace-asset">
+                        <div class="builder-label">
+                            <h2>3D Asset Builder</h2>
+                            <p>Use a blank 3D workspace to arrange multiple assets into one grouped custom asset, then place it back inside the venue builder.</p>
+                        </div>
+                        <div class="builder-quickbar">
+                            <button class="builder-quick-btn secondary" onclick="builderPromptSaveCustomAsset('asset')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5a2 2 0 0 0-2 2v14l4-4h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-3 10h-2v-2H9V9h3V6h2v3h3v2h-3v2z"/></svg>
+                                Save Selected as Custom Asset
+                            </button>
+                            <button class="builder-quick-btn ghost" onclick="switchBuilderWorkspace('venue')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                Back to Venue Builder
+                            </button>
+                        </div>
+                        <div class="builder-layout">
+                            <div class="builder-canvas-wrap">
+                                <canvas id="asset-builder-canvas"></canvas>
+                                <div class="builder-loading" id="asset-builder-loading">
+                                    <div class="builder-spinner"></div>
+                                    <p>PREPARING BLANK ASSET STUDIO</p>
+                                    <div class="builder-progress"><div class="builder-progress-bar" id="asset-builder-prog" style="width:100%"></div></div>
+                                </div>
+                                <div class="builder-hint" id="asset-builder-hint">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style="vertical-align:-1px;margin-right:4px"><path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05 1.56 4 4.92 4 9h7V1.07z"/></svg>
+                                    Blank studio · Drag objects · Group and save reusable assets
+                                </div>
+                                <div class="builder-freeze-badge" id="asset-freeze-badge">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="white" style="vertical-align:-1px;margin-right:5px"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z"/></svg>
+                                    STUDIO LOCKED — drag objects only
+                                </div>
+                                <div class="builder-hud">
+                                    <button class="hud-btn" id="asset-hud-objects" onclick="hudTogglePanel('asset', 'objects')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Objects</button>
+                                    <div class="hud-sep"></div>
+                                    <button class="hud-btn" id="asset-hud-camera" onclick="hudTogglePanel('asset', 'camera')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z"/></svg>View</button>
+                                    <button class="hud-btn" id="asset-hud-light" onclick="hudTogglePanel('asset', 'light')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>Light</button>
+                                    <button class="hud-btn" id="asset-hud-display" onclick="hudTogglePanel('asset', 'display')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2z"/></svg>Display</button>
+                                    <button class="hud-btn" id="asset-hud-align" onclick="hudTogglePanel('asset', 'align')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 22H2V2h2v20zm4-7H6v5h2v-5zm4 3h-2v2h2v-2zm4-5h-2v7h2v-7z"/></svg>Align</button>
+                                    <div class="hud-sep"></div>
+                                    <button class="hud-btn" id="asset-hud-inspector" onclick="hudTogglePanel('asset', 'inspector')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>Inspector<span class="hud-sel-badge" id="asset-sel-badge"></span></button>
+                                    <div class="hud-sep"></div>
+                                    <button class="hud-btn" id="asset-hud-freeze" onclick="builderToggleFreeze('asset')"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z"/></svg>Freeze</button>
+                                </div>
+                                <div class="builder-panel" id="asset-panel-objects">
+                                    <div class="builder-panel-header"><span class="builder-panel-title">Add Objects</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'objects')">&#x2715;</button></div>
+                                    <div class="panel-obj-card"><div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M20 9V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h3v2H5v2h14v-2h-2v-2h3c1.1 0 2-.9 2-2v-2h-2z"/></svg></div><div class="panel-obj-meta"><div class="panel-obj-name">Serpentine Table</div><div class="panel-obj-sub" id="obj-asset-serpentine-count">0 placed &middot; 118" dia</div></div><button class="panel-obj-add" onclick="builderAddObject('asset', 'serpentine-table')">+ ADD</button></div>
+                                    <div class="panel-obj-card"><div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div><div class="panel-obj-meta"><div class="panel-obj-name">Serpentine Section</div><div class="panel-obj-sub" id="obj-asset-section-count">0 placed &middot; 83"L</div></div><button class="panel-obj-add" onclick="builderAddObject('asset', 'serpentine-section')">+ ADD</button></div>
+                                    <div class="panel-obj-card"><div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></svg></div><div class="panel-obj-meta"><div class="panel-obj-name">Text Label</div><div class="panel-obj-sub" id="obj-asset-text-count">0 placed &middot; floor label</div></div><button class="panel-obj-add" onclick="builderPromptTextLabel('asset')">+ ADD</button></div>
+                                </div>
+                                <div class="builder-panel" id="asset-panel-camera"><div class="builder-panel-header"><span class="builder-panel-title">Camera Views</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'camera')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn" onclick="builderCam('asset', 'front')">Front</button><button class="panel-btn" onclick="builderCam('asset', 'top')">Top</button><button class="panel-btn" onclick="builderCam('asset', 'side')">Side</button><button class="panel-btn" onclick="builderCam('asset', 'iso')">Iso</button><button class="panel-btn" onclick="builderCam('asset', 'reset')">Reset</button></div></div>
+                                <div class="builder-panel" id="asset-panel-light"><div class="builder-panel-header"><span class="builder-panel-title">Lighting</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'light')">&#x2715;</button></div><div class="panel-btn-grid"><button class="panel-btn active" id="asset-btn-light-day" onclick="builderLight('asset', 'day')">Day</button><button class="panel-btn" id="asset-btn-light-evening" onclick="builderLight('asset', 'evening')">Evening</button><button class="panel-btn" id="asset-btn-light-night" onclick="builderLight('asset', 'night')">Night</button></div></div>
+                                <div class="builder-panel" id="asset-panel-display"><div class="builder-panel-header"><span class="builder-panel-title">Display</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'display')">&#x2715;</button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Wireframe</span><button class="panel-toggle" id="asset-tog-wire" onclick="builderToggle('asset', 'wire')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Auto-rotate</span><button class="panel-toggle on" id="asset-tog-rotate" onclick="builderToggle('asset', 'rotate')"></button></div><div class="panel-toggle-row"><span class="panel-toggle-label">Grid floor</span><button class="panel-toggle on" id="asset-tog-grid" onclick="builderToggle('asset', 'grid')"></button></div></div>
+                                <div class="builder-panel" id="asset-panel-inspector"><div class="builder-panel-header"><span class="builder-panel-title">Inspector</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'inspector')">&#x2715;</button></div><div id="asset-inspector-body"><div class="inspector-empty">No object selected — click an object in the scene</div></div></div>
+                                <div class="builder-panel" id="asset-panel-align"><div class="builder-panel-header"><span class="builder-panel-title">Align Objects</span><button class="builder-panel-close" onclick="hudClosePanel('asset', 'align')">&#x2715;</button></div><div class="panel-section-title">Align (select 2+ objects)</div><div class="align-grid"><button class="align-btn" onclick="builderAlign('asset', 'left')">Left</button><button class="align-btn" onclick="builderAlign('asset', 'centerX')">Ctr X</button><button class="align-btn" onclick="builderAlign('asset', 'right')">Right</button><button class="align-btn" onclick="builderAlign('asset', 'front')">Front</button><button class="align-btn" onclick="builderAlign('asset', 'centerZ')">Ctr Z</button><button class="align-btn" onclick="builderAlign('asset', 'back')">Back</button></div><div class="panel-section-title">Distribute evenly (3+ objects)</div><div class="align-dist-grid"><button class="align-btn" onclick="builderAlign('asset', 'distX')">Spread X</button><button class="align-btn" onclick="builderAlign('asset', 'distZ')">Spread Z</button></div><div style="color:rgba(255,255,255,0.3);font-size:10px;margin-top:12px;text-align:center;">Shift+click to multi-select objects first</div></div>
+                            </div>
+
+                            <div class="ctx-menu" id="asset-ctx-menu">
+                                <div class="ctx-label" id="asset-ctx-title">Selection</div>
+                                <button class="ctx-item" onclick="ctxDuplicate('asset')">Duplicate</button>
+                                <button class="ctx-item" onclick="ctxGroupSelected('asset')">Group selection</button>
+                                <div class="ctx-sep"></div>
+                                <button class="ctx-item" onclick="ctxSelectAll('asset')">Select all</button>
+                                <button class="ctx-item" onclick="ctxDeselectAll('asset')">Deselect all</button>
+                                <div class="ctx-sep"></div>
+                                <button class="ctx-item danger" onclick="ctxRemoveSelected('asset')">Remove selected</button>
+                            </div>
+
+                            <div class="text-label-modal-overlay" id="text-label-modal-asset">
+                                <div class="text-label-modal-box">
+                                    <div class="text-label-modal-title">Add Text Label</div>
+                                    <div class="text-label-modal-sub">Appears inside the custom asset studio</div>
+                                    <input class="text-label-modal-input" id="text-label-input-asset" type="text" placeholder="e.g. Head Table, Floral Moment, Entry Feature…" maxlength="40" onkeydown="if(event.key==='Enter')builderConfirmTextLabel('asset');if(event.key==='Escape')builderCancelTextLabel('asset');">
+                                    <div class="text-label-modal-actions"><button class="text-label-modal-cancel" onclick="builderCancelTextLabel('asset')">Cancel</button><button class="text-label-modal-confirm" onclick="builderConfirmTextLabel('asset')">Add Label</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-asset-modal-overlay" id="custom-asset-modal">
+                        <div class="text-label-modal-box">
+                            <div class="text-label-modal-title">Save Custom Asset</div>
+                            <div class="text-label-modal-sub">Name the selected grouped asset so it can appear inside the venue builder catalog.</div>
+                            <input class="text-label-modal-input" id="custom-asset-input" type="text" placeholder="e.g. Sweetheart Table Bundle" maxlength="60" onkeydown="if(event.key==='Enter')builderConfirmSaveCustomAsset();if(event.key==='Escape')builderCancelSaveCustomAsset();">
+                            <div class="text-label-modal-actions"><button class="text-label-modal-cancel" onclick="builderCancelSaveCustomAsset()">Cancel</button><button class="text-label-modal-confirm" onclick="builderConfirmSaveCustomAsset()">Save Asset</button></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1805,13 +1836,14 @@
 
     <!-- Tab Switching -->
     <script>
-        function switchTab(tabName) {
+        function switchTab(buttonEl, tabName) {
             document.querySelectorAll('.demo-tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.demo-tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
-            event.target.classList.add('active');
-            // Init Three.js on first visit to 3D tab
-            if (tabName === '3d' && !window._builderInited) initBuilder();
+            if (buttonEl) buttonEl.classList.add('active');
+            if (tabName === '3d' && typeof window.switchBuilderWorkspace === 'function') {
+                window.switchBuilderWorkspace(window._activeBuilderWorkspace || 'venue');
+            }
         }
     </script>
 
@@ -1911,813 +1943,1218 @@
                 'whats_included': "What's included in your pricing?"
             };
 
-            for (const p of patterns) {
-                if (p.re.test(raw)) {
-                    const qText = keyMap[p.key];
-                    if (qText) {
-                        const faq = allFAQs.find(f => f.q === qText);
-                        if (faq) return { answer: faq.a, triggerQuote: shouldTriggerQuote || !!faq.triggerQuote };
+            <script type="module">
+                import * as THREE from 'https://unpkg.com/three@0.161.0/build/three.module.js';
+                import { GLTFLoader } from 'https://unpkg.com/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
+                import { OrbitControls } from 'https://unpkg.com/three@0.161.0/examples/jsm/controls/OrbitControls.js';
+
+                const REAL_INCHES = { 'serpentine-table': 118.5, 'serpentine-section': 83 };
+                const OBJECT_ASSETS = {
+                    'serpentine-table': '3d-assets/serpentine-table.glb',
+                    'serpentine-section': '3d-assets/serpentine-section.glb',
+                };
+                const BUILDER_PANELS = ['objects', 'camera', 'light', 'display', 'align', 'inspector'];
+                const CUSTOM_ASSET_STORAGE_KEY = 'rnb-demo-custom-assets-v1';
+                const BASE_CAMERA = new THREE.Vector3(8, 5, 10);
+                const builderConfigs = {
+                    venue: {
+                        canvasId: 'venue-builder-canvas',
+                        loadingId: 'venue-builder-loading',
+                        progressId: 'venue-builder-prog',
+                        hintId: 'venue-builder-hint',
+                        freezeBadgeId: 'venue-freeze-badge',
+                        workspaceId: 'builder-workspace-venue',
+                        modeButtonId: 'builder-mode-venue',
+                        ctxMenuId: 'venue-ctx-menu',
+                        ctxTitleId: 'venue-ctx-title',
+                        inspectorId: 'venue-inspector-body',
+                        selectionBadgeId: 'venue-sel-badge',
+                        loadVenueModel: true,
+                        defaultGridVisible: false,
+                        defaultCamera: BASE_CAMERA.clone(),
+                        background: 0xf0ede8,
+                        fog: { near: 30, far: 80 },
+                        hintFadeMs: 3000,
+                    },
+                    asset: {
+                        canvasId: 'asset-builder-canvas',
+                        loadingId: 'asset-builder-loading',
+                        progressId: 'asset-builder-prog',
+                        hintId: 'asset-builder-hint',
+                        freezeBadgeId: 'asset-freeze-badge',
+                        workspaceId: 'builder-workspace-asset',
+                        modeButtonId: 'builder-mode-asset',
+                        ctxMenuId: 'asset-ctx-menu',
+                        ctxTitleId: 'asset-ctx-title',
+                        inspectorId: 'asset-inspector-body',
+                        selectionBadgeId: 'asset-sel-badge',
+                        loadVenueModel: false,
+                        defaultGridVisible: true,
+                        defaultCamera: new THREE.Vector3(6.5, 4.5, 7.5),
+                        background: 0xf7f3ec,
+                        fog: null,
+                        hintFadeMs: 0,
+                    },
+                };
+
+                const builders = {};
+                const templateCache = {};
+                const templatePromises = {};
+                let customAssets = loadCustomAssets();
+                let pendingCustomAssetBuilderId = null;
+
+                window._activeBuilderWorkspace = 'venue';
+
+                function loadCustomAssets() {
+                    try {
+                        const parsed = JSON.parse(localStorage.getItem(CUSTOM_ASSET_STORAGE_KEY) || '[]');
+                        return Array.isArray(parsed) ? parsed : [];
+                    } catch (error) {
+                        console.warn('Could not parse saved custom assets:', error);
+                        return [];
                     }
                 }
-            }
 
-            // Scoring fallback
-            let best = null, top = 0;
-            allFAQs.forEach(faq => {
-                const ql = faq.q.toLowerCase(), al = faq.a.toLowerCase();
-                let score = 0;
-                const words = raw.split(/\s+/).filter(w => w.length > 2);
-                words.forEach(w => {
-                    if (ql.includes(w)) score += 5;
-                    for (const syns of Object.values(keywordMaps)) {
-                        if (syns.includes(w)) syns.forEach(s => { if (ql.includes(s)) score += 3; });
+                function persistCustomAssets() {
+                    localStorage.setItem(CUSTOM_ASSET_STORAGE_KEY, JSON.stringify(customAssets));
+                    renderCustomAssetLibraries();
+                }
+
+                function cloneUserData(userData) {
+                    try {
+                        return JSON.parse(JSON.stringify(userData || {}));
+                    } catch {
+                        return { ...(userData || {}) };
                     }
-                    if (al.includes(w)) score += 1;
-                });
-                const ut = raw.match(/^(what|how|can|do|does|is|are|will)/);
-                const ft = ql.match(/^(what|how|can|do|does|is|are|will)/);
-                if (ut && ft && ut[0] === ft[0]) score += 2;
-                if (ql.includes(raw) || raw.includes(ql.substring(0, 20))) score += 15;
-                if (Math.abs(raw.length - ql.length) < 20) score += 2;
-                if (score > top) { top = score; best = faq; }
-            });
+                }
+                function escapeHtml(value) {
+                    return String(value ?? '').replace(/[&<>"']/g, char => ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;',
+                    }[char]));
+                }
 
-            if (best && top >= 8) return { answer: best.a, triggerQuote: shouldTriggerQuote || !!best.triggerQuote };
+                function getBuilder(builderId) {
+                    return builders[builderId] || null;
+                }
 
-            return {
-                answer: "Great question! For the most accurate answer about your specific event, our team would love to connect. You can also ask: 'What services do you offer?' or 'How do I get started?'",
-                triggerQuote: shouldTriggerQuote
-            };
-        }
+                function getPanelEl(builderId, panelName) {
+                    return document.getElementById(`${builderId}-panel-${panelName}`);
+                }
 
-        // ── UI helpers ───────────────────────────────────────────
-        const msgsEl  = () => document.getElementById('cc-messages');
-        const inputEl = () => document.getElementById('cc-input');
-        const typing  = () => document.getElementById('cc-typing');
+                function getHudBtn(builderId, panelName) {
+                    return document.getElementById(`${builderId}-hud-${panelName}`);
+                }
 
-        function fmtTime() {
-            const d = new Date();
-            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function appendMsg(type, text, quoteData) {
-            const msgs = msgsEl();
-            if (!msgs) return;
-
-            const row = document.createElement('div');
-            row.className = 'cmsg ' + type;
-
-            if (type === 'bot') {
-                row.innerHTML = `
-                    <div class="cmsg-avatar">R</div>
-                    <div class="cmsg-body">
-                        <div class="cmsg-bubble">${escHtml(text)}</div>
-                        <div class="cmsg-time">${fmtTime()}</div>
-                        ${quoteData ? `<div class="concierge-quote-cta">Would you like a personalized quote for your event?<button class="concierge-quote-btn" onclick="window.location.href='/service'"><svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="vertical-align:-2px;margin-right:5px"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>Request a Quote</button></div>` : ''}
-                    </div>`;
-            } else {
-                row.innerHTML = `
-                    <div class="cmsg-body">
-                        <div class="cmsg-bubble">${escHtml(text)}</div>
-                        <div class="cmsg-time">${fmtTime()}</div>
-                    </div>`;
-            }
-
-            msgs.appendChild(row);
-            msgs.scrollTop = msgs.scrollHeight;
-        }
-
-        function escHtml(s) {
-            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-
-        function showTyping() {
-            const t = typing();
-            if (t) t.classList.remove('hidden');
-            const m = msgsEl();
-            if (m) m.scrollTop = m.scrollHeight;
-        }
-
-        function hideTyping() {
-            const t = typing();
-            if (t) t.classList.add('hidden');
-        }
-
-        function send(text) {
-            const t = (text || '').trim();
-            if (!t) return;
-            const inp = inputEl();
-            if (inp) inp.value = '';
-            appendMsg('user', t);
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                const res = getResponse(t);
-                appendMsg('bot', res.answer, res.triggerQuote);
-            }, 700 + Math.random() * 400);
-        }
-
-        window.conciergeChip = function(btn) {
-            send(btn.textContent);
-        };
-
-        // ── Typing placeholder animation ─────────────────────────
-        const samples = [
-            'What events do you specialize in?',
-            'Where are you located?',
-            'How much does it cost?',
-            'Do you do corporate events?',
-            'Can you match my theme?',
-            'How do I get started?',
-            'Do you travel for events?',
-            'What packages do you offer?'
-        ];
-        let sIdx = 0, charIdx = 0, erasing = false, animPaused = false;
-
-        function runAnim() {
-            const inp = document.getElementById('cc-input');
-            if (!inp || animPaused) { setTimeout(runAnim, 200); return; }
-            const q = samples[sIdx % samples.length];
-            if (!erasing) {
-                inp.placeholder = q.substring(0, charIdx) + '|';
-                charIdx++;
-                if (charIdx > q.length) { erasing = true; setTimeout(runAnim, 1800); return; }
-                setTimeout(runAnim, 90);
-            } else {
-                inp.placeholder = q.substring(0, charIdx) + '|';
-                charIdx--;
-                if (charIdx < 0) { erasing = false; charIdx = 0; sIdx++; setTimeout(runAnim, 400); return; }
-                setTimeout(runAnim, 45);
-            }
-        }
-
-        // ── Init ─────────────────────────────────────────────────
-        document.addEventListener('DOMContentLoaded', function() {
-            const inp = document.getElementById('cc-input');
-            const btn = document.getElementById('cc-send');
-            if (!inp || !btn) return;
-
-            // Welcome message
-            setTimeout(() => {
-                appendMsg('bot', "Hi! I'm your RNB Concierge. I can answer questions about our services, pricing, event types, and more. What would you like to know?");
-            }, 400);
-
-            btn.addEventListener('click', () => send(inp.value));
-            inp.addEventListener('keydown', e => { if (e.key === 'Enter') send(inp.value); });
-            inp.addEventListener('focus', () => { animPaused = true; inp.placeholder = 'Ask me anything about RNB Events...'; });
-            inp.addEventListener('blur',  () => { if (!inp.value.trim()) { animPaused = false; runAnim(); } });
-
-            runAnim();
-        });
-    })();
-    </script>
-
-    <!-- 3D Builder (Three.js) -->
-    <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-        let renderer, scene, camera, controls, model, gridHelper;
-        let wireframeOn = false, autoRotate = true;
-
-        // Object placement system
-        let placedObjects = [], selectedObject = null;
-        let selectedObjects = [];   // multi-select array
-        const templates = {};
-        let isDragging = false;
-        const dragPlane  = new THREE.Plane();
-        const dragOffset = new THREE.Vector3();
-        // Per-object drag offsets for multi-drag
-        const dragOffsets = new Map();
-        const raycaster  = new THREE.Raycaster();
-        const mouse      = new THREE.Vector2();
-
-        // ── Emissive helpers ──────────────────────────────────────
-        function applyEmissive(obj, hex, intensity) {
-            // Sprites: tint the material color instead of emissive
-            if (obj.isSprite) {
-                if (intensity > 0) obj.material.color.setHex(0x88ff88);
-                else obj.material.color.setHex(0xffffff);
-                return;
-            }
-            obj.traverse(c => {
-                if (c.isMesh && c.material) {
-                    (Array.isArray(c.material) ? c.material : [c.material]).forEach(m => {
-                        if (!m._origEmissive) m._origEmissive = m.emissive ? m.emissive.getHex() : 0x000000;
-                        if (m.emissive) {
-                            m.emissive.setHex(hex);
-                            m.emissiveIntensity = intensity;
-                        }
+                function setSelectionHighlight(object3d, color, intensity) {
+                    object3d.traverse(node => {
+                        if (!node.isMesh || !node.material) return;
+                        const materials = Array.isArray(node.material) ? node.material : [node.material];
+                        materials.forEach(material => {
+                            if (!material.userData.__selectionClone) {
+                                material = material.clone();
+                                material.userData.__selectionClone = true;
+                            }
+                            if (material.emissive) {
+                                material.emissive.setHex(color);
+                                material.emissiveIntensity = intensity;
+                            }
+                            node.material = Array.isArray(node.material)
+                                ? materials.map(item => (item === material ? material : item))
+                                : material;
+                        });
                     });
                 }
-            });
-        }
-        function clearEmissive(obj) { applyEmissive(obj, 0x000000, 0); }
 
-        // ── Selection system (multi-select) ───────────────────────
-        // selectedObjects = active set; selectedObject = primary (last clicked)
-        function addToSelection(obj) {
-            if (!selectedObjects.includes(obj)) {
-                selectedObjects.push(obj);
-                applyEmissive(obj, 0x33aa22, 0.7);
-            }
-            selectedObject = obj;
-            syncSelectionUI();
-        }
-        function removeFromSelection(obj) {
-            clearEmissive(obj);
-            selectedObjects = selectedObjects.filter(o => o !== obj);
-            selectedObject = selectedObjects.length ? selectedObjects[selectedObjects.length - 1] : null;
-            syncSelectionUI();
-        }
-        function setSingleSelected(obj) {
-            // clear all current
-            selectedObjects.forEach(o => clearEmissive(o));
-            selectedObjects = [];
-            selectedObject = null;
-            if (obj) {
-                selectedObjects = [obj];
-                selectedObject = obj;
-                applyEmissive(obj, 0x33aa22, 0.7);
-            }
-            syncSelectionUI();
-        }
-        function selectAll() {
-            placedObjects.forEach(o => {
-                if (!selectedObjects.includes(o)) {
-                    selectedObjects.push(o);
-                    applyEmissive(o, 0x33aa22, 0.7);
+                function clearSelectionHighlight(object3d) {
+                    object3d.traverse(node => {
+                        if (!node.isMesh || !node.material) return;
+                        const materials = Array.isArray(node.material) ? node.material : [node.material];
+                        const next = materials.map(material => {
+                            const cloned = material.userData.__selectionClone ? material : material.clone();
+                            cloned.userData.__selectionClone = true;
+                            if (cloned.emissive) {
+                                cloned.emissive.setHex(0x000000);
+                                cloned.emissiveIntensity = 0;
+                            }
+                            return cloned;
+                        });
+                        node.material = Array.isArray(node.material) ? next : next[0];
+                    });
                 }
-            });
-            selectedObject = placedObjects.length ? placedObjects[placedObjects.length - 1] : null;
-            syncSelectionUI();
-        }
-        function deselectAll() {
-            selectedObjects.forEach(o => clearEmissive(o));
-            selectedObjects = [];
-            selectedObject = null;
-            syncSelectionUI();
-        }
-        function syncSelectionUI() {
-            // badge on inspector HUD button
-            const badge = document.getElementById('sel-badge');
-            if (badge) {
-                if (selectedObjects.length > 0) {
-                    badge.textContent = selectedObjects.length;
-                    badge.classList.add('visible');
-                } else {
-                    badge.classList.remove('visible');
+
+                function syncSelectionUI(ctx) {
+                    ctx.placedObjects.forEach(clearSelectionHighlight);
+                    ctx.selectedObjects.forEach(object3d => setSelectionHighlight(object3d, 0x77a361, 0.35));
+                    if (ctx.selectedObject && ctx.selectedObjects.includes(ctx.selectedObject)) {
+                        clearSelectionHighlight(ctx.selectedObject);
+                        setSelectionHighlight(ctx.selectedObject, 0x77a361, 0.65);
+                    }
+
+                    const badge = document.getElementById(builderConfigs[ctx.id].selectionBadgeId);
+                    if (badge) {
+                        const count = ctx.selectedObjects.length;
+                        badge.textContent = count > 0 ? count : '';
+                        badge.classList.toggle('visible', count > 0);
+                    }
+
+                    const panel = getPanelEl(ctx.id, 'inspector');
+                    if (panel && panel.classList.contains('open')) refreshInspector(ctx.id);
                 }
-            }
-            // refresh inspector if open
-            const inspPanel = document.getElementById('panel-inspector');
-            if (inspPanel && inspPanel.classList.contains('open')) refreshInspector();
-        }
 
-        // keep setSelected as alias for single-select (used by other code)
-        function setSelected(obj) { setSingleSelected(obj); }
+                function deselectAll(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    ctx.selectedObject = null;
+                    ctx.selectedObjects = [];
+                    syncSelectionUI(ctx);
+                }
 
-        function updateObjectCount() {
-            const counts = {};
-            placedObjects.forEach(o => { counts[o.userData.objectType] = (counts[o.userData.objectType] || 0) + 1; });
-            const el1 = document.getElementById('obj-serpentine-count');
-            const el2 = document.getElementById('obj-section-count');
-            const n1 = counts['serpentine-table'] || 0;
-            const n2 = counts['serpentine-section'] || 0;
-            if (el1) el1.textContent = `${n1} placed \u00B7 118" dia`;
-            if (el2) el2.textContent = `${n2} placed \u00B7 83"L`;
-            const n3 = counts['text-label'] || 0;
-            const el3 = document.getElementById('obj-text-count');
-            if (el3) el3.textContent = `${n3} placed \u00B7 floor label`;
-        }
+                function setSingleSelected(builderId, object3d) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    ctx.selectedObject = object3d || null;
+                    ctx.selectedObjects = object3d ? [object3d] : [];
+                    syncSelectionUI(ctx);
+                }
 
-        // Real-world dimensions in inches (from spec)
-        // Serpentine Table (4 sections assembled): outer diameter = 2 × (93 / (π/2)) ≈ 118.5"
-        // Serpentine Section (1 piece): overall length = 83"
-        const REAL_INCHES = { 'serpentine-table': 118.5, 'serpentine-section': 83 };
+                function addToSelection(builderId, object3d) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || !object3d) return;
+                    if (!ctx.selectedObjects.includes(object3d)) ctx.selectedObjects.push(object3d);
+                    ctx.selectedObject = object3d;
+                    syncSelectionUI(ctx);
+                }
 
-        function placeClone(template, name) {
-            const clone   = template.clone(true);
-            const box     = new THREE.Box3().setFromObject(clone);
-            const size    = box.getSize(new THREE.Vector3());
-            const maxDim  = Math.max(size.x, size.y, size.z);
+                function removeFromSelection(builderId, object3d) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || !object3d) return;
+                    ctx.selectedObjects = ctx.selectedObjects.filter(item => item !== object3d);
+                    if (ctx.selectedObject === object3d) ctx.selectedObject = ctx.selectedObjects[ctx.selectedObjects.length - 1] || null;
+                    syncSelectionUI(ctx);
+                }
 
-            // Scale to real-world size using scene calibration from Hampton load
-            const targetIn   = REAL_INCHES[name] || 72;          // inches
-            const targetFt   = targetIn / 12;
-            const unitsPerFt = window._sceneUnitsPerFoot || 0.08; // fallback
-            clone.scale.setScalar((targetFt * unitsPerFt) / maxDim);
+                function selectAll(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    ctx.selectedObjects = [...ctx.placedObjects];
+                    ctx.selectedObject = ctx.selectedObjects[ctx.selectedObjects.length - 1] || null;
+                    syncSelectionUI(ctx);
+                }
 
-            // Initial position: random spread near centre, y=0 placeholder
-            const offset = (Math.random() - 0.5) * 2;
-            clone.position.set(offset, 0, offset);
+                function updateObjectCount(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    const counts = { 'serpentine-table': 0, 'serpentine-section': 0, 'text-label': 0 };
+                    ctx.placedObjects.forEach(object3d => {
+                        const type = object3d.userData.objectType;
+                        if (counts[type] != null) counts[type] += 1;
+                    });
+                    const serpentine = document.getElementById(`obj-${builderId}-serpentine-count`);
+                    const section = document.getElementById(`obj-${builderId}-section-count`);
+                    const text = document.getElementById(`obj-${builderId}-text-count`);
+                    if (serpentine) serpentine.textContent = `${counts['serpentine-table']} placed · 118" dia`;
+                    if (section) section.textContent = `${counts['serpentine-section']} placed · 83"L`;
+                    if (text) text.textContent = `${counts['text-label']} placed · floor label`;
+                }
 
-            // Snap bottom of object to venue floor
-            clone.updateMatrixWorld(true);
-            const scaledBox = new THREE.Box3().setFromObject(clone);
-            clone.position.y = (window._floorY || 0) - scaledBox.min.y;
+                function clearLights(ctx) {
+                    ctx.lightObjects.forEach(light => ctx.scene.remove(light));
+                    ctx.lightObjects = [];
+                }
 
-            clone.traverse(c => {
-                if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
-            });
-            clone.userData.isPlacedObject = true;
-            clone.userData.objectType = name;
-            scene.add(clone);
-            placedObjects.push(clone);
-            setSelected(clone);
-            updateObjectCount();
-        }
+                function applyLightPreset(ctx, preset) {
+                    clearLights(ctx);
+                    if (preset === 'day') {
+                        const ambient = new THREE.AmbientLight(0xfff4e0, 0.8);
+                        const sun = new THREE.DirectionalLight(0xfff4e0, 2.5);
+                        sun.position.set(10, 20, 10);
+                        sun.castShadow = true;
+                        sun.shadow.mapSize.set(2048, 2048);
+                        sun.shadow.camera.near = 0.5;
+                        sun.shadow.camera.far = 100;
+                        sun.shadow.camera.left = -20;
+                        sun.shadow.camera.right = 20;
+                        sun.shadow.camera.top = 20;
+                        sun.shadow.camera.bottom = -20;
+                        const fill = new THREE.DirectionalLight(0xc8d8f0, 0.6);
+                        fill.position.set(-10, 5, -10);
+                        ctx.lightObjects = [ambient, sun, fill];
+                    } else if (preset === 'evening') {
+                        const ambient = new THREE.AmbientLight(0xff8c42, 0.5);
+                        const warm = new THREE.DirectionalLight(0xffb347, 1.8);
+                        warm.position.set(-8, 12, 5);
+                        warm.castShadow = true;
+                        warm.shadow.mapSize.set(2048, 2048);
+                        const accent = new THREE.PointLight(0xff6a00, 1.0, 30);
+                        accent.position.set(3, 3, 3);
+                        ctx.lightObjects = [ambient, warm, accent];
+                    } else {
+                        const ambient = new THREE.AmbientLight(0x1a1a4e, 0.4);
+                        const moon = new THREE.DirectionalLight(0x8090d0, 1.0);
+                        moon.position.set(-5, 15, -5);
+                        moon.castShadow = true;
+                        moon.shadow.mapSize.set(2048, 2048);
+                        const candle1 = new THREE.PointLight(0xffcc66, 1.5, 12);
+                        candle1.position.set(2, 2, 2);
+                        const candle2 = new THREE.PointLight(0xffcc66, 1.0, 10);
+                        candle2.position.set(-3, 2, -2);
+                        ctx.lightObjects = [ambient, moon, candle1, candle2];
+                    }
+                    ctx.lightObjects.forEach(light => ctx.scene.add(light));
+                    ctx.lightPreset = preset;
+                    ['day', 'evening', 'night'].forEach(name => {
+                        const button = document.getElementById(`${ctx.id}-btn-light-${name}`);
+                        if (button) button.classList.toggle('active', name === preset);
+                    });
+                }
 
-        window.initBuilder = function() {
-            window._builderInited = true;
-            const canvas = document.getElementById('builder-canvas');
-            const wrap   = canvas.parentElement;
+                function applyWireframe(ctx, enabled) {
+                    ctx.scene.traverse(node => {
+                        if (!node.isMesh || !node.material) return;
+                        const materials = Array.isArray(node.material) ? node.material : [node.material];
+                        materials.forEach(material => { material.wireframe = enabled; });
+                    });
+                }
 
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.outputColorSpace = THREE.SRGBColorSpace;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.1;
+                function ensureTemplate(type) {
+                    if (templateCache[type]) return Promise.resolve(templateCache[type]);
+                    if (templatePromises[type]) return templatePromises[type];
+                    const path = OBJECT_ASSETS[type];
+                    templatePromises[type] = new Promise((resolve, reject) => {
+                        if (!path) {
+                            reject(new Error(`Unknown object asset type: ${type}`));
+                            return;
+                        }
+                        new GLTFLoader().load(
+                            path,
+                            gltf => {
+                                templateCache[type] = gltf.scene;
+                                resolve(templateCache[type]);
+                            },
+                            undefined,
+                            error => reject(error)
+                        );
+                    });
+                    return templatePromises[type];
+                }
 
-            function resize() {
-                const w = wrap.clientWidth, h = wrap.clientHeight;
-                renderer.setSize(w, h);
-                camera.aspect = w / h;
-                camera.updateProjectionMatrix();
-            }
+                function makeTextSprite(ctx, text, options = {}) {
+                    const width = 512;
+                    const height = 128;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const context = canvas.getContext('2d');
+                    context.clearRect(0, 0, width, height);
+                    context.fillStyle = 'rgba(18,28,18,0.88)';
+                    context.beginPath();
+                    const radius = 20;
+                    context.moveTo(radius + 8, 8);
+                    context.lineTo(width - radius - 8, 8);
+                    context.arcTo(width - 8, 8, width - 8, 8 + radius, radius);
+                    context.lineTo(width - 8, height - radius - 8);
+                    context.arcTo(width - 8, height - 8, width - radius - 8, height - 8, radius);
+                    context.lineTo(radius + 8, height - 8);
+                    context.arcTo(8, height - 8, 8, height - radius - 8, radius);
+                    context.lineTo(8, 8 + radius);
+                    context.arcTo(8, 8, radius + 8, 8, radius);
+                    context.closePath();
+                    context.fill();
+                    context.strokeStyle = 'rgba(119,163,97,0.85)';
+                    context.lineWidth = 3;
+                    context.stroke();
+                    context.fillStyle = '#ffffff';
+                    context.font = 'bold 46px sans-serif';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText(text, width / 2, height / 2);
 
-            // Scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0ede8);
-            scene.fog = new THREE.Fog(0xf0ede8, 30, 80);
-            window._scene = scene;
+                    const texture = new THREE.CanvasTexture(canvas);
+                    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, sizeAttenuation: true });
+                    const sprite = new THREE.Sprite(material);
+                    const unitsPerFoot = ctx.sceneUnitsPerFoot || 0.08;
+                    if (options.scale) {
+                        sprite.scale.set(options.scale.x, options.scale.y, options.scale.z || 1);
+                    } else {
+                        sprite.scale.set(8 * unitsPerFoot, 2 * unitsPerFoot, 1);
+                    }
+                    sprite.userData.isPlacedObject = options.asChild ? false : true;
+                    sprite.userData.objectType = 'text-label';
+                    sprite.userData.labelText = text;
+                    const position = options.position || new THREE.Vector3((Math.random() - 0.5) * 2, ctx.floorY + unitsPerFoot * 0.6, (Math.random() - 0.5) * 2);
+                    sprite.position.copy(position);
+                    if (typeof options.rotationY === 'number') sprite.rotation.y = options.rotationY;
+                    return sprite;
+                }
 
-            // Camera
-            camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 200);
-            camera.position.set(8, 5, 10);
-
-            // Controls
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.07;
-            controls.autoRotate = true;
-            controls.autoRotateSpeed = 0.8;
-            controls.minDistance = 1;
-            controls.maxDistance = 60;
-            controls.maxPolarAngle = Math.PI / 2 + 0.1;
-            window._controls = controls;
-
-            // Lights – day preset
-            applyLightPreset('day');
-
-            // Grid (hidden by default)
-            gridHelper = new THREE.GridHelper(20, 20, 0xbbbbbb, 0xdddddd);
-            gridHelper.visible = false;
-            scene.add(gridHelper);
-
-            // Load GLB
-            const loader = new GLTFLoader();
-            const prog = document.getElementById('builder-prog');
-
-            loader.load(
-                '3d-assets/Hampton.glb',
-                (gltf) => {
-                    model = gltf.scene;
-
-                    // Center & scale model
-                    const box = new THREE.Box3().setFromObject(model);
+                async function instantiateBaseObject(ctx, type, options = {}) {
+                    const template = await ensureTemplate(type);
+                    const clone = template.clone(true);
+                    const box = new THREE.Box3().setFromObject(clone);
                     const size = box.getSize(new THREE.Vector3());
-                    const center = box.getCenter(new THREE.Vector3());
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 10 / maxDim;
-                    model.scale.setScalar(scale);
-                    model.position.sub(center.multiplyScalar(scale));
+                    const maxDim = Math.max(size.x, size.y, size.z) || 1;
 
-                    // Enable shadows
-                    model.traverse(child => {
-                        if (child.isMesh) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
+                    if (options.scale) {
+                        clone.scale.set(options.scale.x, options.scale.y, options.scale.z);
+                    } else {
+                        const targetInches = REAL_INCHES[type] || 72;
+                        const targetFeet = targetInches / 12;
+                        clone.scale.setScalar((targetFeet * ctx.sceneUnitsPerFoot) / maxDim);
+                    }
+
+                    clone.traverse(node => {
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                        }
+                    });
+                    clone.userData.isPlacedObject = options.asChild ? false : true;
+                    clone.userData.objectType = type;
+
+                    if (options.position) {
+                        clone.position.copy(options.position);
+                    } else {
+                        const offset = (Math.random() - 0.5) * 2;
+                        clone.position.set(offset, 0, offset);
+                    }
+                    if (typeof options.rotationY === 'number') clone.rotation.y = options.rotationY;
+
+                    if (options.snapToFloor !== false) {
+                        clone.updateMatrixWorld(true);
+                        const scaledBox = new THREE.Box3().setFromObject(clone);
+                        clone.position.y += ctx.floorY - scaledBox.min.y;
+                    }
+                    return clone;
+                }
+
+                async function createCustomAssetInstance(ctx, assetDefinition, options = {}) {
+                    const group = new THREE.Group();
+                    group.userData.isPlacedObject = true;
+                    group.userData.objectType = 'custom-asset';
+                    group.userData.assetName = assetDefinition.name;
+                    group.userData.customAssetId = assetDefinition.id;
+                    group.userData.assetItems = cloneUserData(assetDefinition.items);
+
+                    for (const item of assetDefinition.items) {
+                        let child;
+                        if (item.type === 'text-label') {
+                            child = makeTextSprite(ctx, item.text || 'Label', {
+                                asChild: true,
+                                position: new THREE.Vector3(item.position.x, item.position.y, item.position.z),
+                                scale: item.scale,
+                                rotationY: item.rotationY || 0,
+                            });
+                        } else {
+                            child = await instantiateBaseObject(ctx, item.type, {
+                                asChild: true,
+                                position: new THREE.Vector3(item.position.x, item.position.y, item.position.z),
+                                rotationY: item.rotationY || 0,
+                                scale: item.scale,
+                                snapToFloor: false,
+                            });
+                        }
+                        group.add(child);
+                    }
+
+                    const position = options.position || new THREE.Vector3((Math.random() - 0.5) * 2, ctx.floorY, (Math.random() - 0.5) * 2);
+                    group.position.set(position.x, position.y, position.z);
+                    if (typeof options.rotationY === 'number') group.rotation.y = options.rotationY;
+                    return group;
+                }
+
+                function addPlacedObject(ctx, object3d, options = {}) {
+                    ctx.scene.add(object3d);
+                    ctx.placedObjects.push(object3d);
+                    if (options.select === false) {
+                        updateObjectCount(ctx.id);
+                        syncSelectionUI(ctx);
+                        return;
+                    }
+                    setSingleSelected(ctx.id, object3d);
+                    updateObjectCount(ctx.id);
+                }
+
+                async function addObject(builderId, type, options = {}) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return null;
+                    let object3d = null;
+                    if (type === 'text-label') {
+                        object3d = makeTextSprite(ctx, options.text || 'Label', options);
+                    } else if (type === 'custom-asset') {
+                        object3d = await createCustomAssetInstance(ctx, options.definition, options);
+                    } else {
+                        object3d = await instantiateBaseObject(ctx, type, options);
+                    }
+                    addPlacedObject(ctx, object3d, options);
+                    return object3d;
+                }
+
+                function resolveTarget(ctx, hits) {
+                    if (!hits.length) return null;
+                    let target = hits[0].object;
+                    while (target.parent && !target.userData.isPlacedObject) target = target.parent;
+                    return ctx.placedObjects.includes(target) ? target : null;
+                }
+
+                function getPointerNdc(canvas, event) {
+                    const rect = canvas.getBoundingClientRect();
+                    return {
+                        x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+                        y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
+                    };
+                }
+
+                function hideAllCtxMenus() {
+                    Object.keys(builderConfigs).forEach(builderId => {
+                        const menu = document.getElementById(builderConfigs[builderId].ctxMenuId);
+                        if (menu) menu.classList.remove('visible');
+                    });
+                }
+
+                function showCtxMenu(builderId, x, y) {
+                    hideAllCtxMenus();
+                    const config = builderConfigs[builderId];
+                    const menu = document.getElementById(config.ctxMenuId);
+                    if (!menu) return;
+                    menu.style.left = `${x}px`;
+                    menu.style.top = `${y}px`;
+                    menu.classList.add('visible');
+                    const bounds = menu.getBoundingClientRect();
+                    if (bounds.right > window.innerWidth) menu.style.left = `${Math.max(10, x - bounds.width)}px`;
+                    if (bounds.bottom > window.innerHeight) menu.style.top = `${Math.max(10, y - bounds.height)}px`;
+                }
+
+                function pruneGroups(ctx) {
+                    ctx.groups.forEach(group => {
+                        group.members = group.members.filter(member => ctx.placedObjects.includes(member));
+                    });
+                    ctx.groups = ctx.groups.filter(group => group.members.length > 0);
+                }
+
+                function removeObjects(builderId, objects) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || !objects.length) return;
+                    objects.forEach(object3d => {
+                        ctx.scene.remove(object3d);
+                        ctx.placedObjects = ctx.placedObjects.filter(item => item !== object3d);
+                    });
+                    ctx.selectedObjects = ctx.selectedObjects.filter(item => !objects.includes(item));
+                    ctx.selectedObject = ctx.selectedObjects[ctx.selectedObjects.length - 1] || null;
+                    pruneGroups(ctx);
+                    updateObjectCount(builderId);
+                    syncSelectionUI(ctx);
+                }
+
+                function serializePlacedObject(object3d, anchor) {
+                    return {
+                        type: object3d.userData.objectType,
+                        position: {
+                            x: object3d.position.x - anchor.x,
+                            y: object3d.position.y - anchor.y,
+                            z: object3d.position.z - anchor.z,
+                        },
+                        rotationY: object3d.rotation.y,
+                        scale: {
+                            x: object3d.scale.x,
+                            y: object3d.scale.y,
+                            z: object3d.scale.z,
+                        },
+                        text: object3d.userData.labelText || undefined,
+                    };
+                }
+
+                function saveCustomAssetFromSelection(builderId, name) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length === 0) return;
+                    const hasNestedAsset = ctx.selectedObjects.some(object3d => object3d.userData.objectType === 'custom-asset');
+                    if (hasNestedAsset) {
+                        alert('Create custom assets from base objects and labels only. Nested custom assets are not supported in this demo yet.');
+                        return;
+                    }
+
+                    const box = new THREE.Box3();
+                    ctx.selectedObjects.forEach(object3d => box.expandByObject(object3d));
+                    const center = box.getCenter(new THREE.Vector3());
+                    const anchor = new THREE.Vector3(center.x, box.min.y, center.z);
+                    const items = ctx.selectedObjects.map(object3d => serializePlacedObject(object3d, anchor));
+                    const asset = {
+                        id: `custom-${Date.now()}`,
+                        name,
+                        createdAt: new Date().toISOString(),
+                        items,
+                    };
+
+                    customAssets = [asset, ...customAssets];
+                    persistCustomAssets();
+                    alert(`Saved "${name}" to the venue builder asset library.`);
+                }
+
+                function renderCustomAssetLibraries() {
+                    const container = document.getElementById('venue-custom-assets');
+                    if (!container) return;
+                    if (customAssets.length === 0) {
+                        container.innerHTML = '<div class="custom-assets-empty">No saved custom assets yet. Use the Asset Builder to arrange objects, select them, and save the selection back into this venue catalog.</div>';
+                        return;
+                    }
+                    container.innerHTML = customAssets.map(asset => {
+                        const itemCount = asset.items.length;
+                        return `
+                            <div class="panel-obj-card">
+                                <div class="panel-obj-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#77a361"><path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2z"/></svg></div>
+                                <div class="panel-obj-meta">
+                                    <div class="panel-obj-name">${escapeHtml(asset.name)}</div>
+                                    <div class="panel-obj-sub">${itemCount} grouped item${itemCount === 1 ? '' : 's'} · reusable custom asset</div>
+                                </div>
+                                <button class="panel-obj-add" onclick="builderAddCustomAsset('venue', '${asset.id}')">+ ADD</button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                function bindPointerEvents(ctx) {
+                    const canvas = ctx.renderer.domElement;
+
+                    canvas.addEventListener('pointerdown', event => {
+                        hideAllCtxMenus();
+                        window._activeBuilderWorkspace = ctx.id;
+                        if (event.button !== 0) return;
+                        const ndc = getPointerNdc(canvas, event);
+                        ctx.mouse.set(ndc.x, ndc.y);
+                        ctx.raycaster.setFromCamera(ctx.mouse, ctx.camera);
+                        const target = resolveTarget(ctx, ctx.raycaster.intersectObjects(ctx.placedObjects, true));
+
+                        if (!target) {
+                            if (!event.shiftKey) deselectAll(ctx.id);
+                            return;
+                        }
+
+                        if (event.shiftKey) {
+                            if (ctx.selectedObjects.includes(target)) removeFromSelection(ctx.id, target);
+                            else addToSelection(ctx.id, target);
+                        } else if (!ctx.selectedObjects.includes(target)) {
+                            setSingleSelected(ctx.id, target);
+                        } else {
+                            ctx.selectedObject = target;
+                            syncSelectionUI(ctx);
+                        }
+
+                        ctx.dragging = true;
+                        ctx.controls.enabled = false;
+                        ctx.dragPlane.set(new THREE.Vector3(0, 1, 0), -target.position.y);
+                        const hitPoint = new THREE.Vector3();
+                        ctx.raycaster.ray.intersectPlane(ctx.dragPlane, hitPoint);
+                        ctx.dragOffsets.clear();
+                        ctx.selectedObjects.forEach(object3d => {
+                            ctx.dragOffsets.set(object3d, new THREE.Vector3().copy(object3d.position).sub(hitPoint));
+                        });
+                        event.stopPropagation();
+                    });
+
+                    canvas.addEventListener('pointermove', event => {
+                        if (!ctx.dragging || ctx.selectedObjects.length === 0) return;
+                        const ndc = getPointerNdc(canvas, event);
+                        ctx.mouse.set(ndc.x, ndc.y);
+                        ctx.raycaster.setFromCamera(ctx.mouse, ctx.camera);
+                        const hitPoint = new THREE.Vector3();
+                        if (ctx.raycaster.ray.intersectPlane(ctx.dragPlane, hitPoint)) {
+                            ctx.selectedObjects.forEach(object3d => {
+                                const offset = ctx.dragOffsets.get(object3d);
+                                if (!offset) return;
+                                object3d.position.x = hitPoint.x + offset.x;
+                                object3d.position.z = hitPoint.z + offset.z;
+                            });
+                            if (getPanelEl(ctx.id, 'inspector')?.classList.contains('open')) refreshInspector(ctx.id);
                         }
                     });
 
-                    scene.add(model);
+                    const finishDrag = () => {
+                        ctx.dragging = false;
+                        ctx.controls.enabled = true;
+                        ctx.dragOffsets.clear();
+                    };
+                    canvas.addEventListener('pointerup', finishDrag);
+                    canvas.addEventListener('pointercancel', finishDrag);
 
-                    // Calibrate scene scale against real Hampton dimensions (13,300 sq ft)
-                    const worldBox  = new THREE.Box3().setFromObject(model);
-                    const worldSize = worldBox.getSize(new THREE.Vector3());
-                    window._floorY           = worldBox.min.y;
-                    window._sceneUnitsPerFoot = Math.sqrt((worldSize.x * worldSize.z) / 13300);
+                    canvas.addEventListener('contextmenu', event => {
+                        event.preventDefault();
+                        window._activeBuilderWorkspace = ctx.id;
+                        const ndc = getPointerNdc(canvas, event);
+                        ctx.mouse.set(ndc.x, ndc.y);
+                        ctx.raycaster.setFromCamera(ctx.mouse, ctx.camera);
+                        const target = resolveTarget(ctx, ctx.raycaster.intersectObjects(ctx.placedObjects, true));
+                        if (target && !ctx.selectedObjects.includes(target)) addToSelection(ctx.id, target);
 
-                    // Position camera to fit
-                    camera.position.set(maxDim * scale * 0.9, maxDim * scale * 0.5, maxDim * scale * 1.0);
+                        const title = document.getElementById(builderConfigs[ctx.id].ctxTitleId);
+                        const count = ctx.selectedObjects.length;
+                        if (title) {
+                            title.textContent = count === 0 ? 'Scene' : count === 1 ? '1 object selected' : `${count} objects selected`;
+                        }
+                        showCtxMenu(ctx.id, event.clientX, event.clientY);
+                    });
+                }
+
+                function bindGlobalListeners() {
+                    document.addEventListener('pointerdown', event => {
+                        if (!event.target.closest('.ctx-menu')) hideAllCtxMenus();
+                    }, true);
+
+                    document.addEventListener('keydown', event => {
+                        const activeId = window._activeBuilderWorkspace || 'venue';
+                        const ctx = getBuilder(activeId);
+                        if (!ctx || !ctx.selectedObject) return;
+                        if (event.key === 'ArrowLeft') {
+                            event.preventDefault();
+                            window.builderRotateSelected(activeId, -15);
+                        }
+                        if (event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            window.builderRotateSelected(activeId, 15);
+                        }
+                    });
+                }
+
+                function refreshInspector(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    const body = document.getElementById(builderConfigs[builderId].inspectorId);
+                    if (!body) return;
+
+                    const count = ctx.selectedObjects.length;
+                    if (count === 0) {
+                        body.innerHTML = '<div class="inspector-empty">No object selected — click an object in the scene</div>';
+                        return;
+                    }
+
+                    let headerHtml = '';
+                    let sliderHtml = '';
+                    if (count > 1) {
+                        headerHtml = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${count} objects selected</div><div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">Shift+click to add or remove objects from the selection.</div>`;
+                    } else {
+                        const object3d = ctx.selectedObject;
+                        const name = escapeHtml(object3d.userData.assetName || object3d.userData.objectType || 'Object');
+                        const rotation = Math.round(((object3d.rotation.y * 180 / Math.PI) % 360 + 360) % 360);
+                        headerHtml = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${name}</div><div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">x: ${object3d.position.x.toFixed(1)} | z: ${object3d.position.z.toFixed(1)}</div>`;
+                        sliderHtml = `<div class="panel-slider-row"><span class="panel-slider-label">Rotation</span><input type="range" class="panel-slider" id="${builderId}-insp-rot-slider" min="0" max="359" value="${rotation}" oninput="builderSetRotation('${builderId}', this.value)"><span class="panel-slider-val" id="${builderId}-insp-rot-val">${rotation}°</span></div>`;
+                    }
+
+                    const groupChips = ctx.groups.map((group, index) => {
+                        const active = ctx.selectedObjects.length > 0 && ctx.selectedObjects.every(object3d => group.members.includes(object3d));
+                        return `<span class="group-chip${active ? ' active-group' : ''}" onclick="builderAddToGroup('${builderId}', ${index})">${group.name}${active ? ' ✓' : ''}</span>`;
+                    }).join('');
+
+                    const extraButtons = builderId === 'asset'
+                        ? '<button class="builder-btn" onclick="builderPromptSaveCustomAsset(\'asset\')">Save Selected as Custom Asset</button>'
+                        : '';
+
+                    body.innerHTML = `
+                        ${headerHtml}
+                        ${sliderHtml}
+                        <div class="inspector-action-grid">
+                            <button class="panel-btn" onclick="builderRotateSelected('${builderId}', -15)">-15°</button>
+                            <button class="panel-btn" onclick="builderRotateSelected('${builderId}', 15)">+15°</button>
+                            <button class="panel-btn" onclick="builderDuplicateSelected('${builderId}')">Dupe</button>
+                            <button class="panel-btn" onclick="builderRemoveSelected('${builderId}')">Remove</button>
+                        </div>
+                        ${ctx.groups.length > 0 ? `<div class="panel-section-title">Groups</div><div class="group-chip-wrap">${groupChips}</div>` : ''}
+                        <div class="panel-section-title">Scene</div>
+                        <button class="builder-btn" onclick="builderCreateGroup('${builderId}')">+ New Group</button>
+                        ${extraButtons}
+                        <button class="builder-btn" onclick="builderClearObjects('${builderId}')">Clear All Objects</button>
+                    `;
+                }
+
+                function createAssetStudioBase(ctx) {
+                    const floor = new THREE.Mesh(
+                        new THREE.PlaneGeometry(28, 28),
+                        new THREE.MeshStandardMaterial({ color: 0xe6e0d2, roughness: 1, metalness: 0 })
+                    );
+                    floor.rotation.x = -Math.PI / 2;
+                    floor.position.y = ctx.floorY;
+                    floor.receiveShadow = true;
+                    ctx.scene.add(floor);
+                    ctx.floorPlane = floor;
+                }
+
+                function animateBuilder(ctx) {
+                    const tick = () => {
+                        requestAnimationFrame(tick);
+                        ctx.controls.update();
+                        ctx.renderer.render(ctx.scene, ctx.camera);
+                    };
+                    tick();
+                }
+
+                function initBuilder(builderId = 'venue') {
+                    if (builders[builderId]) return builders[builderId];
+                    const config = builderConfigs[builderId];
+                    const canvas = document.getElementById(config.canvasId);
+                    const wrap = canvas.parentElement;
+                    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                    renderer.setSize(wrap.clientWidth, wrap.clientHeight, false);
+                    renderer.shadowMap.enabled = true;
+                    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                    renderer.outputColorSpace = THREE.SRGBColorSpace;
+                    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                    renderer.toneMappingExposure = 1.1;
+
+                    const scene = new THREE.Scene();
+                    scene.background = new THREE.Color(config.background);
+                    if (config.fog) scene.fog = new THREE.Fog(config.background, config.fog.near, config.fog.far);
+
+                    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 200);
+                    camera.position.copy(config.defaultCamera);
+
+                    const controls = new OrbitControls(camera, renderer.domElement);
+                    controls.enableDamping = true;
+                    controls.dampingFactor = 0.07;
+                    controls.autoRotate = true;
+                    controls.autoRotateSpeed = 0.8;
+                    controls.minDistance = 1;
+                    controls.maxDistance = 60;
+                    controls.maxPolarAngle = Math.PI / 2 + 0.1;
                     controls.target.set(0, 0, 0);
                     controls.update();
 
-                    // Hide loader
-                    const overlay = document.getElementById('builder-loading');
-                    if (overlay) overlay.classList.add('hidden');
+                    const gridHelper = new THREE.GridHelper(24, 24, 0xbbbbbb, 0xdddddd);
+                    gridHelper.visible = config.defaultGridVisible;
+                    scene.add(gridHelper);
 
-                    // Fade out hint after 3s
-                    setTimeout(() => {
-                        const hint = document.getElementById('builder-hint');
-                        if (hint) hint.style.opacity = '0';
-                    }, 3000);
-                },
-                (xhr) => {
-                    if (xhr.total > 0 && prog) {
-                        prog.style.width = (xhr.loaded / xhr.total * 100) + '%';
-                    }
-                },
-                (err) => {
-                    console.error('GLB load error:', err);
-                    const overlay = document.getElementById('builder-loading');
-                    if (overlay) overlay.innerHTML = '<p style="color:#ff6b6b;padding:20px;text-align:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ff6b6b" style="display:block;margin:0 auto 8px"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Could not load Hampton.glb<br><small>Check file path and try again</small></p>';
-                }
-            );
+                    const ctx = {
+                        id: builderId,
+                        renderer,
+                        scene,
+                        camera,
+                        controls,
+                        gridHelper,
+                        wrap,
+                        placedObjects: [],
+                        selectedObjects: [],
+                        selectedObject: null,
+                        dragging: false,
+                        dragPlane: new THREE.Plane(),
+                        dragOffsets: new Map(),
+                        raycaster: new THREE.Raycaster(),
+                        mouse: new THREE.Vector2(),
+                        lightObjects: [],
+                        groups: [],
+                        model: null,
+                        floorY: 0,
+                        sceneUnitsPerFoot: builderId === 'asset' ? 0.08 : 0.08,
+                        resizeObserver: null,
+                        lightPreset: 'day',
+                        freezeMode: false,
+                    };
+                    builders[builderId] = ctx;
 
-            // Resize handler
-            const ro = new ResizeObserver(resize);
-            ro.observe(wrap);
-            resize();
+                    const resize = () => {
+                    const resize = () => {
+                        const width = wrap.clientWidth;
+                        const height = wrap.clientHeight;
+                        renderer.setSize(width, height, false);
+                        camera.aspect = width / height;
+                        camera.updateProjectionMatrix();
+                    };
+                    ctx.resize = resize;
+                    ctx.resizeObserver = new ResizeObserver(resize);
+                    ctx.resizeObserver.observe(wrap);
+                    resize();
 
-            // ── Pointer events for selection, drag, context menu ──
-            const cvs = renderer.domElement;
+                    applyLightPreset(ctx, 'day');
 
-            // Helper: resolve top-level placed object from ray hit
-            function resolveTarget(hits) {
-                if (!hits.length) return null;
-                let t = hits[0].object;
-                while (t.parent && !t.userData.isPlacedObject) t = t.parent;
-                return placedObjects.includes(t) ? t : null;
-            }
-            function getPointerNDC(e) {
-                const rect = cvs.getBoundingClientRect();
-                return {
-                    x:  ((e.clientX - rect.left) / rect.width)  * 2 - 1,
-                    y: -((e.clientY - rect.top)  / rect.height) * 2 + 1
-                };
-            }
+                    if (config.loadVenueModel) {
+                        const loader = new GLTFLoader();
+                        const progressBar = document.getElementById(config.progressId);
+                        loader.load(
+                            '3d-assets/Hampton.glb',
+                            gltf => {
+                                ctx.model = gltf.scene;
+                                const box = new THREE.Box3().setFromObject(ctx.model);
+                                const size = box.getSize(new THREE.Vector3());
+                                const center = box.getCenter(new THREE.Vector3());
+                                const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                                const scale = 10 / maxDim;
+                                ctx.model.scale.setScalar(scale);
+                                ctx.model.position.sub(center.multiplyScalar(scale));
+                                ctx.model.traverse(node => {
+                                    if (node.isMesh) {
+                                        node.castShadow = true;
+                                        node.receiveShadow = true;
+                                    }
+                                });
+                                scene.add(ctx.model);
 
-            cvs.addEventListener('pointerdown', (e) => {
-                hideCtxMenu();
-                if (e.button !== 0) return;   // left-click only for drag/select
-                const ndc = getPointerNDC(e);
-                mouse.x = ndc.x; mouse.y = ndc.y;
-                raycaster.setFromCamera(mouse, camera);
-                const target = resolveTarget(raycaster.intersectObjects(placedObjects, true));
+                                const worldBox = new THREE.Box3().setFromObject(ctx.model);
+                                const worldSize = worldBox.getSize(new THREE.Vector3());
+                                ctx.floorY = worldBox.min.y;
+                                ctx.sceneUnitsPerFoot = Math.sqrt((worldSize.x * worldSize.z) / 13300);
+                                ctx.gridHelper.position.y = ctx.floorY + 0.01;
+                                ctx.camera.position.set(maxDim * scale * 0.9, maxDim * scale * 0.5, maxDim * scale * 1.0);
+                                ctx.controls.target.set(0, 0, 0);
+                                ctx.controls.update();
 
-                if (target) {
-                    if (e.shiftKey) {
-                        // Shift+click: toggle in selection
-                        if (selectedObjects.includes(target)) removeFromSelection(target);
-                        else addToSelection(target);
+                                const overlay = document.getElementById(config.loadingId);
+                                if (overlay) overlay.classList.add('hidden');
+                                if (config.hintFadeMs > 0) {
+                                    setTimeout(() => {
+                                        const hint = document.getElementById(config.hintId);
+                                        if (hint) hint.style.opacity = '0';
+                                    }, config.hintFadeMs);
+                                }
+                            },
+                            xhr => {
+                                if (xhr.total > 0 && progressBar) progressBar.style.width = `${(xhr.loaded / xhr.total) * 100}%`;
+                            },
+                            error => {
+                                console.error('GLB load error:', error);
+                                const overlay = document.getElementById(config.loadingId);
+                                if (overlay) overlay.innerHTML = '<p style="color:#ff6b6b;padding:20px;text-align:center">Could not load Hampton.glb</p>';
+                            }
+                        );
                     } else {
-                        // Plain click: if not already selected, single-select it
-                        if (!selectedObjects.includes(target)) setSingleSelected(target);
-                        else selectedObject = target; // already selected — just update primary
+                        createAssetStudioBase(ctx);
+                        const overlay = document.getElementById(config.loadingId);
+                        if (overlay) setTimeout(() => overlay.classList.add('hidden'), 250);
                     }
 
-                    // Setup drag for ALL currently selected objects
-                    isDragging = true;
-                    controls.enabled = false;
-                    dragPlane.set(new THREE.Vector3(0, 1, 0), -target.position.y);
-                    const pt = new THREE.Vector3();
-                    raycaster.ray.intersectPlane(dragPlane, pt);
-                    dragOffsets.clear();
-                    selectedObjects.forEach(o => {
-                        dragOffsets.set(o, new THREE.Vector3().copy(o.position).sub(pt));
-                    });
-                    e.stopPropagation();
-                } else {
-                    if (!e.shiftKey) deselectAll();
+                    bindPointerEvents(ctx);
+                    animateBuilder(ctx);
+                    updateObjectCount(builderId);
+                    syncSelectionUI(ctx);
+                    return ctx;
                 }
-            });
 
-            cvs.addEventListener('pointermove', (e) => {
-                if (!isDragging || selectedObjects.length === 0) return;
-                const ndc = getPointerNDC(e);
-                mouse.x = ndc.x; mouse.y = ndc.y;
-                raycaster.setFromCamera(mouse, camera);
-                const pt = new THREE.Vector3();
-                if (raycaster.ray.intersectPlane(dragPlane, pt)) {
-                    selectedObjects.forEach(o => {
-                        const off = dragOffsets.get(o);
-                        if (off) {
-                            o.position.x = pt.x + off.x;
-                            o.position.z = pt.z + off.z;
+                window.initBuilder = initBuilder;
+
+                window.switchBuilderWorkspace = function(builderId) {
+                    window._activeBuilderWorkspace = builderId;
+                    Object.keys(builderConfigs).forEach(id => {
+                        const workspace = document.getElementById(builderConfigs[id].workspaceId);
+                        const button = document.getElementById(builderConfigs[id].modeButtonId);
+                        if (workspace) workspace.classList.toggle('active', id === builderId);
+                        if (button) button.classList.toggle('active', id === builderId);
+                    });
+                    const ctx = initBuilder(builderId);
+                    if (ctx) {
+                        if (typeof ctx.resize === 'function') ctx.resize();
+                        ctx.controls.update();
+                        ctx.camera.updateProjectionMatrix();
+                    }
+                    renderCustomAssetLibraries();
+                    return ctx;
+                };
+
+                window.hudTogglePanel = function(builderId, panelName) {
+                    const panel = getPanelEl(builderId, panelName);
+                    const button = getHudBtn(builderId, panelName);
+                    const isOpen = panel?.classList.contains('open');
+                    BUILDER_PANELS.forEach(name => {
+                        getPanelEl(builderId, name)?.classList.remove('open');
+                        getHudBtn(builderId, name)?.classList.remove('active');
+                    });
+                    if (!isOpen && panel) {
+                        panel.classList.add('open');
+                        button?.classList.add('active');
+                        if (panelName === 'inspector') refreshInspector(builderId);
+                    }
+                };
+
+                window.hudClosePanel = function(builderId, panelName) {
+                    getPanelEl(builderId, panelName)?.classList.remove('open');
+                    getHudBtn(builderId, panelName)?.classList.remove('active');
+                };
+
+                window.builderLight = function(builderId, preset) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    applyLightPreset(ctx, preset);
+                };
+
+                window.builderCam = function(builderId, view) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    const distance = builderId === 'venue' ? 12 : 9;
+                    const positions = {
+                        front: [0, 2.4, distance],
+                        top: [0, distance, 0.01],
+                        side: [distance, 2.4, 0],
+                        iso: [distance * 0.7, distance * 0.5, distance * 0.7],
+                        reset: builderConfigs[builderId].defaultCamera.toArray(),
+                    };
+                    const pos = positions[view] || positions.reset;
+                    ctx.camera.position.set(...pos);
+                    ctx.controls.target.set(0, builderId === 'asset' ? ctx.floorY : 0, 0);
+                    ctx.controls.update();
+                };
+
+                window.builderToggleFreeze = function(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    ctx.freezeMode = !ctx.freezeMode;
+                    ctx.controls.enableRotate = !ctx.freezeMode;
+                    ctx.controls.enablePan = !ctx.freezeMode;
+                    ctx.controls.enableZoom = true;
+                    document.getElementById(builderConfigs[builderId].freezeBadgeId)?.classList.toggle('visible', ctx.freezeMode);
+                    document.getElementById(`${builderId}-hud-freeze`)?.classList.toggle('active', ctx.freezeMode);
+                };
+
+                window.builderToggle = function(builderId, toggleName) {
+                    const ctx = getBuilder(builderId);
+                    const button = document.getElementById(`${builderId}-tog-${toggleName}`);
+                    if (!ctx || !button) return;
+                    button.classList.toggle('on');
+                    const enabled = button.classList.contains('on');
+                    if (toggleName === 'wire') applyWireframe(ctx, enabled);
+                    if (toggleName === 'rotate') ctx.controls.autoRotate = enabled;
+                    if (toggleName === 'grid') ctx.gridHelper.visible = enabled;
+                };
+
+                window.builderAddObject = async function(builderId, type) {
+                    await addObject(builderId, type);
+                };
+
+                window.builderAddCustomAsset = async function(builderId, assetId) {
+                    const asset = customAssets.find(item => item.id === assetId);
+                    if (!asset) return;
+                    await addObject(builderId, 'custom-asset', { definition: asset });
+                };
+
+                window.builderPromptTextLabel = function(builderId) {
+                    const modal = document.getElementById(`text-label-modal-${builderId}`);
+                    const input = document.getElementById(`text-label-input-${builderId}`);
+                    if (!modal || !input) return;
+                    modal.classList.add('open');
+                    input.value = '';
+                    setTimeout(() => input.focus(), 60);
+                };
+
+                window.builderConfirmTextLabel = function(builderId) {
+                    const input = document.getElementById(`text-label-input-${builderId}`);
+                    const modal = document.getElementById(`text-label-modal-${builderId}`);
+                    if (!input || !modal) return;
+                    const text = input.value.trim();
+                    if (text) addObject(builderId, 'text-label', { text });
+                    input.value = '';
+                    modal.classList.remove('open');
+                };
+
+                window.builderCancelTextLabel = function(builderId) {
+                    const input = document.getElementById(`text-label-input-${builderId}`);
+                    const modal = document.getElementById(`text-label-modal-${builderId}`);
+                    if (input) input.value = '';
+                    if (modal) modal.classList.remove('open');
+                };
+
+                window.builderCreateGroup = function(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    const group = { name: `Group ${ctx.groups.length + 1}`, members: [...ctx.selectedObjects] };
+                    ctx.groups.push(group);
+                    refreshInspector(builderId);
+                };
+
+                window.builderAddToGroup = function(builderId, index) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length === 0 || !ctx.groups[index]) return;
+                    ctx.groups.forEach(group => {
+                        group.members = group.members.filter(member => !ctx.selectedObjects.includes(member));
+                    });
+                    ctx.selectedObjects.forEach(object3d => ctx.groups[index].members.push(object3d));
+                    refreshInspector(builderId);
+                };
+
+                window.builderSelectGroup = function(builderId, index) {
+                    const ctx = getBuilder(builderId);
+                    const group = ctx?.groups[index];
+                    if (!ctx || !group || group.members.length === 0) return;
+                    ctx.selectedObjects = group.members.filter(member => ctx.placedObjects.includes(member));
+                    ctx.selectedObject = ctx.selectedObjects[ctx.selectedObjects.length - 1] || null;
+                    syncSelectionUI(ctx);
+                };
+
+                window.builderDuplicateSelected = function(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length === 0) return;
+                    const offset = ctx.sceneUnitsPerFoot * 1.5;
+                    const duplicates = ctx.selectedObjects.map(source => {
+                        const duplicate = source.clone(true);
+                        duplicate.position.set(source.position.x + offset, source.position.y, source.position.z + offset);
+                        duplicate.rotation.copy(source.rotation);
+                        duplicate.scale.copy(source.scale);
+                        duplicate.userData = cloneUserData(source.userData);
+                        duplicate.traverse(node => {
+                            if (node.isMesh) {
+                                node.castShadow = true;
+                                node.receiveShadow = true;
+                            }
+                        });
+                        ctx.scene.add(duplicate);
+                        ctx.placedObjects.push(duplicate);
+                        return duplicate;
+                    });
+                    ctx.selectedObjects = duplicates;
+                    ctx.selectedObject = duplicates[duplicates.length - 1] || null;
+                    updateObjectCount(builderId);
+                    syncSelectionUI(ctx);
+                };
+
+                window.builderSetRotation = function(builderId, degrees) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || !ctx.selectedObject) return;
+                    ctx.selectedObject.rotation.y = Number.parseFloat(degrees) * (Math.PI / 180);
+                    const value = Math.round(Number.parseFloat(degrees));
+                    const label = document.getElementById(`${builderId}-insp-rot-val`);
+                    if (label) label.textContent = `${value}°`;
+                };
+
+                window.builderRotateSelected = function(builderId, degrees) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length === 0) return;
+                    ctx.selectedObjects.forEach(object3d => { object3d.rotation.y += degrees * (Math.PI / 180); });
+                    if (!ctx.selectedObject) return;
+                    const slider = document.getElementById(`${builderId}-insp-rot-slider`);
+                    const label = document.getElementById(`${builderId}-insp-rot-val`);
+                    const next = Math.round(((ctx.selectedObject.rotation.y * 180 / Math.PI) % 360 + 360) % 360);
+                    if (slider) slider.value = next;
+                    if (label) label.textContent = `${next}°`;
+                };
+
+                window.builderRemoveSelected = function(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    removeObjects(builderId, [...ctx.selectedObjects]);
+                };
+
+                window.builderClearObjects = function(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx) return;
+                    ctx.placedObjects.forEach(object3d => ctx.scene.remove(object3d));
+                    ctx.placedObjects = [];
+                    ctx.selectedObjects = [];
+                    ctx.selectedObject = null;
+                    ctx.groups = [];
+                    updateObjectCount(builderId);
+                    syncSelectionUI(ctx);
+                };
+
+                window.ctxDuplicate = function(builderId) {
+                    hideAllCtxMenus();
+                    window.builderDuplicateSelected(builderId);
+                };
+
+                window.ctxRemoveSelected = function(builderId) {
+                    hideAllCtxMenus();
+                    window.builderRemoveSelected(builderId);
+                };
+
+                window.ctxSelectAll = function(builderId) {
+                    hideAllCtxMenus();
+                    selectAll(builderId);
+                };
+
+                window.ctxDeselectAll = function(builderId) {
+                    hideAllCtxMenus();
+                    deselectAll(builderId);
+                };
+
+                window.ctxGroupSelected = function(builderId) {
+                    hideAllCtxMenus();
+                    window.builderCreateGroup(builderId);
+                };
+
+                window.builderAlign = function(builderId, mode) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length < 2) return;
+                    const xs = ctx.selectedObjects.map(object3d => object3d.position.x);
+                    const zs = ctx.selectedObjects.map(object3d => object3d.position.z);
+                    const minX = Math.min(...xs);
+                    const maxX = Math.max(...xs);
+                    const minZ = Math.min(...zs);
+                    const maxZ = Math.max(...zs);
+                    switch (mode) {
+                        case 'left': ctx.selectedObjects.forEach(object3d => { object3d.position.x = minX; }); break;
+                        case 'right': ctx.selectedObjects.forEach(object3d => { object3d.position.x = maxX; }); break;
+                        case 'centerX': {
+                            const center = (minX + maxX) / 2;
+                            ctx.selectedObjects.forEach(object3d => { object3d.position.x = center; });
+                            break;
                         }
-                    });
-                }
-            });
-
-            cvs.addEventListener('pointerup',    () => { isDragging = false; controls.enabled = true; dragOffsets.clear(); });
-            cvs.addEventListener('pointercancel',() => { isDragging = false; controls.enabled = true; dragOffsets.clear(); });
-
-            // ── Right-click context menu ──
-            cvs.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const ndc = getPointerNDC(e);
-                mouse.x = ndc.x; mouse.y = ndc.y;
-                raycaster.setFromCamera(mouse, camera);
-                const target = resolveTarget(raycaster.intersectObjects(placedObjects, true));
-
-                // If right-clicked on an unselected object, add it to selection
-                if (target && !selectedObjects.includes(target)) addToSelection(target);
-
-                const count = selectedObjects.length;
-                const title = document.getElementById('ctx-title');
-                if (title) title.textContent = count === 0 ? 'Scene' : count === 1 ? '1 object selected' : `${count} objects selected`;
-                showCtxMenu(e.clientX, e.clientY);
-            });
-
-            // Close ctx menu on any left click outside
-            document.addEventListener('pointerdown', (e) => {
-                if (!e.target.closest('#ctx-menu')) hideCtxMenu();
-            }, true);
-
-            // Keyboard rotation for selected object
-            document.addEventListener('keydown', (e) => {
-                if (!selectedObject) return;
-                if (e.key === 'ArrowLeft')  { e.preventDefault(); window.builderRotateSelected(-15); }
-                if (e.key === 'ArrowRight') { e.preventDefault(); window.builderRotateSelected(15);  }
-            });
-
-            // Render loop
-            function animate() {
-                requestAnimationFrame(animate);
-                controls.update();
-                renderer.render(scene, camera);
-            }
-            animate();
-        };
-
-        // ── Light presets ───────────────────────────────────────
-        function clearLights() {
-            scene.children.filter(c => c.isLight).forEach(l => scene.remove(l));
-        }
-
-        function applyLightPreset(preset) {
-            clearLights();
-            if (preset === 'day') {
-                const amb = new THREE.AmbientLight(0xfff4e0, 0.8);
-                const sun = new THREE.DirectionalLight(0xfff4e0, 2.5);
-                sun.position.set(10, 20, 10);
-                sun.castShadow = true;
-                sun.shadow.mapSize.set(2048, 2048);
-                sun.shadow.camera.near = 0.5;
-                sun.shadow.camera.far = 100;
-                sun.shadow.camera.left = -20;
-                sun.shadow.camera.right = 20;
-                sun.shadow.camera.top = 20;
-                sun.shadow.camera.bottom = -20;
-                const fill = new THREE.DirectionalLight(0xc8d8f0, 0.6);
-                fill.position.set(-10, 5, -10);
-                scene.add(amb, sun, fill);
-            } else if (preset === 'evening') {
-                const amb  = new THREE.AmbientLight(0xff8c42, 0.5);
-                const warm = new THREE.DirectionalLight(0xffb347, 1.8);
-                warm.position.set(-8, 12, 5);
-                warm.castShadow = true;
-                warm.shadow.mapSize.set(2048, 2048);
-                const accent = new THREE.PointLight(0xff6a00, 1.0, 30);
-                accent.position.set(3, 3, 3);
-                scene.add(amb, warm, accent);
-            } else if (preset === 'night') {
-                const amb   = new THREE.AmbientLight(0x1a1a4e, 0.4);
-                const moon  = new THREE.DirectionalLight(0x8090d0, 1.0);
-                moon.position.set(-5, 15, -5);
-                moon.castShadow = true;
-                moon.shadow.mapSize.set(2048, 2048);
-                const candle1 = new THREE.PointLight(0xffcc66, 1.5, 12);
-                candle1.position.set(2, 2, 2);
-                const candle2 = new THREE.PointLight(0xffcc66, 1.0, 10);
-                candle2.position.set(-3, 2, -2);
-                scene.add(amb, moon, candle1, candle2);
-            }
-        }
-
-        // ── Exposed controls ────────────────────────────────────
-        window.builderLight = function(preset) {
-            if (!scene) return;
-            applyLightPreset(preset);
-            ['day','evening','night'].forEach(p => {
-                const b = document.getElementById('btn-light-' + p);
-                if (b) b.classList.toggle('active', p === preset);
-            });
-        };
-
-        window.builderCam = function(view) {
-            if (!camera || !controls) return;
-            const d = 12;
-            const positions = {
-                front: [0, 2, d],
-                top:   [0, d, 0.01],
-                side:  [d, 2, 0],
-                iso:   [d * 0.7, d * 0.5, d * 0.7],
-                reset: [8, 5, 10]
-            };
-            const pos = positions[view] || positions.reset;
-            camera.position.set(...pos);
-            controls.target.set(0, 0, 0);
-            controls.update();
-        };
-
-        // ── HUD panel management ──────────────────────────────────
-        const PANEL_IDS = ['objects','camera','light','display','align','inspector'];
-        window.hudTogglePanel = function(id) {
-            const el = document.getElementById('panel-' + id);
-            const btn = document.getElementById('hud-' + id);
-            const isOpen = el && el.classList.contains('open');
-            PANEL_IDS.forEach(p => {
-                const pe = document.getElementById('panel-' + p);
-                const pb = document.getElementById('hud-' + p);
-                if (pe) pe.classList.remove('open');
-                if (pb) pb.classList.remove('active');
-            });
-            if (!isOpen && el) {
-                el.classList.add('open');
-                if (btn) btn.classList.add('active');
-                if (id === 'inspector') refreshInspector();
-            }
-        };
-        window.hudClosePanel = function(id) {
-            const el = document.getElementById('panel-' + id);
-            const btn = document.getElementById('hud-' + id);
-            if (el) el.classList.remove('open');
-            if (btn) btn.classList.remove('active');
-        };
-
-        // ── Freeze mode ───────────────────────────────────────────
-        window._freezeMode = false;
-        window.builderToggleFreeze = function() {
-            window._freezeMode = !window._freezeMode;
-            const badge = document.getElementById('freeze-badge');
-            const btn = document.getElementById('hud-freeze');
-            if (window._controls) {
-                window._controls.enableRotate = !window._freezeMode;
-                window._controls.enablePan = !window._freezeMode;
-                window._controls.enableZoom = true;
-            }
-            if (badge) badge.classList.toggle('visible', window._freezeMode);
-            if (btn) btn.classList.toggle('active', window._freezeMode);
-        };
-
-        // ── Groups ────────────────────────────────────────────────
-        window._groups = [];
-        window.builderCreateGroup = function() {
-            const name = 'Group ' + (window._groups.length + 1);
-            window._groups.push({ name, members: [] });
-            refreshInspector();
-        };
-        window.builderAddToGroup = function(idx) {
-            if (selectedObjects.length === 0) return;
-            // remove all selected from any existing group first
-            window._groups.forEach(g => { g.members = g.members.filter(m => !selectedObjects.includes(m)); });
-            selectedObjects.forEach(o => { window._groups[idx].members.push(o); });
-            refreshInspector();
-        };
-        window.builderSelectGroup = function(idx) {
-            const grp = window._groups[idx];
-            if (!grp || grp.members.length === 0) return;
-            grp.members.forEach(obj => {
-                obj.traverse(n => {
-                    if (n.isMesh && n.material) {
-                        n.material = n.material.clone();
-                        if (n.material.emissive) n.material.emissive.setHex(0x224422);
-                        n.material.emissiveIntensity = 0.5;
+                        case 'front': ctx.selectedObjects.forEach(object3d => { object3d.position.z = minZ; }); break;
+                        case 'back': ctx.selectedObjects.forEach(object3d => { object3d.position.z = maxZ; }); break;
+                        case 'centerZ': {
+                            const center = (minZ + maxZ) / 2;
+                            ctx.selectedObjects.forEach(object3d => { object3d.position.z = center; });
+                            break;
+                        }
+                        case 'distX': {
+                            if (ctx.selectedObjects.length < 3) break;
+                            const ordered = [...ctx.selectedObjects].sort((a, b) => a.position.x - b.position.x);
+                            const step = (maxX - minX) / (ordered.length - 1);
+                            ordered.forEach((object3d, index) => { object3d.position.x = minX + step * index; });
+                            break;
+                        }
+                        case 'distZ': {
+                            if (ctx.selectedObjects.length < 3) break;
+                            const ordered = [...ctx.selectedObjects].sort((a, b) => a.position.z - b.position.z);
+                            const step = (maxZ - minZ) / (ordered.length - 1);
+                            ordered.forEach((object3d, index) => { object3d.position.z = minZ + step * index; });
+                            break;
+                        }
                     }
-                });
-            });
-            setSelected(grp.members[grp.members.length - 1]);
-        };
+                    refreshInspector(builderId);
+                };
 
-        // ── Duplicate — clones all selected objects ───────────────
-        window.builderDuplicateSelected = function() {
-            if (selectedObjects.length === 0 || !window._sceneUnitsPerFoot) return;
-            const offset = window._sceneUnitsPerFoot * 1.5;
-            const newObjs = [];
-            selectedObjects.forEach(src => {
-                const dup = src.clone();
-                dup.position.set(src.position.x + offset, src.position.y, src.position.z + offset);
-                dup.rotation.copy(src.rotation);
-                dup.scale.copy(src.scale);
-                dup.userData = Object.assign({}, src.userData);
-                window._scene.add(dup);
-                placedObjects.push(dup);
-                newObjs.push(dup);
-            });
-            updateObjectCount();
-            // select the new clones
-            deselectAll();
-            newObjs.forEach(o => addToSelection(o));
-            refreshInspector();
-        };
+                window.builderPromptSaveCustomAsset = function(builderId) {
+                    const ctx = getBuilder(builderId);
+                    if (!ctx || ctx.selectedObjects.length === 0) {
+                        alert('Select one or more objects in the Asset Builder first.');
+                        return;
+                    }
+                    pendingCustomAssetBuilderId = builderId;
+                    const modal = document.getElementById('custom-asset-modal');
+                    const input = document.getElementById('custom-asset-input');
+                    if (!modal || !input) return;
+                    modal.classList.add('open');
+                    input.value = '';
+                    setTimeout(() => input.focus(), 60);
+                };
 
-        // ── Set rotation from slider (primary selected object) ────
-        window.builderSetRotation = function(deg) {
-            if (!selectedObject) return;
-            selectedObject.rotation.y = parseFloat(deg) * (Math.PI / 180);
-        };
+                window.builderConfirmSaveCustomAsset = function() {
+                    const input = document.getElementById('custom-asset-input');
+                    const modal = document.getElementById('custom-asset-modal');
+                    if (!input || !modal || !pendingCustomAssetBuilderId) return;
+                    const name = input.value.trim();
+                    if (!name) return;
+                    saveCustomAssetFromSelection(pendingCustomAssetBuilderId, name);
+                    input.value = '';
+                    pendingCustomAssetBuilderId = null;
+                    modal.classList.remove('open');
+                };
 
-        // ── Inspector panel refresh ────────────────────────────────
-        function refreshInspector() {
-            const body = document.getElementById('inspector-body');
-            if (!body) return;
+                window.builderCancelSaveCustomAsset = function() {
+                    const input = document.getElementById('custom-asset-input');
+                    const modal = document.getElementById('custom-asset-modal');
+                    if (input) input.value = '';
+                    pendingCustomAssetBuilderId = null;
+                    if (modal) modal.classList.remove('open');
+                };
 
-            const count = selectedObjects.length;
-            if (count === 0) {
-                body.innerHTML = '<div class="inspector-empty">No object selected — click an object in the scene</div>';
-                return;
-            }
+                window.builderLoadTwoTableSetup = async function() {
+                    const ctx = initBuilder('venue');
+                    window.builderClearObjects('venue');
+                    const spacing = ctx.sceneUnitsPerFoot * 8;
+                    await addObject('venue', 'serpentine-table', { position: new THREE.Vector3(-spacing / 2, 0, 0), select: false });
+                    await addObject('venue', 'serpentine-table', { position: new THREE.Vector3(spacing / 2, 0, 0), select: true });
+                    window.hudTogglePanel('venue', 'objects');
+                };
 
-            // Multi-select summary vs single
-            let headerHTML = '';
-            let sliderHTML = '';
-            if (count > 1) {
-                headerHTML = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${count} objects selected</div>
-                    <div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">Shift+click to add/remove · drag to move all</div>`;
-            } else {
-                const rotDeg = Math.round(((selectedObject.rotation.y * 180 / Math.PI) % 360 + 360) % 360);
-                const posX = selectedObject.position.x.toFixed(1);
-                const posZ = selectedObject.position.z.toFixed(1);
-                const name = selectedObject.userData.objectType || 'Object';
-                headerHTML = `<div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:6px">${name}</div>
-                    <div style="color:rgba(255,255,255,0.4);font-size:10px;margin-bottom:12px">x: ${posX} &nbsp;|&nbsp; z: ${posZ}</div>`;
-                sliderHTML = `<div class="panel-slider-row">
-                    <span class="panel-slider-label">Rotation</span>
-                    <input type="range" class="panel-slider" id="insp-rot-slider" min="0" max="359" value="${rotDeg}"
-                        oninput="builderSetRotation(this.value);document.getElementById('insp-rot-val').textContent=Math.round(this.value)+'°'">
-                    <span class="panel-slider-val" id="insp-rot-val">${rotDeg}°</span>
-                </div>`;
-            }
-
-            let groupChips = window._groups.map((g, i) => {
-                const inGroup = selectedObjects.every(o => g.members.includes(o));
-                return `<span class="group-chip${inGroup ? ' active-group' : ''}" onclick="builderAddToGroup(${i})">${g.name}${inGroup ? ' ✓' : ''}</span>`;
-            }).join('');
-
-            body.innerHTML = `
-                ${headerHTML}
-                ${sliderHTML}
-                <div class="inspector-action-grid">
-                    <button class="panel-btn" onclick="builderRotateSelected(-15)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.49-1.72 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.75-.87-1.59-1.01-2.47zm1.01 5.32c1.16.9 2.51 1.44 3.9 1.61V17.9c-.87-.15-1.71-.49-2.46-1.03L7.1 18.32zM13 4.07V1L8.45 5.55 13 10V6.09c2.84.48 5 2.94 5 5.91s-2.16 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93s-3.05-7.44-7-7.93z"/></svg>-15°
-                    </button>
-                    <button class="panel-btn" onclick="builderRotateSelected(15)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"/></svg>+15°
-                    </button>
-                    <button class="panel-btn" onclick="builderDuplicateSelected()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Dupe
-                    </button>
-                    <button class="panel-btn" onclick="builderRemoveSelected()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Remove
-                    </button>
-                </div>
-                ${window._groups.length > 0 ? `<div class="panel-section-title">Groups</div><div class="group-chip-wrap">${groupChips}</div>` : ''}
-                <div class="panel-section-title">Scene</div>
-                <button class="builder-btn" onclick="builderCreateGroup()">+ New Group</button>
-                <button class="builder-btn" onclick="builderClearObjects()">Clear All Objects</button>
-            `;
-        }
-
-        // ── Context menu helpers ──────────────────────────────────
-        function showCtxMenu(x, y) {
-            const m = document.getElementById('ctx-menu');
-            if (!m) return;
-            m.style.left = x + 'px';
-            m.style.top  = y + 'px';
-            m.classList.add('visible');
-            // keep inside viewport
-            const r = m.getBoundingClientRect();
-            if (r.right  > window.innerWidth)  m.style.left = (x - r.width)  + 'px';
-            if (r.bottom > window.innerHeight)  m.style.top  = (y - r.height) + 'px';
-        }
-        function hideCtxMenu() {
-            const m = document.getElementById('ctx-menu');
-            if (m) m.classList.remove('visible');
-        }
-        window.ctxDuplicate     = function() { hideCtxMenu(); builderDuplicateSelected(); };
-        window.ctxRemoveSelected = function() { hideCtxMenu(); builderRemoveSelected(); };
-        window.ctxSelectAll     = function() { hideCtxMenu(); selectAll(); };
-        window.ctxDeselectAll   = function() { hideCtxMenu(); deselectAll(); };
-        window.ctxGroupSelected = function() { hideCtxMenu(); builderCreateGroup(); selectedObjects.forEach((_, i, arr) => { if (i === 0) {} }); /* group is created, then user assigns */ };
-
-        // ── Alignment helper ──────────────────────────────────────
-        window.builderAlign = function(mode) {
-            if (selectedObjects.length < 2) return;
-            const xs = selectedObjects.map(o => o.position.x);
-            const zs = selectedObjects.map(o => o.position.z);
-            const minX = Math.min(...xs), maxX = Math.max(...xs);
-            const minZ = Math.min(...zs), maxZ = Math.max(...zs);
-            switch (mode) {
-                case 'left':    selectedObjects.forEach(o => { o.position.x = minX; }); break;
-                case 'right':   selectedObjects.forEach(o => { o.position.x = maxX; }); break;
-                case 'centerX': { const cx = (minX + maxX) / 2; selectedObjects.forEach(o => { o.position.x = cx; }); break; }
+                renderCustomAssetLibraries();
+                bindGlobalListeners();
+            </script>
                 case 'front':   selectedObjects.forEach(o => { o.position.z = minZ; }); break;
                 case 'back':    selectedObjects.forEach(o => { o.position.z = maxZ; }); break;
                 case 'centerZ': { const cz = (minZ + maxZ) / 2; selectedObjects.forEach(o => { o.position.z = cz; }); break; }

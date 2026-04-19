@@ -14,6 +14,7 @@
     <title>Demo Area | RNB Events</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="RNB%20Logo%20Olive.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -1943,7 +1944,196 @@
                 'whats_included': "What's included in your pricing?"
             };
 
-            <script type="module">
+            for (const p of patterns) {
+                if (p.re.test(raw)) {
+                    const qText = keyMap[p.key];
+                    if (qText) {
+                        const faq = allFAQs.find(f => f.q === qText);
+                        if (faq) return { answer: faq.a, triggerQuote: shouldTriggerQuote || !!faq.triggerQuote };
+                    }
+                }
+            }
+
+            let best = null, top = 0;
+            allFAQs.forEach(faq => {
+                const ql = faq.q.toLowerCase();
+                const al = faq.a.toLowerCase();
+                let score = 0;
+                const words = raw.split(/\s+/).filter(w => w.length > 2);
+                words.forEach(w => {
+                    if (ql.includes(w)) score += 5;
+                    for (const syns of Object.values(keywordMaps)) {
+                        if (syns.includes(w)) syns.forEach(s => { if (ql.includes(s)) score += 3; });
+                    }
+                    if (al.includes(w)) score += 1;
+                });
+                const userType = raw.match(/^(what|how|can|do|does|is|are|will)/);
+                const faqType = ql.match(/^(what|how|can|do|does|is|are|will)/);
+                if (userType && faqType && userType[0] === faqType[0]) score += 2;
+                if (ql.includes(raw) || raw.includes(ql.substring(0, 20))) score += 15;
+                if (Math.abs(raw.length - ql.length) < 20) score += 2;
+                if (score > top) {
+                    top = score;
+                    best = faq;
+                }
+            });
+
+            if (best && top >= 8) {
+                return { answer: best.a, triggerQuote: shouldTriggerQuote || !!best.triggerQuote };
+            }
+
+            return {
+                answer: "Great question! For the most accurate answer about your specific event, our team would love to connect. You can also ask: 'What services do you offer?' or 'How do I get started?'",
+                triggerQuote: shouldTriggerQuote
+            };
+        }
+
+        const msgsEl = () => document.getElementById('cc-messages');
+        const inputEl = () => document.getElementById('cc-input');
+        const typing = () => document.getElementById('cc-typing');
+
+        function fmtTime() {
+            const date = new Date();
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function appendMsg(type, text, quoteData) {
+            const msgs = msgsEl();
+            if (!msgs) return;
+
+            const row = document.createElement('div');
+            row.className = 'cmsg ' + type;
+
+            if (type === 'bot') {
+                row.innerHTML = `
+                    <div class="cmsg-avatar">R</div>
+                    <div class="cmsg-body">
+                        <div class="cmsg-bubble">${escHtml(text)}</div>
+                        <div class="cmsg-time">${fmtTime()}</div>
+                        ${quoteData ? `<div class="concierge-quote-cta">Would you like a personalized quote for your event?<button class="concierge-quote-btn" onclick="window.location.href='/service'"><svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="vertical-align:-2px;margin-right:5px"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>Request a Quote</button></div>` : ''}
+                    </div>`;
+            } else {
+                row.innerHTML = `
+                    <div class="cmsg-body">
+                        <div class="cmsg-bubble">${escHtml(text)}</div>
+                        <div class="cmsg-time">${fmtTime()}</div>
+                    </div>`;
+            }
+
+            msgs.appendChild(row);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function escHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showTyping() {
+            const indicator = typing();
+            if (indicator) indicator.classList.remove('hidden');
+            const messages = msgsEl();
+            if (messages) messages.scrollTop = messages.scrollHeight;
+        }
+
+        function hideTyping() {
+            const indicator = typing();
+            if (indicator) indicator.classList.add('hidden');
+        }
+
+        function send(text) {
+            const trimmed = (text || '').trim();
+            if (!trimmed) return;
+            const input = inputEl();
+            if (input) input.value = '';
+            appendMsg('user', trimmed);
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                const res = getResponse(trimmed);
+                appendMsg('bot', res.answer, res.triggerQuote);
+            }, 700 + Math.random() * 400);
+        }
+
+        window.conciergeChip = function(btn) {
+            send(btn.textContent);
+        };
+
+        const samples = [
+            'What events do you specialize in?',
+            'Where are you located?',
+            'How much does it cost?',
+            'Do you do corporate events?',
+            'Can you match my theme?',
+            'How do I get started?',
+            'Do you travel for events?',
+            'What packages do you offer?'
+        ];
+        let sIdx = 0;
+        let charIdx = 0;
+        let erasing = false;
+        let animPaused = false;
+
+        function runAnim() {
+            const input = document.getElementById('cc-input');
+            if (!input || animPaused) {
+                setTimeout(runAnim, 200);
+                return;
+            }
+            const question = samples[sIdx % samples.length];
+            if (!erasing) {
+                input.placeholder = question.substring(0, charIdx) + '|';
+                charIdx += 1;
+                if (charIdx > question.length) {
+                    erasing = true;
+                    setTimeout(runAnim, 1800);
+                    return;
+                }
+                setTimeout(runAnim, 90);
+            } else {
+                input.placeholder = question.substring(0, charIdx) + '|';
+                charIdx -= 1;
+                if (charIdx < 0) {
+                    erasing = false;
+                    charIdx = 0;
+                    sIdx += 1;
+                    setTimeout(runAnim, 400);
+                    return;
+                }
+                setTimeout(runAnim, 45);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('cc-input');
+            const button = document.getElementById('cc-send');
+            if (!input || !button) return;
+
+            setTimeout(() => {
+                appendMsg('bot', "Hi! I'm your RNB Concierge. I can answer questions about our services, pricing, event types, and more. What would you like to know?");
+            }, 400);
+
+            button.addEventListener('click', () => send(input.value));
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Enter') send(input.value);
+            });
+            input.addEventListener('focus', () => {
+                animPaused = true;
+                input.placeholder = 'Ask me anything about RNB Events...';
+            });
+            input.addEventListener('blur', () => {
+                if (!input.value.trim()) {
+                    animPaused = false;
+                    runAnim();
+                }
+            });
+
+            runAnim();
+        });
+    })();
+    </script>
+
+    <!-- 3D Builder (Three.js) -->
+    <script type="module">
                 import * as THREE from 'https://unpkg.com/three@0.161.0/build/three.module.js';
                 import { GLTFLoader } from 'https://unpkg.com/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
                 import { OrbitControls } from 'https://unpkg.com/three@0.161.0/examples/jsm/controls/OrbitControls.js';
@@ -3155,185 +3345,6 @@
                 renderCustomAssetLibraries();
                 bindGlobalListeners();
             </script>
-                case 'front':   selectedObjects.forEach(o => { o.position.z = minZ; }); break;
-                case 'back':    selectedObjects.forEach(o => { o.position.z = maxZ; }); break;
-                case 'centerZ': { const cz = (minZ + maxZ) / 2; selectedObjects.forEach(o => { o.position.z = cz; }); break; }
-                case 'distX': {
-                    if (selectedObjects.length < 3) break;
-                    const sorted = [...selectedObjects].sort((a, b) => a.position.x - b.position.x);
-                    const step = (maxX - minX) / (sorted.length - 1);
-                    sorted.forEach((o, i) => { o.position.x = minX + step * i; });
-                    break;
-                }
-                case 'distZ': {
-                    if (selectedObjects.length < 3) break;
-                    const sorted = [...selectedObjects].sort((a, b) => a.position.z - b.position.z);
-                    const step = (maxZ - minZ) / (sorted.length - 1);
-                    sorted.forEach((o, i) => { o.position.z = minZ + step * i; });
-                    break;
-                }
-            }
-        };
-
-        // ── Text label sprites ────────────────────────────────────
-        function makeTextSprite(text) {
-            const W = 512, H = 128;
-            const canvas = document.createElement('canvas');
-            canvas.width = W; canvas.height = H;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, W, H);
-            // Background pill
-            ctx.fillStyle = 'rgba(18,28,18,0.88)';
-            ctx.beginPath();
-            const r = 20;
-            ctx.moveTo(r + 8, 8); ctx.lineTo(W - r - 8, 8);
-            ctx.arcTo(W - 8, 8, W - 8, 8 + r, r);
-            ctx.lineTo(W - 8, H - r - 8);
-            ctx.arcTo(W - 8, H - 8, W - r - 8, H - 8, r);
-            ctx.lineTo(r + 8, H - 8);
-            ctx.arcTo(8, H - 8, 8, H - r - 8, r);
-            ctx.lineTo(8, 8 + r);
-            ctx.arcTo(8, 8, r + 8, 8, r);
-            ctx.closePath();
-            ctx.fill();
-            // Border
-            ctx.strokeStyle = 'rgba(119,163,97,0.85)';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            // Text
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 46px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, W / 2, H / 2);
-            const tex = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, sizeAttenuation: true });
-            const sprite = new THREE.Sprite(mat);
-            const uPerFt = window._sceneUnitsPerFoot || 0.08;
-            sprite.scale.set(8 * uPerFt, 2 * uPerFt, 1);
-            sprite.userData.isPlacedObject = true;
-            sprite.userData.objectType = 'text-label';
-            sprite.userData.labelText = text;
-            sprite.position.set((Math.random() - 0.5) * 2, (window._floorY || 0) + uPerFt * 0.6, (Math.random() - 0.5) * 2);
-            return sprite;
-        }
-
-        window.builderAddTextLabel = function(text) {
-            if (!text || !text.trim() || !scene) return;
-            const sprite = makeTextSprite(text.trim());
-            scene.add(sprite);
-            placedObjects.push(sprite);
-            setSelected(sprite);
-            updateObjectCount();
-        };
-
-        // Modal controls
-        window.builderPromptTextLabel = function() {
-            const modal = document.getElementById('text-label-modal');
-            if (modal) {
-                modal.classList.add('open');
-                setTimeout(() => { const inp = document.getElementById('text-label-input'); if (inp) inp.focus(); }, 60);
-            }
-        };
-        window.builderConfirmTextLabel = function() {
-            const inp = document.getElementById('text-label-input');
-            const modal = document.getElementById('text-label-modal');
-            if (inp) {
-                const text = inp.value.trim();
-                if (text) window.builderAddTextLabel(text);
-                inp.value = '';
-            }
-            if (modal) modal.classList.remove('open');
-        };
-        window.builderCancelTextLabel = function() {
-            const inp = document.getElementById('text-label-input');
-            const modal = document.getElementById('text-label-modal');
-            if (inp) inp.value = '';
-            if (modal) modal.classList.remove('open');
-        };
-
-        window.builderToggle = function(tog) {
-            const btn = document.getElementById('tog-' + tog);
-            if (!btn) return;
-            btn.classList.toggle('on');
-            const on = btn.classList.contains('on');
-            if (tog === 'wire' && model) {
-                wireframeOn = on;
-                model.traverse(c => {
-                    if (c.isMesh && c.material) {
-                        const mats = Array.isArray(c.material) ? c.material : [c.material];
-                        mats.forEach(m => { m.wireframe = on; });
-                    }
-                });
-            }
-            if (tog === 'rotate' && controls) {
-                controls.autoRotate = on;
-            }
-            if (tog === 'grid' && gridHelper) {
-                gridHelper.visible = on;
-            }
-        };
-
-        // ── Object placement ────────────────────────────────────
-        const objectAssets = {
-            'serpentine-table':   '3d-assets/serpentine-table.glb',
-            'serpentine-section': '3d-assets/serpentine-section.glb',
-        };
-
-        window.builderAddObject = function(type) {
-            if (!scene) return;
-            if (templates[type]) {
-                placeClone(templates[type], type);
-            } else {
-                const path = objectAssets[type];
-                if (!path) return;
-                const loader = new GLTFLoader();
-                loader.load(
-                    path,
-                    (gltf) => { templates[type] = gltf.scene; placeClone(templates[type], type); },
-                    undefined,
-                    (err) => console.error(`Could not load ${path}:`, err)
-                );
-            }
-        };
-
-        // Remove all currently selected objects
-        window.builderRemoveSelected = function() {
-            if (selectedObjects.length === 0) return;
-            selectedObjects.forEach(o => {
-                scene.remove(o);
-                placedObjects = placedObjects.filter(p => p !== o);
-                window._groups.forEach(g => { g.members = g.members.filter(m => m !== o); });
-            });
-            selectedObjects = [];
-            selectedObject = null;
-            updateObjectCount();
-            syncSelectionUI();
-        };
-
-        window.builderClearObjects = function() {
-            placedObjects.forEach(o => scene.remove(o));
-            placedObjects = [];
-            selectedObjects = [];
-            selectedObject = null;
-            window._groups.forEach(g => { g.members = []; });
-            updateObjectCount();
-            syncSelectionUI();
-        };
-
-        window.builderRotateSelected = function(deg) {
-            // rotate all selected; update slider from primary
-            selectedObjects.forEach(o => { o.rotation.y += deg * (Math.PI / 180); });
-            if (!selectedObject) return;
-            const slider = document.getElementById('insp-rot-slider');
-            const val = document.getElementById('insp-rot-val');
-            if (slider) {
-                const d = Math.round(((selectedObject.rotation.y * 180 / Math.PI) % 360 + 360) % 360);
-                slider.value = d;
-                if (val) val.textContent = d + '°';
-            }
-        };
-    </script>
 
 </body>
 </html>

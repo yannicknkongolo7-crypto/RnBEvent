@@ -2219,14 +2219,22 @@
 
                 function frameScene(ctx, bounds, options = {}) {
                     if (!bounds || bounds.isEmpty()) return;
-                    const center = bounds.getCenter(new THREE.Vector3());
+                    const boxCenter = bounds.getCenter(new THREE.Vector3());
                     const size = bounds.getSize(new THREE.Vector3());
+                    const center = new THREE.Vector3(
+                        boxCenter.x,
+                        options.targetY != null ? options.targetY : boxCenter.y,
+                        boxCenter.z
+                    );
                     const radius = Math.max(size.x, size.y, size.z) * 0.5 || 1;
                     const fov = THREE.MathUtils.degToRad(ctx.camera.fov);
                     const distance = (radius / Math.tan(fov / 2)) * (options.padding || 1.45);
                     const direction = (options.direction || new THREE.Vector3(0.85, 0.55, 1)).clone().normalize();
                     ctx.controls.target.copy(center);
                     ctx.camera.position.copy(center).add(direction.multiplyScalar(distance));
+                    ctx.resetTarget = center.clone();
+                    ctx.resetCameraPosition = ctx.camera.position.clone();
+                    ctx.resetDistance = distance;
                     ctx.camera.near = Math.max(distance / 100, 0.1);
                     ctx.camera.far = Math.max(distance * 12, 200);
                     ctx.camera.updateProjectionMatrix();
@@ -2913,7 +2921,11 @@
                         new THREE.Vector3(-2.5, ctx.floorY - 0.5, -2.5),
                         new THREE.Vector3(2.5, ctx.floorY + 2, 2.5)
                     );
-                    frameScene(ctx, focusBounds, { padding: 1.25, direction: new THREE.Vector3(0.75, 0.5, 0.9) });
+                    frameScene(ctx, focusBounds, {
+                        padding: 1.15,
+                        direction: new THREE.Vector3(0.15, 0.8, 1.05),
+                        targetY: ctx.floorY + 0.75,
+                    });
                 }
 
                 function animateBuilder(ctx) {
@@ -2986,6 +2998,9 @@
                         resizeObserver: null,
                         lightPreset: 'day',
                         freezeMode: false,
+                        resetTarget: new THREE.Vector3(),
+                        resetCameraPosition: config.defaultCamera.clone(),
+                        resetDistance: builderId === 'venue' ? 12 : 9,
                     };
                     builders[builderId] = ctx;
 
@@ -3030,7 +3045,11 @@
                                 ctx.floorY = worldBox.min.y;
                                 ctx.sceneUnitsPerFoot = Math.sqrt((worldSize.x * worldSize.z) / 13300);
                                 ctx.gridHelper.position.y = ctx.floorY + 0.01;
-                                frameScene(ctx, worldBox, { padding: 1.2, direction: new THREE.Vector3(0.95, 0.48, 1.05) });
+                                frameScene(ctx, worldBox, {
+                                    padding: 1.18,
+                                    direction: new THREE.Vector3(0.15, 0.9, 1.1),
+                                    targetY: ctx.floorY + (worldSize.y * 0.18),
+                                });
 
                                 const overlay = document.getElementById(config.loadingId);
                                 if (overlay) overlay.classList.add('hidden');
@@ -3114,17 +3133,20 @@
                 window.builderCam = function(builderId, view) {
                     const ctx = getBuilder(builderId);
                     if (!ctx) return;
-                    const distance = builderId === 'venue' ? 12 : 9;
+                    const target = (ctx.resetTarget && !ctx.resetTarget.equals(new THREE.Vector3()))
+                        ? ctx.resetTarget.clone()
+                        : new THREE.Vector3(0, builderId === 'asset' ? ctx.floorY + 0.75 : 0, 0);
+                    const distance = ctx.resetDistance || (builderId === 'venue' ? 12 : 9);
                     const positions = {
-                        front: [0, 2.4, distance],
-                        top: [0, distance, 0.01],
-                        side: [distance, 2.4, 0],
-                        iso: [distance * 0.7, distance * 0.5, distance * 0.7],
-                        reset: builderConfigs[builderId].defaultCamera.toArray(),
+                        front: target.clone().add(new THREE.Vector3(0, distance * 0.22, distance)),
+                        top: target.clone().add(new THREE.Vector3(0.01, distance, 0.01)),
+                        side: target.clone().add(new THREE.Vector3(distance, distance * 0.22, 0)),
+                        iso: target.clone().add(new THREE.Vector3(distance * 0.18, distance * 0.72, distance * 0.88)),
+                        reset: (ctx.resetCameraPosition || builderConfigs[builderId].defaultCamera).clone(),
                     };
                     const pos = positions[view] || positions.reset;
-                    ctx.camera.position.set(...pos);
-                    ctx.controls.target.set(0, builderId === 'asset' ? ctx.floorY + 0.75 : 0, 0);
+                    ctx.camera.position.copy(pos);
+                    ctx.controls.target.copy(target);
                     ctx.controls.update();
                 };
 

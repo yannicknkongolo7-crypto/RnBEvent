@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Quote Generator with Inventory Integration
  */
 
@@ -315,41 +315,52 @@
     /**
      * Render custom items
      */
-    function renderCustomItems() {
-        const container = document.getElementById('custom-items');
+    /**
+     * Render custom items
+     */
+    function renderCustomItems() {
+        const container = document.getElementById('custom-items');
+
+        if (customItems.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = customItems.map(item => {
+            const hasImage = item.imageUrl;
+            const hasDescription = item.description;
+            
+            return `
+            <div class="quote-item" style="display: flex; align-items: center;">
+                ${hasImage ? `<div class="item-image-preview"><img src="${item.imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; margin-right: 12px;"></div>` : ''}
+                <div class="item-details" style="flex: 1;">
+                    <div class="item-name-line">
+                        <span class="item-name">${item.name}</span>
+                        ${hasDescription ? `<span class="item-description" style="font-size: 12px; color: #888; margin-top: 4px; display: block;">${item.description}</span>` : ''}
+                    </div>
+                    <div class="item-pricing">
+                        <label>Qty:</label>
+                        <input type="number" min="1" value="${item.quantity}" 
+                            onchange="updateCustomItemQuantity('${item.id}', this.value)">
+                        <label>Ã—</label>
+                        <label>$</label>
+                        <input type="number" step="0.01" min="0" value="${item.rate}" 
+                            onchange="updateCustomItemRate('${item.id}', this.value)" style="width: 90px;">
+                        <span>= $${(item.quantity * item.rate).toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="delete" onclick="removeCustomItem('${item.id}')" title="Remove">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
 
-        if (customItems.length === 0) {
-            container.innerHTML = '';
-            return;
-        }
-
-        container.innerHTML = customItems.map(item => `
-            <div class="quote-item">
-                <div class="item-details">
-                    <div class="item-name-line">
-                        <span class="item-name">${item.name}</span>
-                    </div>
-                    <div class="item-pricing">
-                        <label>Qty:</label>
-                        <input type="number" min="1" value="${item.quantity}" 
-                            onchange="updateCustomItemQuantity('${item.id}', this.value)">
-                        <label>├ù</label>
-                        <label>$</label>
-                        <input type="number" step="0.01" min="0" value="${item.rate}" 
-                            onchange="updateCustomItemRate('${item.id}', this.value)" style="width: 90px;">
-                        <span>= $${(item.quantity * item.rate).toFixed(2)}</span>
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="delete" onclick="removeCustomItem('${item.id}')" title="Remove">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
 
     /**
      * Update item quantity

@@ -187,20 +187,84 @@
      * Add custom line item
      */
     window.addCustomLineItem = function() {
-        const name = prompt('Enter item/service name:');
-        if (!name || !name.trim()) return;
+        document.getElementById('custom-item-modal').classList.add('show');
+        document.getElementById('custom-item-form').reset();
+        document.getElementById('custom-item-image-preview').style.display = 'none';
+        document.getElementById('custom-item-name').focus();
+        
+        // Add image preview handler
+        document.getElementById('custom-item-image').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('custom-item-image-preview');
+                    const img = document.getElementById('custom-item-preview-img');
+                    img.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('custom-item-image-preview').style.display = 'none';
+            }
+        };
+    };
 
-        const rate = parseFloat(prompt('Enter rate/price:', '0') || '0');
+    /**
+     * Close custom item modal
+     */
+    window.closeCustomItemModal = function() {
+        document.getElementById('custom-item-modal').classList.remove('show');
+        document.getElementById('custom-item-form').reset();
+        document.getElementById('custom-item-image-preview').style.display = 'none';
+    };
+
+    /**
+     * Save custom item with image
+     */
+    window.saveCustomItem = async function() {
+        const name = document.getElementById('custom-item-name').value.trim();
+        const description = document.getElementById('custom-item-description').value.trim();
+        const rate = parseFloat(document.getElementById('custom-item-rate').value) || 0;
+        const imageFile = document.getElementById('custom-item-image').files[0];
+
+        if (!name) {
+            showToast('Please enter an item name', 'error');
+            return;
+        }
+
+        const itemId = Date.now().toString();
+        let imageUrl = null;
+
+        // Upload image if provided
+        if (imageFile) {
+            try {
+                showToast('Uploading image...', 'info');
+                const imagePath = `admin-data/quote-items/images/${itemId}-${imageFile.name}`;
+                imageUrl = await window.S3Service.uploadFile(imageFile, imagePath);
+                if (!imageUrl) {
+                    throw new Error('Image upload failed');
+                }
+            } catch (error) {
+                console.error('Failed to upload image:', error);
+                showToast('Failed to upload image. Adding item without image.', 'warning');
+                imageUrl = null;
+            }
+        }
 
         customItems.push({
-            id: Date.now().toString(),
-            name: name.trim(),
+            id: itemId,
+            name: name,
+            description: description,
             quantity: 1,
-            rate: rate
+            rate: rate,
+            imageUrl: imageUrl
         });
 
         renderCustomItems();
         updatePreview();
+        closeCustomItemModal();
+        showToast('Custom item added successfully!', 'success');
     };
 
     /**

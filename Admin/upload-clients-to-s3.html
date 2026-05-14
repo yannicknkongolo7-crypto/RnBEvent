@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☁️ Upload Clients to S3 | RNB Events</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        .panel {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1d4ed8;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .alert {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+        .success {
+            background: #d1fae5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+        .info {
+            background: #dbeafe;
+            border-left-color: #3b82f6;
+            color: #1e3a8a;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th {
+            background: #f1f5f9;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:hover {
+            background: #f8fafc;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-disabled {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-archived {
+            background: #e2e8f0;
+            color: #475569;
+        }
+        pre {
+            background: #1e293b;
+            color: #fbbf24;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h1>☁️ Upload Clients to S3</h1>
+            <p class="subtitle">Push all clients from localStorage to AWS S3 cloud storage</p>
+            
+            <div id="status"></div>
+            
+            <div id="clients-list"></div>
+            
+            <button class="btn btn-primary" onclick="uploadToS3()" id="upload-btn">
+                ☁️ UPLOAD ALL CLIENTS TO S3
+            </button>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_ENDPOINT = 'https://k0e4amkowi.execute-api.us-east-2.amazonaws.com/upload-clients';
+        let allClients = [];
+
+        function loadClients() {
+            const statusDiv = document.getElementById('status');
+            const listDiv = document.getElementById('clients-list');
+            
+            const data = localStorage.getItem('rnb_admin_clients');
+            if (!data) {
+                statusDiv.innerHTML = '<div class="alert error">❌ No clients found in localStorage!</div>';
+                document.getElementById('upload-btn').disabled = true;
+                return;
+            }
+
+            try {
+                allClients = JSON.parse(data);
+                if (!Array.isArray(allClients) || allClients.length === 0) {
+                    statusDiv.innerHTML = '<div class="alert warning">⚠️ Client array is empty!</div>';
+                    document.getElementById('upload-btn').disabled = true;
+                    return;
+                }
+
+                const active = allClients.filter(c => !c.archived && c.active !== false).length;
+                const disabled = allClients.filter(c => !c.archived && c.active === false).length;
+                const archived = allClients.filter(c => c.archived === true).length;
+
+                statusDiv.innerHTML = `
+                    <div class="alert info">
+                        <strong>📊 Found ${allClients.length} total client(s)</strong>
+                        <ul style="margin: 10px 0 0 20px;">
+                            <li>${active} Active</li>
+                            <li>${disabled} Disabled</li>
+                            <li>${archived} Archived</li>
+                        </ul>
+                    </div>
+                `;
+
+                // Show table
+                let html = '<table><thead><tr><th>Name</th><th>Event</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                allClients.forEach(c => {
+                    const name = c.fullName || c.name || c.firstName || '–';
+                    const event = c.eventType || '–';
+                    const date = c.eventDate || '–';
+                    let status = 'active';
+                    let statusLabel = 'Active';
+                    if (c.archived) {
+                        status = 'archived';
+                        statusLabel = 'Archived';
+                    } else if (c.active === false) {
+                        status = 'disabled';
+                        statusLabel = 'Disabled';
+                    }
+                    html += `<tr>
+                        <td><strong>${escapeHtml(name)}</strong></td>
+                        <td>${escapeHtml(event)}</td>
+                        <td>${escapeHtml(date)}</td>
+                        <td><span class="status-badge status-${status}">${statusLabel}</span></td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                listDiv.innerHTML = html;
+
+            } catch (e) {
+                statusDiv.innerHTML = `<div class="alert error">❌ Error parsing clients: ${e.message}</div>`;
+                document.getElementById('upload-btn').disabled = true;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
+        async function uploadToS3() {
+            const btn = document.getElementById('upload-btn');
+            const resultDiv = document.getElementById('result');
+            
+            btn.disabled = true;
+            btn.textContent = '☁️ UPLOADING...';
+            resultDiv.innerHTML = '<div class="alert info">⏳ Uploading to AWS S3...</div>';
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        clients: allClients
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="alert success">
+                            <h3>✅ SUCCESS!</h3>
+                            <p><strong>${result.count} client(s) uploaded to S3!</strong></p>
+                            ${result.archived ? `<p>📦 ${result.archived} archived client(s) preserved in S3</p>` : ''}
+                            <p>All devices will now sync from cloud storage.</p>
+                        </div>
+                        <button class="btn btn-success" onclick="window.location.href='./index.html'">
+                            🎉 OPEN ADMIN PANEL
+                        </button>
+                    `;
+                    btn.style.display = 'none';
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert error">
+                            <h3>❌ Upload Failed</h3>
+                            <p>${result.error || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                    btn.disabled = false;
+                    btn.textContent = '☁️ RETRY UPLOAD';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                        <p>Check your internet connection and AWS Lambda configuration.</p>
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.textContent = '☁️ RETRY UPLOAD';
+            }
+        }
+
+        // Auto-load on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadClients, 300);
+        });
+    </script>
+</body>
+</html>

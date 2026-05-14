@@ -128,11 +128,10 @@ exports.handler = async (event) => {
                 return respond(400, { ok: false, error: 'Missing clients array' });
             }
 
-            /* Merge: admin controls basic fields + archiving; S3 owns portal section data.
-               - Archived clients in S3 are PRESERVED
-               - Active clients from admin are merged with portal sections from S3
-               - For kept clients, preserve portal sections from S3 so in-progress
-                 portal work is never overwritten by a stale admin session. */
+            /* Merge: admin controls basic fields + deletions; S3 owns portal section data.
+               - Clients NOT in incoming array are DELETED from S3
+               - For clients in incoming array, preserve portal sections from S3
+               - This allows admin to control which clients exist while preserving portal work */
             const PORTAL_SECTIONS = ['timeline','vendors','documents','gallery','moodboard','agreement','editLog','trackingNotes'];
             let existing = [];
             try { existing = await readClients(); } catch (e) { /* first write */ }
@@ -141,31 +140,19 @@ exports.handler = async (event) => {
             const existingById = {};
             existing.forEach(c => { if (c && c.id) existingById[c.id] = c; });
 
-            // Get archived clients from S3 (not in incoming array but archived in S3)
-            const archivedInS3 = existing.filter(c => c.archived === true);
-            
             // Merge incoming clients with their portal sections from S3
             const merged = body.clients.map(incoming => {
                 const s3 = existingById[incoming.id];
-                if (!s3) return incoming; // new client
+                if (!s3) return incoming; // new client - no portal sections to preserve
                 // Merge: take admin fields from incoming, portal sections from S3
                 const out = Object.assign({}, incoming);
                 PORTAL_SECTIONS.forEach(k => { if (s3[k] !== undefined) out[k] = s3[k]; });
                 return out;
             });
-
-            // Add back archived clients from S3 that weren't in the incoming array
-            archivedInS3.forEach(archived => {
-                // Check if this archived client was updated in incoming (maybe unarchived)
-                const inIncoming = body.clients.find(c => c.id === archived.id);
-                if (!inIncoming) {
-                    // Not in incoming, keep the archived one from S3
-                    merged.push(archived);
-                }
-            });
+            // Clients not in incoming array are deleted - they won't be in merged array
 
             await writeClients(merged);
-            return respond(200, { ok: true, count: merged.length, archived: archivedInS3.length });
+            return respond(200, { ok: true, count: merged.length });
         }
 
         /* ── Client: update own tracking notes ──────── */

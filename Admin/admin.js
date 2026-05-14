@@ -2805,14 +2805,19 @@
     function deleteClient(id) {
         var c = state.clients.find(function (x) { return x.id === id; });
         if (!c) return;
-        if (!confirm('Archive client "' + c.fullName + '"? They will be moved to archived storage but not permanently deleted.')) return;
-        // Archive instead of delete: set archived = true and active = false
-        c.archived = true;
-        c.active = false;
-        c.archivedDate = new Date().toISOString();
+        if (!confirm('⚠️ PERMANENTLY DELETE "' + (c.fullName || 'this client') + '" from S3 cloud storage?\n\nThis will remove all data including portal sections, documents, gallery, and timeline.\n\nThis CANNOT be undone!')) return;
+        
+        // Double confirmation for permanent delete
+        if (!confirm('⚠️ FINAL WARNING: Delete ' + (c.fullName || 'client') + ' forever? This action is PERMANENT!')) return;
+        
+        // PERMANENTLY REMOVE from array
+        state.clients = state.clients.filter(function (x) { return x.id !== id; });
+        
+        // Save to localStorage (without deleted client)
         safeSave(STORAGE_CLIENTS, state.clients);
         cloudPush({ clients: state.clients });
-        // Upload all clients to S3 including archived ones
+        
+        // Upload to S3 WITHOUT the deleted client
         var api = window.RNB_UPLOAD_API;
         if (api) {
             fetch(api, {
@@ -2821,14 +2826,26 @@
                 body: JSON.stringify({ clients: state.clients })
             }).then(function (r) { return r.json(); })
               .then(function (data) {
-                  if (data && data.ok) updateSyncStatus('synced');
-                  else { console.warn('Archive publish failed:', data && data.error); updateSyncStatus('error'); }
+                  if (data && data.ok) {
+                      updateSyncStatus('synced');
+                      showToast('✅ Client permanently deleted from S3. (' + data.count + ' clients remaining)');
+                  } else { 
+                      console.warn('Delete failed:', data && data.error); 
+                      updateSyncStatus('error');
+                      showToast('❌ Delete failed: ' + (data.error || 'Unknown error'));
+                  }
               })
-              .catch(function (e) { console.warn('Archive publish error:', e); updateSyncStatus('error'); });
+              .catch(function (e) { 
+                  console.warn('Delete error:', e); 
+                  updateSyncStatus('error');
+                  showToast('❌ Network error during delete');
+              });
+        } else {
+            showToast('⚠️ Client deleted locally but S3 endpoint not configured!');
         }
+        
         renderClientManager();
-        logAdminActivity('Client archived', 'Archived client: ' + (c.fullName || c.id));
-        showToast('Client archived. They will no longer appear in active view.');
+        logAdminActivity('Client deleted', 'PERMANENTLY deleted client: ' + (c.fullName || c.id));
     }
 
     function unarchiveClient(id) {

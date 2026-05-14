@@ -875,31 +875,15 @@
     var CLOUD_URL = (window.ADMIN_CONFIG || {}).cloudApiUrl || '';
 
     function cloudGet() {
-        if (!CLOUD_URL) { updateSyncStatus('local'); return Promise.resolve(null); }
-        updateSyncStatus('syncing');
-        return fetch(CLOUD_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'get' })
-        })
-            .then(function (r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
-            .then(function (data) { updateSyncStatus('synced'); return data; })
-            .catch(function (e) { console.error('Cloud fetch:', e); updateSyncStatus('local'); return null; });
+        // Legacy cloud sync disabled - using direct S3 Lambda upload instead
+        updateSyncStatus('local');
+        return Promise.resolve(null);
     }
 
     function cloudPush(payload) {
-        if (!CLOUD_URL) return;
-        updateSyncStatus('syncing');
-        fetch(CLOUD_URL, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(filterCloudPayload(payload))
-        })
-        .then(function () { updateSyncStatus('synced'); })
-        .catch(function (e) { console.error('Cloud push:', e); updateSyncStatus('error'); });
+        // Legacy cloud sync disabled - using direct S3 Lambda upload instead
+        // Cloud sync happens via autoPublishClients() using RNB_UPLOAD_API
+        updateSyncStatus('local');
     }
 
     function filterCloudPayload(payload) {
@@ -1092,7 +1076,7 @@
         var booked   = ps.filter(function (p) { return p.status === 'Booked'; }).length;
         var inTalks  = ps.filter(function (p) { return p.status === 'In Conversation' || p.status === 'Proposal Sent'; }).length;
         var newLeads = ps.filter(function (p) { return p.status === 'New Lead'; }).length;
-        var clients  = state.clients.filter(function (c) { return c.active !== false; }).length;
+        var clients  = state.clients.filter(function (c) { return !c.archived && c.active !== false; }).length;
 
         var el = document.getElementById('stats-row');
         el.innerHTML =
